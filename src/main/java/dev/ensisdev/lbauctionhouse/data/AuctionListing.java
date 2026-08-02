@@ -31,7 +31,8 @@ public record AuctionListing(
         boolean expired,       // true = süresi doldu ve işlendi
         double binPrice,       // "BOTH" tipi için BIN fiyatı (0 = BIN/BID)
         boolean sealed,        // true = gizli teklif (sealed bid)
-        boolean advertised     // true = reklamlı ilan (global duyurulur, fiyat +komisyon)
+        boolean advertised,    // true = reklamlı ilan (global duyurulur, fiyat +komisyon)
+        boolean offersEnabled   // true = alıcı pazarlık teklifi gönderebilir
 ) {
 
     public boolean isBid() {

@@ -1,5 +1,6 @@
 # lbSmpCore-Auction Configuration
 # All settings are configurable — no hardcoded values
+# Bu Plugin "EnsisDev" Tarafından Aktif Olarak Geliştirilmektedir
 config-version: 4
 
 # Genel ayarlar
@@ -149,6 +150,25 @@ flash-sale:
 # Search settings
 search:
   enabled: true
+
+# ═══════════════════════════════════════════════════════════
+#  PAZARLIK (Teklif / Negotiation) sistemi
+#  Alıcı, "teklif açık" ilanlara pazarlık teklifi gönderir;
+#  satıcı tıklanabilir [Kabul] [Reddet] [Yeni Teklif] ile yanıtlar.
+# ═══════════════════════════════════════════════════════════
+pazarlik:
+  enabled: true
+  # Alıcının teklifi, listedeki fiyatın en fazla bu yüzde altına inebilir.
+  # 0 = sınırsız, 20 = en fazla %20 indirim, 100 = 1 birime kadar inebilir.
+  max-discount-percent: 20
+  # Aynı satıcıya kaç kez reddedilince gönderici bloklanır (cooldown başlar)
+  reject-limit: 2
+  # Blok süresi (saniye)
+  cooldown-seconds: 300
+  # Bekleyen teklifin yanıtlanmadan bozulmama süresi (saniye)
+  timeout-seconds: 300
+  # Bir oyuncunun aynı anda toplam bekleyen teklif sayısı üstü
+  max-active-offers-per-player: 5
 
 # Trade System (Oyuncu-oyuncu takas)
 # Players can send trade requests to exchange items directly

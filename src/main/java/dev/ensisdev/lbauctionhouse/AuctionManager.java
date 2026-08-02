@@ -140,6 +140,10 @@ public class AuctionManager {
     }
 
     public boolean listItem(Player player, ItemStack item, double price, int expireHours, boolean advertised) {
+        return listItem(player, item, price, expireHours, advertised, false);
+    }
+
+    public boolean listItem(Player player, ItemStack item, double price, int expireHours, boolean advertised, boolean offersEnabled) {
         // Ekonomi kontrolü
         if (!economy.isEnabled()) {
             logger.warn("Ekonomi servisi kullanılamıyor — listeleme yapılamaz.");
@@ -214,10 +218,11 @@ public class AuctionManager {
 
         final double finalPrice = price;
         final boolean finalAdvertised = advertised;
+        final boolean finalOffers = offersEnabled;
         AuctionListing listing = new AuctionListing(
                 id, player.getUniqueId(), player.getName(),
                 item, finalPrice, 0, "BIN", now, expiresAt, false, null, null,
-                flashSaleEndsAt, originalPrice, false, 0, false, advertised
+                flashSaleEndsAt, originalPrice, false, 0, false, advertised, finalOffers
         );
 
         data.insertListingAsync(listing).thenRun(() -> {

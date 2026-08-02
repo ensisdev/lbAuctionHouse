@@ -70,12 +70,14 @@ public class AuctionData {
                     "rental_ends_at INTEGER DEFAULT 0, " +
                     "renew_count INTEGER DEFAULT 0, " +
                     "lore_text TEXT DEFAULT '', " +
-                    "enchant_text TEXT DEFAULT ''");
+                    "enchant_text TEXT DEFAULT '', " +
+                    "offers_enabled INTEGER DEFAULT 0");
 
             try { adapter.execute("ALTER TABLE auction_listings ADD COLUMN rental_ends_at INTEGER DEFAULT 0"); } catch (Exception ignored) {}
             try { adapter.execute("ALTER TABLE auction_listings ADD COLUMN renew_count INTEGER DEFAULT 0"); } catch (Exception ignored) {}
             try { adapter.execute("ALTER TABLE auction_listings ADD COLUMN lore_text TEXT DEFAULT ''"); } catch (Exception ignored) {}
             try { adapter.execute("ALTER TABLE auction_listings ADD COLUMN enchant_text TEXT DEFAULT ''"); } catch (Exception ignored) {}
+            try { adapter.execute("ALTER TABLE auction_listings ADD COLUMN offers_enabled INTEGER DEFAULT 0"); } catch (Exception ignored) {}
             try { adapter.execute("ALTER TABLE auction_listings ADD COLUMN display_name TEXT DEFAULT ''"); } catch (Exception ignored) {}
             try { adapter.execute("ALTER TABLE auction_listings ADD COLUMN starting_bid REAL DEFAULT 0"); } catch (Exception ignored) {}
             try { adapter.execute("ALTER TABLE auction_listings ADD COLUMN type TEXT NOT NULL DEFAULT 'BIN'"); } catch (Exception ignored) {}
@@ -197,8 +199,8 @@ public class AuctionData {
     public void insertListing(AuctionListing listing) {
         try {
             dataManager.getAdapter().execute(
-                "INSERT INTO auction_listings (id, seller_uuid, seller_name, item_data, display_name, price, starting_bid, type, listed_at, expires_at, sold, rental_ends_at, material, flash_sale_ends_at, original_price, bin_price, advertised, lore_text, enchant_text) " +
-                "VALUES (?,?,?,?,?,?,?,?,?,?,0,?,?,?,?,?,?,?,?)",
+                "INSERT INTO auction_listings (id, seller_uuid, seller_name, item_data, display_name, price, starting_bid, type, listed_at, expires_at, sold, rental_ends_at, material, flash_sale_ends_at, original_price, bin_price, advertised, lore_text, enchant_text, offers_enabled) " +
+                "VALUES (?,?,?,?,?,?,?,?,?,?,0,?,?,?,?,?,?,?,?,?)",
                 listing.id().toString(),
                 listing.sellerUUID().toString(),
                 listing.sellerName(),
@@ -254,6 +256,19 @@ public class AuctionData {
             logger.log(Level.WARNING, "Atomik satış claim hatası", e);
         }
         return false;
+    }
+
+    /**
+     * Bir ilanın "teklif (pazarlık)" açık/kapalı bayrağını günceller.
+     */
+    public void setOffersEnabled(UUID listingId, boolean enabled) {
+        try {
+            dataManager.getAdapter().execute(
+                "UPDATE auction_listings SET offers_enabled = ? WHERE id = ?",
+                enabled ? 1 : 0, listingId.toString());
+        } catch (SQLException e) {
+            logger.log(Level.WARNING, "offers_enabled güncelleme hatası", e);
+        }
     }
 
     /**
@@ -933,15 +948,16 @@ public class AuctionData {
 
     public CompletableFuture<Void> insertListingAsync(AuctionListing listing) {
         return dataManager.async().executeAsync(
-            "INSERT INTO auction_listings (id, seller_uuid, seller_name, item_data, display_name, price, starting_bid, type, listed_at, expires_at, sold, rental_ends_at, material, flash_sale_ends_at, original_price, bin_price, advertised, lore_text, enchant_text) " +
-            "VALUES (?,?,?,?,?,?,?,?,?,?,0,0,?,?,?,?,?,?,?)",
+            "INSERT INTO auction_listings (id, seller_uuid, seller_name, item_data, display_name, price, starting_bid, type, listed_at, expires_at, sold, rental_ends_at, material, flash_sale_ends_at, original_price, bin_price, advertised, lore_text, enchant_text, offers_enabled) " +
+            "VALUES (?,?,?,?,?,?,?,?,?,?,0,0,?,?,?,?,?,?,?,?)",
             listing.id().toString(), listing.sellerUUID().toString(), listing.sellerName(),
             serializeItem(listing.item()),
             listing.item().getItemMeta().hasDisplayName() ? listing.item().getItemMeta().getDisplayName() : listing.item().getType().name(),
             listing.price(), listing.startingBid(), listing.type(), listing.listedAt(), listing.expiresAt(),
             listing.item().getType().name(), listing.flashSaleEndsAt(), listing.originalPrice(),
             listing.binPrice(), listing.isAdvertised() ? 1 : 0,
-            extractLoreText(listing.item()), extractEnchantText(listing.item())
+            extractLoreText(listing.item()), extractEnchantText(listing.item()),
+            listing.offersEnabled() ? 1 : 0
         );
     }
 
@@ -1354,6 +1370,7 @@ public class AuctionData {
             double binPrice = row.get("bin_price") != null ? ((Number) row.get("bin_price")).doubleValue() : 0;
             boolean sealed = row.get("sealed") != null && ((Number) row.get("sealed")).intValue() == 1;
             boolean advertised = row.get("advertised") != null && ((Number) row.get("advertised")).intValue() == 1;
+            boolean offersEnabled = row.get("offers_enabled") != null && ((Number) row.get("offers_enabled")).intValue() == 1;
             return new AuctionListing(
                 UUID.fromString((String) row.get("id")),
                 UUID.fromString((String) row.get("seller_uuid")),
@@ -1372,7 +1389,8 @@ public class AuctionData {
                 expired,
                 binPrice,
                 sealed,
-                advertised
+                advertised,
+                offersEnabled
             );
         } catch (Exception e) {
             logger.log(Level.WARNING, "Satır→Listing dönüşüm hatası", e);

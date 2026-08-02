@@ -575,6 +575,46 @@ public class AuctionConfig {
         return config.getString("discord-webhook.username", "lbAuctionHouse");
     }
 
+    // ----------------------------------------------------------------
+    // Pazarlık / Teklif sistemi (config.yml → pazarlik)
+    // ----------------------------------------------------------------
+
+    public boolean isNegotiationEnabled() {
+        return config.getBoolean("pazarlik.enabled", true);
+    }
+
+    /** Alıcının teklifi, listedeki fiyatın en fazla bu yüzde altına inebilir (0 = sınırsız). */
+    public int getMaxDiscountPercent() {
+        return Math.max(0, Math.min(100, config.getInt("pazarlik.max-discount-percent", 20)));
+    }
+
+    /** Aynı satıcıya kaç kez reddedilince gönderici bloklanır. */
+    public int getRejectLimit() {
+        return Math.max(1, config.getInt("pazarlik.reject-limit", 2));
+    }
+
+    /** Red blok süresi (saniye). */
+    public int getNegotiationCooldownSeconds() {
+        return Math.max(0, config.getInt("pazarlik.cooldown-seconds", 300));
+    }
+
+    /** Bekleyen teklifin yanıtlanmadan geçerliliği (saniye). */
+    public int getNegotiationTimeoutSeconds() {
+        return Math.max(10, config.getInt("pazarlik.timeout-seconds", 300));
+    }
+
+    /** Bir oyuncunun aynı anda bekleyen toplam teklif üst limiti. */
+    public int getMaxActiveOffersPerPlayer() {
+        return Math.max(1, config.getInt("pazarlik.max-active-offers-per-player", 5));
+    }
+
+    /** Alıcının bu ilana verebileceği EN DÜŞÜK teklif (# listprice'a göre indirim üstü). */
+    public double getOfferFloorPrice(double listedPrice) {
+        int pct = getMaxDiscountPercent();
+        if (pct <= 0) return getMinPrice(); // sınırsız → yalnızca global min
+        return listedPrice * (1.0 - pct / 100.0);
+    }
+
     // Sıralama seçenekleri
     public boolean isSortEnabled() {
         return config.getBoolean("sorting.enabled", true);
