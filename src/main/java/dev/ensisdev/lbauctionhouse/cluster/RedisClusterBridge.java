@@ -54,7 +54,7 @@ public class RedisClusterBridge implements ClusterBridge {
             pool.getResource().ping(); // test
             running = true;
 
-            Thread sub = new Thread(this::listen, "lbSmpCore-Redis");
+            Thread sub = new Thread(this::listen, "lbAuctionHouse-Redis");
             sub.setDaemon(true);
             sub.start();
 

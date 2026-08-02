@@ -13,7 +13,7 @@ import java.util.logging.Logger;
 /**
  * lbAuctionHouse'un iç servislerine erişim sağlayan API facade'ı.
  * <p>
- * Eski lbSmpCore addon mimarisinden bağımsızlaştırılmıştır — dış Core'a
+ * Eski lbAuctionHouse addon mimarisinden bağımsızlaştırılmıştır — dış Core'a
  * bağımlılık yoktur; tüm servisler plugin'in kendi içindedir.
  */
 public class AuctionAPI {

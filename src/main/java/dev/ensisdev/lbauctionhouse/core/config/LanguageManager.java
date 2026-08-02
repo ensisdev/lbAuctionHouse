@@ -77,7 +77,7 @@ public class LanguageManager {
         if (prefixRaw != null) {
             this.prefix = deserialize(prefixRaw);
         } else {
-            this.prefix = Component.text("[lbSmpCore]");
+            this.prefix = Component.text("[lbAuctionHouse]");
         }
 
         logger.info("LanguageManager yüklendi (" + messages.getKeys(true).size() + " keys).");
@@ -285,10 +285,10 @@ public class LanguageManager {
     // ----------------------------------------------------------------
 
     private void registerDefaults() {
-        defaults.put("prefix", "<dark_gray>[</dark_gray><gold><bold>lbSmpCore</bold></gold><dark_gray>]</dark_gray>");
+        defaults.put("prefix", "<dark_gray>[</dark_gray><gold><bold>lbAuctionHouse</bold></gold><dark_gray>]</dark_gray>");
         defaults.put("core.reload.success", "<green>Configuration and addons reloaded.</green>");
         defaults.put("core.reload.no-permission", "<red>You don't have permission!</red>");
-        defaults.put("core.version.info", "<aqua>lbSmpCore v{version}</aqua>");
+        defaults.put("core.version.info", "<aqua>lbAuctionHouse v{version}</aqua>");
         defaults.put("core.version.authors", "<gray>Authors: <white>{authors}</white></gray>");
         defaults.put("core.addons.none", "<yellow>No addons installed.</yellow>");
         defaults.put("core.addons.header", "<gold>Installed addons ({count}):</gold>");

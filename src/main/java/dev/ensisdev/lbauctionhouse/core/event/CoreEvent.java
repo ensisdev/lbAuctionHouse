@@ -3,7 +3,7 @@ package dev.ensisdev.lbauctionhouse.core.event;
 import org.bukkit.event.Event;
 
 /**
- * lbSmpCore'un tüm özel event'leri için abstract base sınıf.
+ * lbAuctionHouse'un tüm özel event'leri için abstract base sınıf.
  * <p>
  * Bukkit event sistemi üzerine kuruludur — addon'lar normal Bukkit listener'ları
  * ile bu event'leri dinleyebilir. Her event sınıfı kendi {@link org.bukkit.event.HandlerList}'ini

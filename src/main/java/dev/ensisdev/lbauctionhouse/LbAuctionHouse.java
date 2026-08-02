@@ -28,7 +28,7 @@ import org.bukkit.plugin.java.JavaPlugin;
 /**
  * lbAuctionHouse — bağımsız ihale (auction house) eklentisi.
  * <p>
- * lbSmpCore'dan bağımsızlaştırılmıştır: tüm altyapı (config, dil, veri, ekonomi,
+ * lbAuctionHouse'dan bağımsızlaştırılmıştır: tüm altyapı (config, dil, veri, ekonomi,
  * GUI) plugin'in kendi {@code core} paketi içinde barındırılır. Addon değil,
  * normal bir Bukkit/Paper pluginidir.
  */
@@ -36,7 +36,7 @@ public class LbAuctionHouse extends JavaPlugin {
 
     private static LbAuctionHouse instance;
 
-    // Vendored core servisleri (lbSmpCore'dan bağımsız)
+    // Vendored core servisleri (lbAuctionHouse'dan bağımsız)
     private ConfigManager configManager;
     private LanguageManager languageManager;
     private DataManager dataManager;

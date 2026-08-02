@@ -44,7 +44,7 @@ public class SQLiteAdapter implements StorageAdapter {
         try {
             HikariConfig config = new HikariConfig();
             config.setJdbcUrl("jdbc:sqlite:" + databaseFile.getAbsolutePath());
-            config.setPoolName("lbSmpCore-SQLite");
+            config.setPoolName("lbAuctionHouse-SQLite");
             config.setMaximumPoolSize(5);
             config.setMinimumIdle(1);
             config.setConnectionTimeout(5000);

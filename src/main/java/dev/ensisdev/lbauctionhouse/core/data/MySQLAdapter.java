@@ -61,7 +61,7 @@ public class MySQLAdapter implements StorageAdapter {
             config.setJdbcUrl(jdbcUrl);
             config.setUsername(username);
             config.setPassword(password);
-            config.setPoolName("lbSmpCore-MySQL");
+            config.setPoolName("lbAuctionHouse-MySQL");
             config.setMaximumPoolSize(poolSize);
             config.setMinimumIdle(2);
             config.setConnectionTimeout(5000);

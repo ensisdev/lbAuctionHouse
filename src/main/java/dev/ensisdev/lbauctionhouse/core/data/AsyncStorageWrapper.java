@@ -29,7 +29,7 @@ public class AsyncStorageWrapper {
     public AsyncStorageWrapper(StorageAdapter delegate) {
         this.delegate = delegate;
         this.executor = Executors.newCachedThreadPool(r -> {
-            Thread t = new Thread(r, "lbSmpCore-DB");
+            Thread t = new Thread(r, "lbAuctionHouse-DB");
             t.setDaemon(true);
             return t;
         });
@@ -59,15 +59,6 @@ public class AsyncStorageWrapper {
                 throw new RuntimeException(e);
             }
         }, executor);
-    }
-
-    /**
-     * Async sorgu — sonucu main thread'de işler.
-     */
-    public <T> void queryAsync(String sql, java.util.function.Consumer<List<Map<String, Object>>> callback,
-                                Object... params) {
-        queryListAsync(sql, params).thenAcceptAsync(callback, r -> Bukkit.getScheduler().runTask(
-                (org.bukkit.plugin.Plugin) Bukkit.getPluginManager().getPlugin("lbSmpCore"), () -> r.run()));
     }
 
     /**

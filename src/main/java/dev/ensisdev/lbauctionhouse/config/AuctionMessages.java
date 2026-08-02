@@ -65,7 +65,7 @@ public class AuctionMessages {
                 plugin.saveResource("messages.yml", false);
             } catch (Exception e) {
                 // TAM stack trace — hata yutulmaz (örn: JAR'da messages.yml yoksa IllegalArgument)
-                logger.log(Level.SEVERE, "[lbSmpCore-Auction] messages.yml diske kopyalanamadı (JAR'da eksik olabilir).", e);
+                logger.log(Level.SEVERE, "[lbAuctionHouse-Auction] messages.yml diske kopyalanamadı (JAR'da eksik olabilir).", e);
             }
         }
 
@@ -77,10 +77,10 @@ public class AuctionMessages {
             // Fallback: diskte yoksa JAR içindeki kaynağı kullan
             InputStream in = plugin.getResource("messages.yml");
             if (in != null) {
-                logger.warning("[lbSmpCore-Auction] messages.yml diskte bulunamadı, JAR içindeki kaynak kullanılıyor.");
+                logger.warning("[lbAuctionHouse-Auction] messages.yml diskte bulunamadı, JAR içindeki kaynak kullanılıyor.");
                 lang.registerAddonMessages("Auction", in);
             } else {
-                logger.severe("[lbSmpCore-Auction] messages.yml NE diskte NE JAR'da bulunamadı! Mesajlar gösterilemez.");
+                logger.severe("[lbAuctionHouse-Auction] messages.yml NE diskte NE JAR'da bulunamadı! Mesajlar gösterilemez.");
                 return;
             }
         }
@@ -105,7 +105,7 @@ public class AuctionMessages {
             if (msgLangFile.exists()) {
                 lang.registerAddonMessages("Auction", msgLangFile, true);
             } else {
-                logger.warning("[lbSmpCore-Auction] Mesaj dili dosyası bulunamadı: lang/" + msgLangCode
+                logger.warning("[lbAuctionHouse-Auction] Mesaj dili dosyası bulunamadı: lang/" + msgLangCode
                         + ".yml — varsayılan (messages.yml) kullanılıyor.");
             }
         }

@@ -8,7 +8,7 @@ import java.util.logging.Logger;
  * lbAuctionHouse için logger sarmalayıcı.
  * <p>
  * Plugin kendi logger'ı zaten {@code [lbAuctionHouse]} prefix'ini ekler; bu
- * sarmalayıcı fazladan prefix eklemez (eski lbSmpCore-* addon prefix'i kaldırıldı).
+ * sarmalayıcı fazladan prefix eklemez (eski lbAuctionHouse-* addon prefix'i kaldırıldı).
  */
 public class AddonLogger {
 
