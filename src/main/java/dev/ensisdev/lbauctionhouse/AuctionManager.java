@@ -272,6 +272,14 @@ public class AuctionManager {
      * @return işlem sonucu kodu
      */
     public PurchaseResult buyItem(Player buyer, AuctionListing listing) {
+        return buyItem(buyer, listing, null);
+    }
+
+    /**
+     * Satın alma — isteğe bağlı anlaşılan (pazarlık) fiyat override'ı.
+     * {@code priceOverride != null} ise onun yerine o fiyat kullanılır.
+     */
+    public PurchaseResult buyItem(Player buyer, AuctionListing listing, Double priceOverride) {
         if (!economy.isEnabled())
             return PurchaseResult.ECONOMY_DISABLED;
 
@@ -303,7 +311,8 @@ public class AuctionManager {
                 if (preBuy.isCancelled()) return PurchaseResult.CANCELLED;
 
                 // "BOTH" tipinde: BIN fiyatı varsa onu kullan, yoksa price kullan
-                double buyPrice = fresh.isBoth() && fresh.binPrice() > 0 ? fresh.binPrice() : fresh.price();
+                double buyPrice = priceOverride != null ? priceOverride
+                : (fresh.isBoth() && fresh.binPrice() > 0 ? fresh.binPrice() : fresh.price());
                 if (!economy.has(buyer, buyPrice)) return PurchaseResult.INSUFFICIENT_FUNDS;
                 // Çapraz sunucu (MySQL) güvenliği: ilanı ATOMIK olarak claim et —
                 // yalnızca hâlâ satılmamışsa satılır, iki sunucu aynı anda satamaz.

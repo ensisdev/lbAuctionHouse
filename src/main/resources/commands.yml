@@ -58,6 +58,7 @@ subcommands:
   search: [ara, search]
   trade: [takas, trade]
   view: [gör, gor, view]
+  negotiate: [teklif, pazarlik]
 
 # ──────────────────────────────────────────────────────────────────
 #  ADMIN ALT-KOMUTLARI  —  /<yönetim komutu> <buradaki isim>

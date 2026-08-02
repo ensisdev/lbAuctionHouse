@@ -134,6 +134,18 @@ public class NegotiationService {
         return ReplyResult.OK;
     }
 
+    public ReplyResult counterByBuyer(Player buyer, UUID offerId, double newPrice) {
+        Negotiation o = findForBuyer(buyer, offerId);
+        if (o == null) return ReplyResult.NOT_YOURS;
+        if (!o.isOpen()) return ReplyResult.NOT_OPEN;
+        if (newPrice < config.getMinPrice() || newPrice > config.getMaxPrice()) return ReplyResult.NOT_OPEN;
+        AuctionListing listing = data.getListing(o.listingId());
+        if (listingSold(o.listingId())) return ReplyResult.SOLD;
+        Negotiation updated = replacePrice(o, Status.PENDING, newPrice);
+        if (listing != null) notifySellerOffer(updated, listing);
+        return ReplyResult.OK;
+    }
+
     public ReplyResult acceptBuyer(Player buyer, UUID offerId) {
         Negotiation o = findForBuyer(buyer, offerId);
         if (o == null) return ReplyResult.NOT_YOURS;

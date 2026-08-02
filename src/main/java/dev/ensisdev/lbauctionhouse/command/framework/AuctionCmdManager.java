@@ -95,6 +95,7 @@ public class AuctionCmdManager implements CommandExecutor, TabCompleter {
         registerSub(new CmdSearch());
         registerSub(new CmdTrade());
         registerSub(new CmdView());
+        registerSub(new CmdNegotiate());
 
         // Ana komut: language file'dan (seçili dil)
         registerMainCommand();

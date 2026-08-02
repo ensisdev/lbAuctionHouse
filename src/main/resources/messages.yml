@@ -118,3 +118,27 @@ auction:
     opening: "<green>%seller% oyuncusunun aktif ilanları açılıyor…</green>"
   reload: "<green>İhale konfigürasyonu yeniden yüklendi.</green>"
   "reload-restart": "<gray>Not: Ekonomi ve Cluster tipi değişiklikleri için sunucu restart'ı gerekir.</gray>"
+
+# ═══════════════════════════════════════════════════════════
+#  PAZARLIK (teklif) mesajları — NegotiationService doğrudan pazar
+#  "...". bu anahtarları kullanır (auction. öneki YOK).
+# ═══════════════════════════════════════════════════════════
+pazarlik:
+  offer-sent: "<green>%listing% ilanına <white>%price%</white> teklif gönderildi.</green>"
+  offer-received: "<gold>%buyer%</gold> <i>%listing%</i> ilanına <white>%price%</white> teklif etti:"
+  seller-counter: "<gold>Satıcı yeni fiyat önerdi: <white>%price%</white></gold>"
+  rejected: "<red>Teklifin reddedildi. (%price%)</red>"
+  cooldown: "<red>Bu satıcıya bir süre yeni teklif gönderemezsin (%seconds% sn).</red>"
+  buyer-accepted: "<green>%buyer% teklifini kabul etti!</green>"
+  buyer-declined: "<yellow>%buyer% teklifini reddetti.</yellow>"
+  confirm-invite: "<aqua>Anlaşılan fiyat: <white>%price%</white>. Satın almayı onayla:</aqua>"
+  send-ok: "<green>Teklif gönderildi!</green>"
+  err:
+    disabled: "<red>Bu ilanda pazarlık (teklif) kapalı.</red>"
+    sold: "<red>Bu ilan satılmış zaten.</red>"
+    self: "<red>Kendi ilanına teklif gönderemezsin!</red>"
+    blocked: "<red>Bu satıcıya şu an teklif gönderemezsin.</red>"
+    price: "<red>Teklifin izin verilen indirim aralığının dışında!</red>"
+    limit: "<red>Çok fazla bekleyen teklifin var.</red>"
+    open: "<red>Bu ilanda zaten açık bir teklifin var.</red>"
+    number: "<red>Geçersiz fiyat! Sayı girmelisin.</red>"

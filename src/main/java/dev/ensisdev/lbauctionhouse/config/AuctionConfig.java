@@ -311,7 +311,8 @@ public class AuctionConfig {
             Map.entry("ban",        List.of("yasak", "ban")),
             Map.entry("search",     List.of("ara", "search")),
             Map.entry("trade",      List.of("takas", "trade")),
-            Map.entry("view",       List.of("gör", "gor", "view"))
+            Map.entry("view",       List.of("gör", "gor", "view")),
+            Map.entry("negotiate", List.of("teklif", "pazarlik"))
     );
 
     /**

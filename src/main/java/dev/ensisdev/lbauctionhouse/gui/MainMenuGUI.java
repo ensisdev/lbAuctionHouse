@@ -491,7 +491,8 @@ public class MainMenuGUI extends BaseMenu {
     private net.kyori.adventure.text.Component offerMsg(dev.ensisdev.lbauctionhouse.service.NegotiationService.SendResult r) {
         var lang = manager.getApi().getLanguageManager();
         return switch (r) {
-            case OK -> lang.getPrefixed("pazarlik.send-ok");
+            // OK durumunda metni NegotiationService zaten gönderir (offer-sent)
+            case OK -> net.kyori.adventure.text.Component.empty();
             case OFFERS_DISABLED -> lang.getPrefixed("pazarlik.err.disabled");
             case SOLD -> lang.getPrefixed("pazarlik.err.sold");
             case SELF -> lang.getPrefixed("pazarlik.err.self");
