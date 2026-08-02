@@ -43,7 +43,7 @@ public class SellGUI extends BaseMenu {
     private Consumer<Boolean> onComplete;
 
     public SellGUI(LbAuctionHouse addon, LbAuctionHouse corePlugin, AuctionManager manager, AuctionConfig config) {
-        super("auction_sell", "&8&l» &6&lEŞYA SAT &8&l«", 4);
+        super("auction_sell", "&8&l» &6&l" + dev.ensisdev.lbauctionhouse.util.SmallCaps.toSmallCaps("EŞYA SAT") + " &8&l«", 4);
         this.addon = addon;
         this.corePlugin = corePlugin;
         this.manager = manager;

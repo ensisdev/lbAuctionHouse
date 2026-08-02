@@ -32,7 +32,7 @@ public class BundleEditGUI extends BaseMenu {
     private Runnable onCancel;
 
     public BundleEditGUI() {
-        super("auction_bundle", "&8&l» &6&lTOPLU PAKET &8&l«", 6);
+        super("auction_bundle", "&8&l» &6&l"+ dev.ensisdev.lbauctionhouse.util.SmallCaps.toSmallCaps("TOPLU PAKET")+" &8&l«", 6);
     }
 
     public void open(Player player, Consumer<List<ItemStack>> onComplete, Runnable onCancel) {

@@ -26,7 +26,7 @@ public class BundleViewGUI extends BaseMenu {
     private final List<ItemStack> contents = new ArrayList<>();
 
     public BundleViewGUI() {
-        super("auction_bundle_view", "&8&l» &6&lPAKET İÇERİĞİ &8&l«", 6);
+        super("auction_bundle_view", "&8&l» &6&l"+ dev.ensisdev.lbauctionhouse.util.SmallCaps.toSmallCaps("PAKET İÇERİĞİ")+" &8&l«", 6);
     }
 
     /**
