@@ -44,6 +44,8 @@ public class MainMenuGUI extends BaseMenu {
     private String currentSearch;
     private int currentSortOption;
     private int currentCategoryIndex = -1; // -1 = all
+    /** Async sayfa çekişlerinde eski isteklerin render edilmemesi için sayaç. */
+    private volatile long pageToken = 0;
 
     /** Sayfalı veri taşıyıcı — hem liste hem toplam sayıyı tutar. */
     private record PageData(List<AuctionListing> listings, int totalCount) {}
@@ -65,9 +67,9 @@ public class MainMenuGUI extends BaseMenu {
     @Override
     protected void onOpen(Player player) {
         this.currentPlayer = player;
-        this.currentPage = 0;
-        this.pageData = fetchPage(0);
+        // Önce şu anki durumla (veya boş) çiz, ardından veriyi ASYNC çekip yeniden çiz.
         renderPage();
+        schedulePage(currentPage);
     }
 
     @Override
@@ -76,6 +78,8 @@ public class MainMenuGUI extends BaseMenu {
         this.currentSearch = null;
         this.currentCategoryIndex = -1;
         this.currentSortOption = 0;
+        this.currentPage = 0;
+        this.pageData = null;
         applyTitle();
         super.open(player);
     }
@@ -89,19 +93,50 @@ public class MainMenuGUI extends BaseMenu {
         this.currentCategoryIndex = -1;
         this.currentSortOption = 0;
         this.currentPage = 0;
-        this.pageData = fetchPage(0);
-        applyTitle();
+        this.pageData = null;
         super.open(player);
     }
 
-    /** Aramaya göre GUI başlığını belirler (& renk kodu destekli). */
-    private void applyTitle() {
+    /**
+     * Deşarj: Veriyi ASYNC çekip, tamamlanınca main thread'de çizer.
+     * Eski istekler (hızlı sayfa değişiminde) yok sayılır.
+     */
+    private void schedulePage(int page) {
+        final long token = ++pageToken;
+        org.bukkit.Bukkit.getScheduler().runTaskAsynchronously(corePlugin, () -> {
+            PageData pd = fetchPage(page);
+            org.bukkit.Bukkit.getScheduler().runTask(corePlugin, () -> {
+                if (token != pageToken) return; // eski istek — atla
+                this.currentPage = page;
+                this.pageData = pd;
+                applyTitle();
+                updateOpenTitle();
+                renderPage();
+            });
+        });
+    }
+
+    /** Aramaya göre GUI başlığı metnini döndürür (& kodu destekli). */
+    private String resolveTitle() {
         if (currentSearch != null && !currentSearch.isEmpty()) {
             int count = pageData != null ? pageData.totalCount() : 0;
-            setDynamicTitle("&8\"" + currentSearch + "\" &7İçin &e" + count + " &7Sonuç Bulundu");
-        } else {
-            setDynamicTitle(layout.title());
+            return "&8\"" + currentSearch + "\" &7İçin &e" + count + " &7Sonuç Bulundu";
         }
+        return layout.title();
+    }
+
+    /** Açık envanterin başlığını da güncelle (arama sonucu canlı kalsın). */
+    private void updateOpenTitle() {
+        if (currentPlayer == null) return;
+        try {
+            currentPlayer.getOpenInventory().setTitle(
+                resolveTitle().replace('&', net.md_5.bungee.api.ChatColor.COLOR_CHAR));
+        } catch (Exception ignored) {}
+    }
+
+    /** Aramaya göre GUI başlığını belirler (& kodu destekli). */
+    private void applyTitle() {
+        setDynamicTitle(resolveTitle());
     }
 
     @Override
@@ -114,12 +149,12 @@ public class MainMenuGUI extends BaseMenu {
 
         // Navigation
         if (slot == 45) { // previous page
-            if (currentPage > 0) { currentPage--; pageData = fetchPage(currentPage); renderPage(); }
+            if (currentPage > 0) { currentPage--; schedulePage(currentPage); }
             return;
         }
         if (slot == 53) { // next page
             int maxPage = getMaxPage();
-            if (currentPage < maxPage) { currentPage++; pageData = fetchPage(currentPage); renderPage(); }
+            if (currentPage < maxPage) { currentPage++; schedulePage(currentPage); }
             return;
         }
         if (slot == 49) { // close
@@ -158,16 +193,14 @@ public class MainMenuGUI extends BaseMenu {
             currentCategoryIndex--; // cycle: -1 (all), 0, 1, 2, ...
             if (currentCategoryIndex >= cats.size()) currentCategoryIndex = -1;
             currentPage = 0;
-            pageData = fetchPage(0);
-            renderPage();
+            schedulePage(0);
             return;
         }
 
         if (slot == 50 && config.isSortEnabled()) { // sort
             currentSortOption = (currentSortOption + 1) % config.getSortOptions().size();
             currentPage = 0;
-            pageData = fetchPage(0);
-            renderPage();
+            schedulePage(0);
             return;
         }
 
