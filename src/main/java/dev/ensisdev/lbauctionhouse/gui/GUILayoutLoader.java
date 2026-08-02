@@ -165,13 +165,26 @@ public class GUILayoutLoader {
             );
         }
 
+        // Filtre (kategori + teklifli) — slot/material main-menu.yml'den okunur
+        FilterConfig filter;
+        ConfigurationSection fs = yaml.getConfigurationSection("filter");
+        if (fs != null) {
+            filter = new FilterConfig(
+                    fs.getInt("slot", 51),
+                    getMaterial(fs.getString("material", "HOPPER")),
+                    fs.getString("name", "&aFiltre")
+            );
+        } else {
+            filter = new FilterConfig(51, getMaterial("HOPPER"), "&aFiltre");
+        }
+
         // Content slots
         List<Integer> contentSlots = parseSlotList(yaml.getString("content-slots", ""));
 
         // Lore format
         List<String> loreFormat = yaml.getStringList("lore-format");
 
-        return new GUILayout(title, rows, border, navItems, search, sort,
+        return new GUILayout(title, rows, border, navItems, search, sort, filter,
                 contentSlots, loreFormat);
     }
 
@@ -209,6 +222,7 @@ public class GUILayoutLoader {
             List<NavItem> navItems,
             SearchConfig search,
             SortConfig sort,
+            FilterConfig filter,
             List<Integer> contentSlots,
             List<String> loreFormat
     ) {}
@@ -223,4 +237,5 @@ public class GUILayoutLoader {
 
     public record SearchConfig(int slot, Material material, String name) {}
     public record SortConfig(int slot, Material material, String name, List<String> options) {}
+    public record FilterConfig(int slot, Material material, String name) {}
 }

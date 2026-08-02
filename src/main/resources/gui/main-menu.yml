@@ -63,6 +63,12 @@ sorting:
     - "&7Süre ↓"
     - "&7En Yeni"
 
+# Filtre (kategori + teklifli) butonu. Lore'da kategoriler gri, aktif olan mavi.
+filter:
+  slot: 51
+  material: HOPPER
+  name: "&aFiltre"
+
 content-slots: "9-44"
 
 # İlan item'larının lore'u. %seller% %price% %time_left% değişkenleri doldurulur.

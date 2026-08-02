@@ -147,13 +147,13 @@ public class MainMenuGUI extends BaseMenu {
         applyFilter(ids.get((cur + 1) % ids.size()));
     }
 
-    /** Slot 51 filtresi: lore'da tüm seçenekler (gri), aktif olan mavi+kalın. */
+    /** Filtre butonu (main-menu.yml → filter): lore'da tüm seçenekler (gri), aktif mavi+kalın. */
     private void buildFilterButton() {
         var ids = filterOptions();
         String cur = currentFilterId();
         String name = filterName(cur);
-        var builder = MenuItem.builder(org.bukkit.Material.HOPPER)
-                .name("&aFiltre: &f" + name);
+        var builder = MenuItem.builder(layout.filter().material())
+                .name(layout.filter().name() + ": &f" + name);
         for (String id : ids) {
             if (id.equals(cur)) {
                 builder.lore("&9&l• " + filterName(id));
@@ -162,7 +162,7 @@ public class MainMenuGUI extends BaseMenu {
             }
         }
         builder.lore("&7— Tıkla — filtreyi değiştir");
-        setItem(51, builder.build());
+        setItem(layout.filter().slot(), builder.build());
     }
 
     private void schedulePage(int page) {
@@ -251,7 +251,7 @@ public class MainMenuGUI extends BaseMenu {
                     .open();
             return;
         }
-        if (slot == 51) { // filter (kategori + teklifli) — huni
+        if (slot == layout.filter().slot()) { // filter (kategori + teklifli) — huni
             cycleFilter();
             currentPage = 0;
             schedulePage(0);
