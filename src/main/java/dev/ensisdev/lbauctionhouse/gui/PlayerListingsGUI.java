@@ -93,10 +93,7 @@ public class PlayerListingsGUI extends BaseMenu {
 
             ItemStack display = listing.item().clone();
             var builder = MenuItem.builder(display);
-            String displayName = listing.item().getItemMeta() != null
-                    && listing.item().getItemMeta().hasDisplayName()
-                    ? listing.item().getItemMeta().getDisplayName()
-                    : "&f" + listing.item().getType().name();
+            String displayName = "&f" + dev.ensisdev.lbauctionhouse.util.ItemNames.displayName(listing.item());
 
             builder.name(displayName);
             for (String line : layout.loreFormat()) {

@@ -91,9 +91,7 @@ public class CollectionBoxGUI extends BaseMenu {
 
             if (entry.type().equals("ITEM") && entry.item() != null) {
                 builder = MenuItem.builder(entry.item().clone())
-                        .name("&e" + (entry.item().getItemMeta().hasDisplayName()
-                                ? entry.item().getItemMeta().getDisplayName()
-                                : entry.item().getType().name()))
+                        .name("&e" + dev.ensisdev.lbauctionhouse.util.ItemNames.displayName(entry.item()))
                         .onClick(e -> claim(entryId, index));
             } else if (entry.type().equals("MONEY")) {
                 builder.lore("&7Miktar: &6" + economy.format(entry.amount()));

@@ -131,7 +131,7 @@ public class CmdAdmin extends AuctionCmd {
                 case "ADMIN_REMOVE" -> "§cADMİN SİLDİ";
                 default -> log.action();
             };
-            String itemName = log.item() != null ? log.item().getType().name() : "?";
+            String itemName = log.item() != null ? dev.ensisdev.lbauctionhouse.util.ItemNames.displayName(log.item()) : "?";
             msg(" §7#" + log.id() + " " + action + " §f" + itemName +
                     " §7- §6" + String.format("%,.0f", log.price()) + "₺" +
                     " §7(" + date + ")");
@@ -233,8 +233,7 @@ public class CmdAdmin extends AuctionCmd {
             return;
         }
         for (var listing : listings) {
-            String name = listing.item().getItemMeta().hasDisplayName()
-                    ? listing.item().getItemMeta().getDisplayName() : listing.item().getType().name();
+            String name = dev.ensisdev.lbauctionhouse.util.ItemNames.displayName(listing.item());
             msg("§7• " + listing.id() + " §8— §f" + name
                     + " §8· §6" + manager.getApi().getEconomyManager().format(listing.price()));
         }

@@ -88,8 +88,7 @@ public class SellGUI extends BaseMenu {
             ItemStack display = selectedItem.clone();
             display.setAmount(selectedQuantity);
             setItem(INPUT_SLOT, MenuItem.builder(display)
-                    .name("&6&lEşya: &f" + (selectedItem.getItemMeta().hasDisplayName()
-                            ? selectedItem.getItemMeta().getDisplayName() : selectedItem.getType().name()))
+                    .name("&6&lEşya: &f" + dev.ensisdev.lbauctionhouse.util.ItemNames.displayName(selectedItem))
                     .lore("&7Miktar: &f" + selectedQuantity)
                     .lore("&7Sol tık — eşyayı çıkar")
                     .build());

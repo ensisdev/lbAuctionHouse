@@ -71,10 +71,8 @@ public class CmdSearch extends AuctionCmd {
                 default -> "§7";
             };
             String advertised = listing.isAdvertised() ? " §d★" : "";
-            String name = listing.item() != null && listing.item().getItemMeta() != null
-                    && listing.item().getItemMeta().hasDisplayName()
-                    ? listing.item().getItemMeta().getDisplayName()
-                    : (listing.item() != null ? listing.item().getType().name() : "?");
+            String name = listing.item() != null
+                    ? dev.ensisdev.lbauctionhouse.util.ItemNames.displayName(listing.item()) : "?";
             msg("§7• " + typeColor + name + " §8— §e" + plugin.getAuctionEconomy().format(listing.price())
                     + " §8· " + listing.sellerName() + advertised);
         }

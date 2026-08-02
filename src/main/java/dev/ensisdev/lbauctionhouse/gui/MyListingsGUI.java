@@ -75,9 +75,7 @@ public class MyListingsGUI extends BaseMenu {
             int listingIndex = i;
 
             var builder = MenuItem.builder(listing.item().clone());
-            String displayName = listing.item().getItemMeta().hasDisplayName()
-                    ? listing.item().getItemMeta().getDisplayName()
-                    : "&f" + listing.item().getType().name();
+            String displayName = "&f" + dev.ensisdev.lbauctionhouse.util.ItemNames.displayName(listing.item());
 
             builder.name(displayName);
             for (String line : layout.loreFormat()) {

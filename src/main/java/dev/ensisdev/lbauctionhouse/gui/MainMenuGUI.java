@@ -328,9 +328,7 @@ public class MainMenuGUI extends BaseMenu {
     private MenuItem listingToMenuItem(AuctionListing listing) {
         var clone = listing.item().clone();
         var builder = MenuItem.builder(clone);
-        String displayName = listing.item().getItemMeta().hasDisplayName()
-                ? listing.item().getItemMeta().getDisplayName()
-                : "&f" + listing.item().getType().name();
+        String displayName = "&f" + dev.ensisdev.lbauctionhouse.util.ItemNames.displayName(listing.item());
 
         // Flash sale badge
         if (listing.isFlashSale()) {

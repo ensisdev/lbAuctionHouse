@@ -61,9 +61,7 @@ public class BidHistoryGUI extends BaseMenu {
         clear();
 
         // Bilgi paneli
-        String itemName = listing.item().getItemMeta().hasDisplayName()
-                ? listing.item().getItemMeta().getDisplayName()
-                : listing.item().getType().name();
+        String itemName = dev.ensisdev.lbauctionhouse.util.ItemNames.displayName(listing.item());
         setItem(4, MenuItem.builder(listing.item().clone())
                 .name("&6" + itemName)
                 .lore("&7Fiyat: &e" + economy.format(listing.price()))

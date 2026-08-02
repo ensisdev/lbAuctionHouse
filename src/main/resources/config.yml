@@ -281,6 +281,17 @@ blacklist:
     - JIGSAW
     - DEBUG_STICK
     - KNOWLEDGE_BOOK
+
+# ───────────────────────────────────────────────
+#  MATERIAL ADI ÇEVİRİLERİ (opsiyonel)
+#  İlanlarda görünen eşya adlarını Türkçe (veya istediğiniz) adlarla gösterin.
+#  Örnek:
+#    ENCHANTING_TABLE: "Büyü Masası"
+#    DIAMOND_SWORD: "Elmas Kılıç"
+#  Boş bırakılırsa Paper'ın yerelleştirme anahtarı (oyuncu dili) kullanılır.
+# ───────────────────────────────────────────────
+material-names:
+  ENCHANTING_TABLE: "Büyü Masası"
   enabled: true
   materials:
     - BEDROCK

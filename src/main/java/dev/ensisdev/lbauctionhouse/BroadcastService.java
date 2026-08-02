@@ -28,9 +28,7 @@ public class BroadcastService {
     public void broadcastAdvertisedListing(AuctionListing listing) {
         if (!config.isAdvertiseEnabled() || listing == null) return;
 
-        String itemName = listing.item().getItemMeta().hasDisplayName()
-                ? listing.item().getItemMeta().getDisplayName()
-                : listing.item().getType().name();
+        String itemName = dev.ensisdev.lbauctionhouse.util.ItemNames.displayName(listing.item());
 
         String msg = config.getAdvertiseActionbarTitle()
                 .replace("{item}", itemName)

@@ -56,10 +56,29 @@ public class AuctionConfig {
 
     public void loadAll() {
         loadConfig();
+        loadMaterialNames();   // config'teki material-names → ItemNames override'ları
         loadCommands();   // komut dili (command-lang) loadLanguage'dan ÖNCE yüklenmeli
         loadLanguage();
         loadSounds();
         loadCategories();
+    }
+
+    /**
+     * config.yml'deki {@code material-names} eşleşmelerini ItemNames'e yükler.
+     * Örn: ENCHANTING_TABLE → "Büyü Masası" (ihalede enum adı yerine gösterilir).
+     */
+    private void loadMaterialNames() {
+        dev.ensisdev.lbauctionhouse.util.ItemNames.clearOverrides();
+        ConfigurationSection sec = config.getConfigurationSection("material-names");
+        if (sec == null) return;
+        for (String key : sec.getKeys(false)) {
+            try {
+                Material mat = Material.valueOf(key.toUpperCase());
+                dev.ensisdev.lbauctionhouse.util.ItemNames.setOverride(mat, sec.getString(key, ""));
+            } catch (IllegalArgumentException ignored) {
+                // bilinmeyen material yok sayılır
+            }
+        }
     }
 
     public void reloadAll() {

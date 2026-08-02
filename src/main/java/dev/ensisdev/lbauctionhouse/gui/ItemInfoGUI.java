@@ -138,9 +138,7 @@ public class ItemInfoGUI extends BaseMenu {
     }
 
     private String displayName(AuctionListing listing) {
-        var meta = listing.item().getItemMeta();
-        return meta != null && meta.hasDisplayName()
-                ? meta.getDisplayName() : listing.item().getType().name();
+        return dev.ensisdev.lbauctionhouse.util.ItemNames.displayName(listing.item());
     }
 
     private String formatTimeLeft(long ms) {

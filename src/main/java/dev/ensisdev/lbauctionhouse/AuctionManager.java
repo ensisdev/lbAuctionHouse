@@ -238,7 +238,7 @@ public class AuctionManager {
                     if (watcher != null && watcher.isOnline()) {
                         watcher.sendMessage(api.getLanguageManager().getPrefixed(
                                 "auction.wishlist.notify",
-                                "item", listing.item().getType().name(),
+                                "item", dev.ensisdev.lbauctionhouse.util.ItemNames.displayName(listing.item()),
                                 "price", economy.format(listing.price()),
                                 "seller", player.getName()));
                     }
@@ -328,7 +328,7 @@ public class AuctionManager {
                             if (sellerPlayer != null && sellerPlayer.isOnline()) {
                                 sellerPlayer.sendMessage(api.getLanguageManager().getPrefixed(
                                         "auction.purchase.sold-notification",
-                                        "item", fresh.item().getType().name(),
+                                        "item", dev.ensisdev.lbauctionhouse.util.ItemNames.displayName(fresh.item()),
                                         "price", economy.format(fresh.price()),
                                         "command", config.getLangMainCommand()));
                             }
@@ -348,8 +348,7 @@ public class AuctionManager {
                 // Discord webhook bildirimi (async — ağ isteği main thread'i bloklamaz)
                 if (config.isDiscordWebhookEnabled()) {
                     String whUrl = config.getDiscordWebhookUrl();
-                    String itemName = fresh.item().getItemMeta().hasDisplayName()
-                            ? fresh.item().getItemMeta().getDisplayName() : fresh.item().getType().name();
+                    String itemName = dev.ensisdev.lbauctionhouse.util.ItemNames.displayName(fresh.item());
                     org.bukkit.Bukkit.getScheduler().runTaskAsynchronously(
                             (org.bukkit.plugin.java.JavaPlugin) plugin,
                             () -> dev.ensisdev.lbauctionhouse.util.DiscordWebhook.notifySale(
@@ -532,7 +531,7 @@ public class AuctionManager {
                                     "auction.bid.outbid",
                                     "player", bidder.getName(),
                                     "amount", economy.format(amount),
-                                    "item", fresh.item().getType().name()));
+                                    "item", dev.ensisdev.lbauctionhouse.util.ItemNames.displayName(fresh.item())));
                         }
                     }
                 }
@@ -555,8 +554,7 @@ public class AuctionManager {
                 // Discord webhook bildirimi (async)
                 if (config.isDiscordWebhookEnabled()) {
                     String whUrl = config.getDiscordWebhookUrl();
-                    String itemName = fresh.item().getItemMeta().hasDisplayName()
-                            ? fresh.item().getItemMeta().getDisplayName() : fresh.item().getType().name();
+                    String itemName = dev.ensisdev.lbauctionhouse.util.ItemNames.displayName(fresh.item());
                     org.bukkit.Bukkit.getScheduler().runTaskAsynchronously(
                             (org.bukkit.plugin.java.JavaPlugin) plugin,
                             () -> dev.ensisdev.lbauctionhouse.util.DiscordWebhook.notifyBid(
@@ -659,7 +657,7 @@ public class AuctionManager {
                     long listedTime = listing.expiresAt() - listing.listedAt();
                     long newExpiresAt = System.currentTimeMillis() + listedTime;
                     data.updateExpiresAt(listing.id(), newExpiresAt);
-                    final String itemName = listing.item().getType().name();
+                    final String itemName = dev.ensisdev.lbauctionhouse.util.ItemNames.displayName(listing.item());
                     final UUID sellerId = listing.sellerUUID();
                     org.bukkit.Bukkit.getScheduler().runTask((org.bukkit.plugin.java.JavaPlugin) plugin, () -> {
                         var seller = Bukkit.getPlayer(sellerId);
@@ -795,7 +793,7 @@ public class AuctionManager {
         var seller = Bukkit.getPlayer(listing.sellerUUID());
         if (seller != null)
             seller.sendMessage(api.getLanguageManager().getPrefixed("auction.rental.returned",
-                    "item", listing.item().getType().name()));
+                    "item", dev.ensisdev.lbauctionhouse.util.ItemNames.displayName(listing.item())));
     }
 
     // ----------------------------------------------------------------
