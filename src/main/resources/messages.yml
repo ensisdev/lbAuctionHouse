@@ -24,6 +24,8 @@ auction:
     failed-hand: "<red>Önce eline bir eşya al!</red>"
     failed-number: "<red>Geçersiz fiyat! Sayı girmelisin.</red>"
     auto-renewed: "<gold>⏰ <white>%item%</white> ilanınız otomatik yenilendi!</gold>"
+    price-updated: "<green>İlan fiyatı güncellendi: <white>%price%</white></green>"
+    no-permission: "<red>Bu işlemi yapma yetkin yok!</red>"
   purchase:
     success: "<green><white>%item%</white> eşyasını <white>%price%</white> karşılığında satın aldın!</green>"
     sold-notification: "<green><white>%item%</white> eşyan <white>%price%</white> karşılığında satıldı!</green>"

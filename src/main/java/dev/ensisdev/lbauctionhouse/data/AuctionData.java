@@ -67,9 +67,11 @@ public class AuctionData {
                     "sold INTEGER NOT NULL DEFAULT 0, " +
                     "buyer_name TEXT, " +
                     "buyer_uuid TEXT, " +
-                    "rental_ends_at INTEGER DEFAULT 0");
+                    "rental_ends_at INTEGER DEFAULT 0, " +
+                    "renew_count INTEGER DEFAULT 0");
 
             try { adapter.execute("ALTER TABLE auction_listings ADD COLUMN rental_ends_at INTEGER DEFAULT 0"); } catch (Exception ignored) {}
+            try { adapter.execute("ALTER TABLE auction_listings ADD COLUMN renew_count INTEGER DEFAULT 0"); } catch (Exception ignored) {}
             try { adapter.execute("ALTER TABLE auction_listings ADD COLUMN display_name TEXT DEFAULT ''"); } catch (Exception ignored) {}
             try { adapter.execute("ALTER TABLE auction_listings ADD COLUMN starting_bid REAL DEFAULT 0"); } catch (Exception ignored) {}
             try { adapter.execute("ALTER TABLE auction_listings ADD COLUMN type TEXT NOT NULL DEFAULT 'BIN'"); } catch (Exception ignored) {}
@@ -937,6 +939,35 @@ public class AuctionData {
                 "UPDATE auction_listings SET expires_at = ? WHERE id = ?", newExpiry, listingId.toString());
         } catch (SQLException e) {
             logger.log(Level.WARNING, "Süre uzatma hatası", e);
+        }
+    }
+
+    /**
+     * İlanın kaç kez otomatik yenilendiğini döndürür (auto-relist sayacı).
+     */
+    public int getRenewCount(UUID listingId) {
+        try {
+            var rows = dataManager.getAdapter().queryList(
+                "SELECT renew_count FROM auction_listings WHERE id = ?", listingId.toString());
+            if (!rows.isEmpty()) {
+                Object v = rows.get(0).get("renew_count");
+                return v == null ? 0 : ((Number) v).intValue();
+            }
+        } catch (SQLException e) {
+            logger.log(Level.WARNING, "renew_count sorgulama hatası", e);
+        }
+        return 0;
+    }
+
+    /**
+     * İlanın auto-relist sayacını 1 artırır.
+     */
+    public void incrementRenewCount(UUID listingId) {
+        try {
+            dataManager.getAdapter().execute(
+                "UPDATE auction_listings SET renew_count = renew_count + 1 WHERE id = ?", listingId.toString());
+        } catch (SQLException e) {
+            logger.log(Level.WARNING, "renew_count güncelleme hatası", e);
         }
     }
 

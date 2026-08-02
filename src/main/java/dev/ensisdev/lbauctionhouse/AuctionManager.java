@@ -378,6 +378,30 @@ public class AuctionManager {
     }
 
     /**
+     * Satıcı kendi aktif ilanının fiyatını günceller.
+     */
+    public boolean updateListingPrice(Player player, UUID listingId, double newPrice) {
+        if (newPrice < config.getMinPrice() || newPrice > config.getMaxPrice()) {
+            player.sendMessage(api.getLanguageManager().getPrefixed("auction.listing.failed-price",
+                    "min", String.valueOf(config.getMinPrice()), "max", String.valueOf(config.getMaxPrice())));
+            return false;
+        }
+        AuctionListing listing = antiDupeService.getFreshListing(listingId);
+        if (listing == null || listing.sold()) {
+            player.sendMessage(api.getLanguageManager().getPrefixed("auction.purchase.already-sold"));
+            return false;
+        }
+        if (!listing.sellerUUID().equals(player.getUniqueId())) {
+            player.sendMessage(api.getLanguageManager().getPrefixed("auction.listing.no-permission"));
+            return false;
+        }
+        data.updateListingPriceAsync(listingId, newPrice);
+        player.sendMessage(api.getLanguageManager().getPrefixed("auction.listing.price-updated",
+                "price", economy.format(newPrice)));
+        return true;
+    }
+
+    /**
      * Admin: herhangi bir ilanı kaldırır.
      */
     public boolean removeListing(UUID listingId) {
@@ -578,6 +602,11 @@ public class AuctionManager {
             data.insertBid(listingId, ab.playerUUID(), ab.playerName(), nextBid);
             data.updateListingPrice(listingId, nextBid);
 
+            // Snipe koruması: son dakika auto-bid teklifinde süreyi uzat
+            if (config.getAutoExtendSeconds() > 0 && fresh.getTimeLeft() < config.getAutoExtendThreshold() * 1000L) {
+                data.updateExpiresAt(listingId, fresh.expiresAt() + (config.getAutoExtendSeconds() * 1000L));
+            }
+
             bidder.sendMessage(api.getLanguageManager().getPrefixed("auction.bid.autobid-placed",
                     "amount", economy.format(nextBid), "max", economy.format(ab.maxAmount())));
 
@@ -601,9 +630,10 @@ public class AuctionManager {
             List<AuctionListing> bins = expired.stream().filter(l -> !l.isBid()).toList();
             List<AuctionListing> bids = expired.stream().filter(AuctionListing::isBid).toList();
 
-            // Süresi dolmuş BIN ilanlarını işle
+            // Süresi dolmuş BIN ilanlarını işle — auto-relist, max tekrar sayısına kadar
             for (AuctionListing listing : bins) {
-                if (config.getAutoRenewMax() > 0) {
+                if (config.getAutoRenewMax() > 0 && data.getRenewCount(listing.id()) < config.getAutoRenewMax()) {
+                    data.incrementRenewCount(listing.id());
                     long listedTime = listing.expiresAt() - listing.listedAt();
                     long newExpiresAt = System.currentTimeMillis() + listedTime;
                     data.updateExpiresAt(listing.id(), newExpiresAt);

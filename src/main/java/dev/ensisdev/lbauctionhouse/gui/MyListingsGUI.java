@@ -6,6 +6,7 @@ import dev.ensisdev.lbauctionhouse.data.AuctionData;
 import dev.ensisdev.lbauctionhouse.data.AuctionListing;
 import dev.ensisdev.lbauctionhouse.core.gui.BaseMenu;
 import dev.ensisdev.lbauctionhouse.core.gui.MenuItem;
+import dev.ensisdev.lbauctionhouse.core.gui.SignInputGUI;
 
 import org.bukkit.entity.Player;
 import org.bukkit.event.inventory.InventoryClickEvent;
@@ -82,7 +83,7 @@ public class MyListingsGUI extends BaseMenu {
             for (String line : layout.loreFormat()) {
                 builder.lore(formatLore(line, listing));
             }
-            builder.onClick(e -> handleCancel(listingIndex));
+            builder.onClick(e -> handleListingClick(e, listingIndex));
 
             setItem(slot, builder.build());
         }
@@ -109,6 +110,36 @@ public class MyListingsGUI extends BaseMenu {
             close(currentPlayer);
             manager.openMainMenu(currentPlayer);
         }
+    }
+
+    /**
+     * Sol tık → ilanı iptal et; Sağ tık → fiyatı güncelle.
+     */
+    private void handleListingClick(InventoryClickEvent event, int index) {
+        if (index < 0 || index >= listings.size()) return;
+        AuctionListing listing = listings.get(index);
+
+        if (event.isRightClick()) {
+            // Fiyat güncelle — tabela ile
+            close(currentPlayer);
+            var plugin = (dev.ensisdev.lbauctionhouse.LbAuctionHouse) manager.getApi().getCore();
+            SignInputGUI.create(plugin, currentPlayer)
+                    .lines("", "~~~~~~~~~~~", "&6Yeni fiyatı yazın", "&7( sayı )")
+                    .onComplete((p, text) -> {
+                        try {
+                            double np = Double.parseDouble(text.trim());
+                            manager.updateListingPrice(p, listing.id(), np);
+                        } catch (NumberFormatException ex) {
+                            p.sendMessage(manager.getApi().getLanguageManager().getPrefixed("auction.listing.failed-number"));
+                        }
+                        open(p);
+                    })
+                    .onClose(p -> open(p))
+                    .open();
+            return;
+        }
+
+        handleCancel(index);
     }
 
     private void handleCancel(int index) {
