@@ -158,7 +158,7 @@ public class AuctionCmdManager implements CommandExecutor, TabCompleter {
      * <p>
      * Kayıt sonrası komutun GERÇEKTE hangi isimle kayıtlı olduğu doğrulanır ve loglanır:
      * eğer isim başka bir komut tarafından kapılmışsa CommandMap fallback prefix'i
-     * kullanır (lbsmpcore:isim) — admin bu durumu konsoldan net görebilir.
+     * kullanır (lbauctionhouse:isim) — admin bu durumu konsoldan net görebilir.
      *
      * @param name         kaydedilecek komut adı (ör: "ihale", "ihaleadmin")
      * @param aliases      komut aliasları
@@ -178,7 +178,7 @@ public class AuctionCmdManager implements CommandExecutor, TabCompleter {
             custom.setAliases(aliases);
             custom.setUsage(""); // statik/İngilizce usage yok — mesajlar dinamik
 
-            boolean registered = commandMap.register("lbsmpcore", custom);
+            boolean registered = commandMap.register("lbauctionhouse", custom);
 
             // Kayıt sonrası GERÇEK ismi doğrula ve logla.
             Command actual = commandMap.getCommand(name);
@@ -187,11 +187,11 @@ public class AuctionCmdManager implements CommandExecutor, TabCompleter {
                         + " (aliases: " + aliases + ").");
             } else {
                 // İsim başka bir komut tarafından kapılmış olabilir → fallback prefix.
-                Command fallback = commandMap.getCommand("lbsmpcore:" + name);
+                Command fallback = commandMap.getCommand("lbauctionhouse:" + name);
                 if (fallback != null) {
-                    logger.warn("Komut FALLBACK PREFIX ile kaydedildi: /lbsmpcore:" + name
+                    logger.warn("Komut FALLBACK PREFIX ile kaydedildi: /lbauctionhouse:" + name
                             + " (çünkü /" + name + " adında başka bir komut zaten kayıtlı). "
-                            + "Oyuncular komutu /lbsmpcore:" + name + " şeklinde kullanmak zorunda.");
+                            + "Oyuncular komutu /lbauctionhouse:" + name + " şeklinde kullanmak zorunda.");
                 } else if (!registered) {
                     logger.error("Komut KAYDEDİLEMEDİ: /" + name
                             + " — CommandMap.register false döndü (isim çakışması).");
