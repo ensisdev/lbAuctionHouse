@@ -345,6 +345,17 @@ public class AuctionManager {
                     return null;
                 });
 
+                // Discord webhook bildirimi (async — ağ isteği main thread'i bloklamaz)
+                if (config.isDiscordWebhookEnabled()) {
+                    String whUrl = config.getDiscordWebhookUrl();
+                    String itemName = fresh.item().getItemMeta().hasDisplayName()
+                            ? fresh.item().getItemMeta().getDisplayName() : fresh.item().getType().name();
+                    org.bukkit.Bukkit.getScheduler().runTaskAsynchronously(
+                            (org.bukkit.plugin.java.JavaPlugin) plugin,
+                            () -> dev.ensisdev.lbauctionhouse.util.DiscordWebhook.notifySale(
+                                    whUrl, buyer.getName(), itemName, buyPrice));
+                }
+
                 return PurchaseResult.SUCCESS;
         } finally {
             antiDupeService.endTransaction(lid);
@@ -540,6 +551,17 @@ public class AuctionManager {
 
                 // Auto-bid tetikle
                 processAutoBids(lid);
+
+                // Discord webhook bildirimi (async)
+                if (config.isDiscordWebhookEnabled()) {
+                    String whUrl = config.getDiscordWebhookUrl();
+                    String itemName = fresh.item().getItemMeta().hasDisplayName()
+                            ? fresh.item().getItemMeta().getDisplayName() : fresh.item().getType().name();
+                    org.bukkit.Bukkit.getScheduler().runTaskAsynchronously(
+                            (org.bukkit.plugin.java.JavaPlugin) plugin,
+                            () -> dev.ensisdev.lbauctionhouse.util.DiscordWebhook.notifyBid(
+                                    whUrl, bidder.getName(), itemName, amount));
+                }
 
                 return BidResult.SUCCESS;
         } finally {

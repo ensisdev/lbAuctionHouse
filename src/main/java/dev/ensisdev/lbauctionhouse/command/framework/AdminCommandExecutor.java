@@ -29,7 +29,7 @@ import java.util.stream.Collectors;
 public class AdminCommandExecutor implements CommandExecutor, TabCompleter {
 
     private static final List<String> ADMIN_KEYS = List.of(
-            "stats", "logs", "clear", "remove", "ban", "unban", "banlist");
+            "stats", "logs", "clear", "remove", "ban", "unban", "banlist", "inspect");
 
     private final CmdAdmin cmdAdmin;
     private final AuctionConfig config;

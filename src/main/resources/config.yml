@@ -2,6 +2,12 @@
 # All settings are configurable — no hardcoded values
 config-version: 4
 
+# Genel ayarlar
+settings:
+  # bStats anonim istatistikleri (https://bstats.org)
+  # LbAuctionHouse plugin kaydı yapılıp BSTATS_PLUGIN_ID doldurulunca çalışır.
+  bstats-enabled: true
+
 addon-display-name: "İhale"
 
 # ════════════════════════════════════════════════════════════
@@ -238,7 +244,17 @@ sorting:
     - "&7İsim A-Z"
     - "&7İsim Z-A"
 
-# Blacklisted items (cannot be listed)
+# ───────────────────────────────────────────────
+# Discord Webhook bildirimleri (opsiyonel)
+# enabled: true yapın ve url kısmına Discord sunucunuzdaki
+# kanalın webhook URL'sini yapıştırın (Kanal Ayarları → Entegrasyonlar → Webhook).
+# Satış ve teklif bildirimleri bu kanala gönderilir.
+# ───────────────────────────────────────────────
+discord-webhook:
+  enabled: false
+  url: ""
+  username: "lbAuctionHouse"
+
 # Cluster / Cross-server settings
 cluster:
   # Mode: local (single server) or redis (multi-server)
@@ -250,7 +266,21 @@ cluster:
     database: 0
     master: true
 
+# Blacklisted items (cannot be listed)
 blacklist:
+  enabled: true
+  materials:
+    - BEDROCK
+    - BARRIER
+    - COMMAND_BLOCK
+    - COMMAND_BLOCK_MINECART
+    - CHAIN_COMMAND_BLOCK
+    - REPEATING_COMMAND_BLOCK
+    - STRUCTURE_BLOCK
+    - STRUCTURE_VOID
+    - JIGSAW
+    - DEBUG_STICK
+    - KNOWLEDGE_BOOK
   enabled: true
   materials:
     - BEDROCK

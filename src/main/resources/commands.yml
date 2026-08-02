@@ -71,3 +71,4 @@ admin:
   ban: [yasak, ban]
   unban: [affet, unban]
   banlist: [yasaklılar, banlist, banliste]
+  inspect: [inspect, incele]

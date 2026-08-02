@@ -343,7 +343,8 @@ public class AuctionConfig {
             "remove",  List.of("sil", "remove"),
             "ban",     List.of("yasak", "ban"),
             "unban",   List.of("affet", "unban"),
-            "banlist", List.of("yasaklılar", "banlist", "banliste")
+            "banlist", List.of("yasaklılar", "banlist", "banliste"),
+            "inspect", List.of("inspect", "incele")
     );
 
     /**
@@ -537,6 +538,22 @@ public class AuctionConfig {
 
     public String getAdvertisePermission() {
         return config.getString("advertise.permission", "");
+    }
+
+    // ----------------------------------------------------------------
+    // Discord Webhook (config.yml)
+    // ----------------------------------------------------------------
+
+    public boolean isDiscordWebhookEnabled() {
+        return config.getBoolean("discord-webhook.enabled", false);
+    }
+
+    public String getDiscordWebhookUrl() {
+        return config.getString("discord-webhook.url", "");
+    }
+
+    public String getDiscordWebhookUsername() {
+        return config.getString("discord-webhook.username", "lbAuctionHouse");
     }
 
     // Sıralama seçenekleri

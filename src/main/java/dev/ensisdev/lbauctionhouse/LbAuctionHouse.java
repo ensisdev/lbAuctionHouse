@@ -36,6 +36,12 @@ public class LbAuctionHouse extends JavaPlugin {
 
     private static LbAuctionHouse instance;
 
+    /**
+     * bStats plugin ID'si — https://bstats.org adresinde eklentiyi kaydedip
+     * verilen ID'yi buraya yazın (0 = istatistik gönderilmez).
+     */
+    private static final int BSTATS_PLUGIN_ID = 0;
+
     // Vendored core servisleri (lbAuctionHouse'dan bağımsız)
     private ConfigManager configManager;
     private LanguageManager languageManager;
@@ -77,6 +83,16 @@ public class LbAuctionHouse extends JavaPlugin {
         this.coreAPI = new AuctionAPI(this);
         this.addonLogger = new AddonLogger("Auction", getLogger());
         addonLogger.info("İç servisler hazır (config/lang/data/economy/menu).");
+
+        // bStats metrikleri (opsiyonel; config.yml → settings.bstats-enabled)
+        try {
+            if (getConfig().getBoolean("settings.bstats-enabled", true) && BSTATS_PLUGIN_ID > 0) {
+                new org.bstats.bukkit.Metrics(this, BSTATS_PLUGIN_ID);
+                addonLogger.info("bStats metrikleri aktif (pluginId=" + BSTATS_PLUGIN_ID + ").");
+            }
+        } catch (Throwable t) {
+            getLogger().warning("bStats başlatılamadı: " + t.getMessage());
+        }
 
         // Toplu paket (fıçı) PDC anahtarını başlat
         dev.ensisdev.lbauctionhouse.util.BundleItems.init(this);

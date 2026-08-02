@@ -64,6 +64,8 @@ public class CmdAdmin extends AuctionCmd {
             unbanPlayer(arg(1));
         } else if (config.isAdminSub("banlist", sub)) {
             listBannedPlayers();
+        } else if (config.isAdminSub("inspect", sub)) {
+            inspectPlayer(hasArg(1) ? arg(1) : null);
         } else {
             msg("admin.unknown", "arg", arg(0));
         }
@@ -201,6 +203,40 @@ public class CmdAdmin extends AuctionCmd {
         msg("admin.ban.banned-list-header", "count", String.valueOf(banned.size()));
         for (var entry : banned) {
             msg("§7" + entry[1] + " §7(" + entry[2] + ")");
+        }
+    }
+
+    /**
+     * Bir oyuncunun aktif ilanlarını listeler (admin inceleme).
+     */
+    private void inspectPlayer(String targetName) {
+        if (targetName == null || targetName.isEmpty()) {
+            msg("§cKullanım: /" + label + " inspect <oyuncu>");
+            return;
+        }
+        java.util.UUID uuid;
+        var online = org.bukkit.Bukkit.getPlayerExact(targetName);
+        if (online != null) {
+            uuid = online.getUniqueId();
+        } else {
+            try {
+                uuid = java.util.UUID.fromString(targetName);
+            } catch (IllegalArgumentException e) {
+                msg("admin.ban.player-offline-no-uuid");
+                return;
+            }
+        }
+        var listings = manager.getData().getActiveListingsBySeller(uuid);
+        msg("§6=== " + targetName + " — Aktif İlanlar (" + listings.size() + ") ===");
+        if (listings.isEmpty()) {
+            msg("§7Bu oyuncunun aktif ilanı yok.");
+            return;
+        }
+        for (var listing : listings) {
+            String name = listing.item().getItemMeta().hasDisplayName()
+                    ? listing.item().getItemMeta().getDisplayName() : listing.item().getType().name();
+            msg("§7• " + listing.id() + " §8— §f" + name
+                    + " §8· §6" + manager.getApi().getEconomyManager().format(listing.price()));
         }
     }
 }
