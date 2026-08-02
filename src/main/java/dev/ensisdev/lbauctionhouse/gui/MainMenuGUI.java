@@ -104,6 +104,67 @@ public class MainMenuGUI extends BaseMenu {
      * Deşarj: Veriyi ASYNC çekip, tamamlanınca main thread'de çizer.
      * Eski istekler (hızlı sayfa değişiminde) yok sayılır.
      */
+    // ---- Filtre yönetimi (kategori + teklifli) ----
+
+    /** Geçerli filtrenin kimliği: "all" | "offers" | "cat:<i>" */
+    private String currentFilterId() {
+        if (offersOnly) return "offers";
+        return currentCategoryIndex == -1 ? "all" : "cat:" + currentCategoryIndex;
+    }
+
+    /** Filtre seçenekleri (sıralı): Tümü → Teklifli → Kategori1.. */
+    private List<String> filterOptions() {
+        List<String> ids = new java.util.ArrayList<>();
+        ids.add("all");
+        if (config.isNegotiationEnabled()) ids.add("offers");
+        for (int i = 0; i < config.getCategories().size(); i++) ids.add("cat:" + i);
+        return ids;
+    }
+
+    private String filterName(String id) {
+        if (id.equals("all")) return "Tümü";
+        if (id.equals("offers")) return "Teklifli";
+        if (id.startsWith("cat:")) {
+            int i = Integer.parseInt(id.substring(4));
+            var cats = config.getCategories();
+            return i >= 0 && i < cats.size() ? cats.get(i).name() : "?";
+        }
+        return id;
+    }
+
+    private void applyFilter(String id) {
+        if (id.equals("offers")) { offersOnly = true; currentCategoryIndex = -1; }
+        else if (id.equals("all")) { offersOnly = false; currentCategoryIndex = -1; }
+        else if (id.startsWith("cat:")) {
+            offersOnly = false;
+            currentCategoryIndex = Integer.parseInt(id.substring(4));
+        }
+    }
+
+    private void cycleFilter() {
+        var ids = filterOptions();
+        int cur = ids.indexOf(currentFilterId());
+        applyFilter(ids.get((cur + 1) % ids.size()));
+    }
+
+    /** Slot 51 filtresi: lore'da tüm seçenekler (gri), aktif olan mavi+kalın. */
+    private void buildFilterButton() {
+        var ids = filterOptions();
+        String cur = currentFilterId();
+        String name = filterName(cur);
+        var builder = MenuItem.builder(org.bukkit.Material.HOPPER)
+                .name("&aFiltre: &f" + name);
+        for (String id : ids) {
+            if (id.equals(cur)) {
+                builder.lore("&9&l• " + filterName(id));
+            } else {
+                builder.lore("&7• " + filterName(id));
+            }
+        }
+        builder.lore("&7— Tıkla — filtreyi değiştir");
+        setItem(51, builder.build());
+    }
+
     private void schedulePage(int page) {
         final long token = ++pageToken;
         org.bukkit.Bukkit.getScheduler().runTaskAsynchronously(corePlugin, () -> {
@@ -190,17 +251,8 @@ public class MainMenuGUI extends BaseMenu {
                     .open();
             return;
         }
-        if (slot == 6 && config.isNegotiationEnabled()) { // offers filter
-            offersOnly = !offersOnly;
-            currentPage = 0;
-            schedulePage(0);
-            return;
-        }
-        if (slot == 47) { // category filter
-            var cats = config.getCategories();
-            currentCategoryIndex = (currentCategoryIndex + 1) % (cats.size() + 1);
-            currentCategoryIndex--; // cycle: -1 (all), 0, 1, 2, ...
-            if (currentCategoryIndex >= cats.size()) currentCategoryIndex = -1;
+        if (slot == 51) { // filter (kategori + teklifli) — huni
+            cycleFilter();
             currentPage = 0;
             schedulePage(0);
             return;
@@ -288,22 +340,8 @@ public class MainMenuGUI extends BaseMenu {
             setItem(s.slot(), MenuItem.builder(s.material()).name(sortName).build());
         }
 
-        // Category button (slot 47)
-        var cats = config.getCategories();
-        String catName = currentCategoryIndex >= 0 && currentCategoryIndex < cats.size()
-                ? cats.get(currentCategoryIndex).name() : "&7Tümü";
-        setItem(47, MenuItem.builder(org.bukkit.Material.HOPPER)
-                .name("&aKategori: " + catName)
-                .lore("&7Tıkla — kategori değiştir")
-                .build());
-
-        // Teklif (pazarlık) filtresi — yalnızca teklif açık ilanlar
-        if (config.isNegotiationEnabled()) {
-            setItem(6, MenuItem.builder(offersOnly ? Material.EMERALD_BLOCK : Material.EMERALD)
-                    .name(offersOnly ? "&9&lTeklifli: &aAÇIK" : "&9&lTeklifli: &cKAPALI")
-                    .lore("&7Tıkla — yalnızca pazarlığa açık ilanları göster")
-                    .build());
-        }
+        // Filtre (kategori + teklifli) — slot 51'deki huni
+        buildFilterButton();
 
         // Content slots
         List<Integer> contentSlots = layout.contentSlots();
