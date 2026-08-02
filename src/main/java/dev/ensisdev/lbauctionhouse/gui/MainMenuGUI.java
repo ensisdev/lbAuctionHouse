@@ -44,6 +44,8 @@ public class MainMenuGUI extends BaseMenu {
     private String currentSearch;
     private int currentSortOption;
     private int currentCategoryIndex = -1; // -1 = all
+    /** Sadece "teklif açık" ilanları göster. */
+    private boolean offersOnly = false;
     /** Async sayfa çekişlerinde eski isteklerin render edilmemesi için sayaç. */
     private volatile long pageToken = 0;
 
@@ -78,6 +80,7 @@ public class MainMenuGUI extends BaseMenu {
         this.currentSearch = null;
         this.currentCategoryIndex = -1;
         this.currentSortOption = 0;
+        this.offersOnly = false;
         this.currentPage = 0;
         this.pageData = null;
         applyTitle();
@@ -187,6 +190,12 @@ public class MainMenuGUI extends BaseMenu {
                     .open();
             return;
         }
+        if (slot == 6 && config.isNegotiationEnabled()) { // offers filter
+            offersOnly = !offersOnly;
+            currentPage = 0;
+            schedulePage(0);
+            return;
+        }
         if (slot == 47) { // category filter
             var cats = config.getCategories();
             currentCategoryIndex = (currentCategoryIndex + 1) % (cats.size() + 1);
@@ -215,6 +224,12 @@ public class MainMenuGUI extends BaseMenu {
             if (listing.isBid() && event.isRightClick()) {
                 close(player);
                 new BidHistoryGUI(manager, config, data, economy, listing).open(player);
+                return;
+            }
+            // Shift + Sol Tık → pazarlık teklifi (yalnızca teklif açık ilanlar)
+            if (event.isShiftClick() && !event.isRightClick()
+                    && listing.offersEnabled() && config.isNegotiationEnabled()) {
+                openOfferPrompt(player, listing);
                 return;
             }
             // Sağ tık → fıçı İÇERİĞİ / shulker ÖNİZLEME / normal ilan BİLGİSİ
@@ -282,6 +297,14 @@ public class MainMenuGUI extends BaseMenu {
                 .lore("&7Tıkla — kategori değiştir")
                 .build());
 
+        // Teklif (pazarlık) filtresi — yalnızca teklif açık ilanlar
+        if (config.isNegotiationEnabled()) {
+            setItem(6, MenuItem.builder(offersOnly ? Material.EMERALD_BLOCK : Material.EMERALD)
+                    .name(offersOnly ? "&9&lTeklifli: &aAÇIK" : "&9&lTeklifli: &cKAPALI")
+                    .lore("&7Tıkla — yalnızca pazarlığa açık ilanları göster")
+                    .build());
+        }
+
         // Content slots
         List<Integer> contentSlots = layout.contentSlots();
         for (int i = 0; i < currentListings.size(); i++) {
@@ -310,6 +333,21 @@ public class MainMenuGUI extends BaseMenu {
         boolean hasCategoryFilter = currentCategoryIndex >= 0
                 && currentCategoryIndex < config.getCategories().size();
         String searchQuery = currentSearch;
+
+        // "Sadece teklif açık ilanlar" filtresi — Java'da filtrele, sayfala
+        if (offersOnly) {
+            List<AuctionListing> src = (searchQuery != null && !searchQuery.isEmpty())
+                    ? data.searchListings(searchQuery)
+                    : data.getActiveListings();
+            List<AuctionListing> filtered = src.stream()
+                    .filter(l -> l.offersEnabled())
+                    .toList();
+            int total = filtered.size();
+            int from = page * pageSize;
+            int to = Math.min(from + pageSize, filtered.size());
+            if (from >= filtered.size()) return new PageData(List.of(), total);
+            return new PageData(filtered.subList(from, to), total);
+        }
 
         // Kategori filtresi: önce çek, Java'da filtrele, sayfala
         if (hasCategoryFilter) {
@@ -383,6 +421,11 @@ public class MainMenuGUI extends BaseMenu {
             builder.lore(formatLore(line, listing));
         }
 
+        // Pazarlık açık ilan ipucu
+        if (listing.offersEnabled() && config.isNegotiationEnabled()) {
+            builder.lore("&9[💬] Teklif (Pazarlık) Açık — &fShift+Sol Tıkla");
+        }
+
         // Item meta gösterimi (enchantment, lore, hasar)
         var meta = clone.getItemMeta();
         if (meta != null) {
@@ -422,6 +465,41 @@ public class MainMenuGUI extends BaseMenu {
         long hours = ms / 3600_000;
         long minutes = (ms % 3600_000) / 60_000;
         return hours + "s " + minutes + "d";
+    }
+
+    /** Shift+sol tık: teklif fiyatı girmek için tabela açar. */
+    private void openOfferPrompt(Player player, AuctionListing listing) {
+        close(player);
+        var plugin = (dev.ensisdev.lbauctionhouse.LbAuctionHouse) manager.getApi().getCore();
+        SignInputGUI.create(plugin, player)
+                .lines("", "~~~~~~~~~~~", "&9Teklif fiyatını yazın", "&7( sayı )")
+                .onComplete((p, text) -> {
+                    try {
+                        double price = Double.parseDouble(text.trim());
+                        var result = manager.getNegotiation().sendOffer(p, listing, price);
+                        p.sendMessage(offerMsg(result));
+                    } catch (NumberFormatException e) {
+                        p.sendMessage(manager.getApi().getLanguageManager().getPrefixed("pazarlik.err.number"));
+                    }
+                    manager.openMainMenu(p);
+                })
+                .onClose(p -> manager.openMainMenu(p))
+                .open();
+    }
+
+    /** SendResult → sohbet mesajı. */
+    private net.kyori.adventure.text.Component offerMsg(dev.ensisdev.lbauctionhouse.service.NegotiationService.SendResult r) {
+        var lang = manager.getApi().getLanguageManager();
+        return switch (r) {
+            case OK -> lang.getPrefixed("pazarlik.send-ok");
+            case OFFERS_DISABLED -> lang.getPrefixed("pazarlik.err.disabled");
+            case SOLD -> lang.getPrefixed("pazarlik.err.sold");
+            case SELF -> lang.getPrefixed("pazarlik.err.self");
+            case BLOCKED -> lang.getPrefixed("pazarlik.err.blocked");
+            case PRICE_NOT_ALLOWED -> lang.getPrefixed("pazarlik.err.price");
+            case ACTIVE_LIMIT -> lang.getPrefixed("pazarlik.err.limit");
+            case ALREADY_OPEN -> lang.getPrefixed("pazarlik.err.open");
+        };
     }
 
     private String toRoman(int n) {

@@ -58,6 +58,13 @@ public class AuctionManager {
     public AuctionData getData() { return data; }
     public AuctionAPI getApi() { return api; }
 
+    private dev.ensisdev.lbauctionhouse.service.NegotiationService negotiation;
+    /** Pazarlık (teklif) servisi — anlık olarak başlatılır. */
+    public dev.ensisdev.lbauctionhouse.service.NegotiationService getNegotiation() {
+        if (negotiation == null) negotiation = new dev.ensisdev.lbauctionhouse.service.NegotiationService(plugin, this);
+        return negotiation;
+    }
+
     public AuctionManager(LbAuctionHouse plugin, AuctionAPI api, AuctionData data,
                           AuctionConfig config, AuctionEconomy economy,
                           AddonLogger logger, GUILayoutLoader layoutLoader,
