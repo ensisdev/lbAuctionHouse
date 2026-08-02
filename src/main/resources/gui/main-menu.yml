@@ -1,7 +1,7 @@
 # Auction Main Menu GUI Layout
 # All items, names, lore, slots are fully customizable
 
-title: "&8İhale"
+title: "&8&l» &6&lİHALE &8&l«"
 rows: 6
 
 border:
@@ -28,7 +28,7 @@ navigation:
     slot: 49
     material: BARRIER
     name: "&cKapat"
-    lore: ["&7İhaleı kapat"]
+    lore: ["&7İhaleyi kapat"]
     left-click: "close"
     right-click: ""
   my-listings:

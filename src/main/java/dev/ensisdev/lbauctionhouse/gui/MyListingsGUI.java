@@ -31,7 +31,7 @@ public class MyListingsGUI extends BaseMenu {
 
     public MyListingsGUI(AuctionManager manager, AuctionConfig config,
                          AuctionData data, GUILayoutLoader loader) {
-        super("auction_mylistings", "&8İlanlarım", 6);
+        super("auction_mylistings", "&8&l» &6&lİLANLARIM &8&l«", 6);
         this.manager = manager;
         this.config = config;
         this.data = data;

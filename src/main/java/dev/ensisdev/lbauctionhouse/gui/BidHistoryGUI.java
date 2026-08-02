@@ -32,7 +32,7 @@ public class BidHistoryGUI extends BaseMenu {
     public BidHistoryGUI(AuctionManager manager, AuctionConfig config,
                          AuctionData data, AuctionEconomy economy,
                          AuctionListing listing) {
-        super("bid_history_" + listing.id().toString().substring(0, 8), "&8Teklif Geçmişi", 4);
+        super("bid_history_" + listing.id().toString().substring(0, 8), "&8&l» &6&lTEKLİF GEÇMİŞİ &8&l«", 4);
         this.manager = manager;
         this.config = config;
         this.data = data;

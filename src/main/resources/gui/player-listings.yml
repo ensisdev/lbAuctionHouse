@@ -1,7 +1,7 @@
 # Player Listings GUI Layout
 # /ihale gör <oyuncu> komutu ile açılır — başka bir oyuncunun aktif ilanları
 
-title: "&8Oyuncu İlanları"
+title: "&8&l» &6&lOYUNCU İLANLARI &8&l«"
 rows: 6
 
 border:
@@ -35,9 +35,8 @@ navigation:
 content-slots: "9-44"
 
 lore-format:
+  - "&a🛒 &fTıkla &7→ Satın Al"
   - ""
   - "&7Fiyat: &6%price%"
   - "&7Kalan: &e%time_left%"
   - "&7Satıcı: &f%seller%"
-  - ""
-  - "&eTıkla &7- satın al"

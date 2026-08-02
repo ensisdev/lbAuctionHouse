@@ -7,7 +7,6 @@ import dev.ensisdev.lbauctionhouse.util.BundleItems;
 import dev.ensisdev.lbauctionhouse.core.gui.BaseMenu;
 import dev.ensisdev.lbauctionhouse.core.gui.MenuItem;
 import dev.ensisdev.lbauctionhouse.core.gui.SignInputGUI;
-import dev.ensisdev.lbauctionhouse.LbAuctionHouse;
 
 import org.bukkit.Bukkit;
 import org.bukkit.Material;
@@ -44,7 +43,7 @@ public class SellGUI extends BaseMenu {
     private Consumer<Boolean> onComplete;
 
     public SellGUI(LbAuctionHouse addon, LbAuctionHouse corePlugin, AuctionManager manager, AuctionConfig config) {
-        super("auction_sell", "&8Eşya Sat", 4);
+        super("auction_sell", "&8&l» &6&lEŞYA SAT &8&l«", 4);
         this.addon = addon;
         this.corePlugin = corePlugin;
         this.manager = manager;

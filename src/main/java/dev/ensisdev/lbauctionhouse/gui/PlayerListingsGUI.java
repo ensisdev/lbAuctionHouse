@@ -40,7 +40,7 @@ public class PlayerListingsGUI extends BaseMenu {
 
     public PlayerListingsGUI(AuctionManager manager, AuctionConfig config,
                              AuctionData data, GUILayoutLoader loader) {
-        super("auction_playerlistings", "&8Oyuncu İlanları", 6);
+        super("auction_playerlistings", "&8&l» &6&lOYUNCU İLANLARI &8&l«", 6);
         this.manager = manager;
         this.config = config;
         this.data = data;

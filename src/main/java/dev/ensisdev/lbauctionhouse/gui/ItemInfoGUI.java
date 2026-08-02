@@ -48,11 +48,11 @@ public class ItemInfoGUI extends BaseMenu {
     private Material buyMaterial = Material.LIME_WOOL;
     private String buyName = "&a&l✔ Satın Al";
     private java.util.List<String> buyLore = java.util.List.of("&7Tıkla — satın almayı onayla");
-    private String layoutTitle = "&8İlan Bilgileri";
+    private String layoutTitle = "&8&l» &6&lİLAN BİLGİSİ &8&l«";
 
     public ItemInfoGUI(LbAuctionHouse addon, AuctionManager manager, AuctionConfig config,
                        AuctionData data, AuctionEconomy economy) {
-        super("auction_info", "&8İlan Bilgileri", 3);
+        super("auction_info", "&8&l» &6&lİLAN BİLGİSİ &8&l«", 3);
         this.addon = addon;
         this.manager = manager;
         this.config = config;
@@ -68,7 +68,7 @@ public class ItemInfoGUI extends BaseMenu {
             }
             FileConfiguration yaml = YamlConfiguration.loadConfiguration(
                     new File(addon.getDataFolder(), "gui/info.yml"));
-            layoutTitle = yaml.getString("title", "&8İlan Bilgileri");
+            layoutTitle = yaml.getString("title", "&8&l» &6&lİLAN BİLGİSİ &8&l«");
             itemSlot = yaml.getInt("item-slot", 14);
             sellerSlot = yaml.getInt("seller-slot", 11);
             buySlot = yaml.getInt("buy-slot", 17);

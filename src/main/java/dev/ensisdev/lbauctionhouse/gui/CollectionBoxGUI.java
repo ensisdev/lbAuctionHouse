@@ -31,7 +31,7 @@ public class CollectionBoxGUI extends BaseMenu {
     public CollectionBoxGUI(AuctionManager manager, AuctionConfig config,
                             AuctionData data, AuctionEconomy economy,
                             GUILayoutLoader loader) {
-        super("auction_collection", "&6Kolim", 4);
+        super("auction_collection", "&8&l» &6&lKOLİM &8&l«", 4);
         this.manager = manager;
         this.config = config;
         this.data = data;

@@ -1,6 +1,6 @@
 # My Listings GUI Layout
 
-title: "&8İlanlarım"
+title: "&8&l» &6&lİLANLARIM &8&l«"
 rows: 6
 
 border:
@@ -34,8 +34,8 @@ navigation:
 content-slots: "9-44"
 
 lore-format:
+  - "&c[🗑️] &fSol Tıkla &7→ İlanı İptal Et"
+  - "&9[✎] &fSağ Tıkla &7→ Fiyatı Güncelle"
   - ""
   - "&7Fiyat: &6%price%"
   - "&7Kalan: &e%time_left%"
-  - ""
-  - "&eTıkla &7- ilanı iptal et"
