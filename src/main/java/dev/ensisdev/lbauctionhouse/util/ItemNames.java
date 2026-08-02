@@ -73,7 +73,7 @@ public final class ItemNames {
     public static String humanize(String enumName) {
         if (enumName == null || enumName.isEmpty()) return "";
         StringBuilder sb = new StringBuilder();
-        for (String part : enumName.toLowerCase().split("_")) {
+        for (String part : enumName.toLowerCase(Locale.ROOT).split("_")) {
             if (part.isEmpty()) continue;
             if (sb.length() > 0) sb.append(' ');
             sb.append(Character.toUpperCase(part.charAt(0))).append(part.substring(1));
