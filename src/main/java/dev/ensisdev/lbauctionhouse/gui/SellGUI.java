@@ -28,6 +28,7 @@ public class SellGUI extends BaseMenu {
     private static final int PRICE_SLOT = 13;
     private static final int ADVERTISE_SLOT = 15;
     private static final int BUNDLE_SLOT = 9;   // Toplu paket (fıçı)
+    private static final int OFFERS_SLOT = 14;  // Teklif (pazarlık) toggle
 
     private final LbAuctionHouse addon;
     private final LbAuctionHouse corePlugin;
@@ -40,6 +41,7 @@ public class SellGUI extends BaseMenu {
     private int maxQuantity = 0;
     private double selectedPrice = -1;
     private boolean advertised = false;
+    private boolean offersEnabled = false;   // pazarlık/teklif açık mı
     private Consumer<Boolean> onComplete;
 
     public SellGUI(LbAuctionHouse addon, LbAuctionHouse corePlugin, AuctionManager manager, AuctionConfig config) {
@@ -70,6 +72,7 @@ public class SellGUI extends BaseMenu {
         this.selectedQuantity = 1;
         this.selectedPrice = -1;
         this.advertised = false;
+        this.offersEnabled = false;
     }
 
     public void open(Player player, Consumer<Boolean> callback) {
@@ -127,7 +130,16 @@ public class SellGUI extends BaseMenu {
                     .name(advertised ? "&6&lReklam: &aAÇIK" : "&6&lReklam: &cKAPALI")
                     .lore("&7Tıkla — reklamlı ilan")
                     .lore("&7Tüm oyunculara duyurulur")
-                    .lore("&7Ücret: &e" + String.format("%,.0f", config.getAdvertiseFee()) + "₺")
+                    .lore("&6Ücret: &e" + String.format("%,.0f", config.getAdvertiseFee()) + "₺")
+                    .build());
+        }
+
+        // Teklif (Pazarlık) toggle
+        if (config.isNegotiationEnabled()) {
+            setItem(OFFERS_SLOT, MenuItem.builder(offersEnabled ? Material.EMERALD : Material.COAL)
+                    .name(offersEnabled ? "&9&lTeklif: &aAÇIK" : "&9&lTeklif: &cKAPALI")
+                    .lore("&7Tıkla — pazarlık teklifi aç/kapat")
+                    .lore("&7Açıkken alıcılar bu ilana fiyat teklifi gönderebilir")
                     .build());
         }
 
@@ -232,6 +244,13 @@ public class SellGUI extends BaseMenu {
             return;
         }
 
+        // Teklif (Pazarlık) toggle
+        if (slot == OFFERS_SLOT && config.isNegotiationEnabled()) {
+            offersEnabled = !offersEnabled;
+            updateDisplay();
+            return;
+        }
+
         // Onayla
         if (slot == CONFIRM_SLOT) {
             if (selectedItem == null) {
@@ -254,7 +273,7 @@ public class SellGUI extends BaseMenu {
             // TEK fiyat — adet başı değil; fiyat, ilanın tamamı içindir.
             double totalPrice = selectedPrice;
 
-            boolean ok = manager.listItem(currentPlayer, sellItem, totalPrice, config.getExpireHours(), advertised);
+            boolean ok = manager.listItem(currentPlayer, sellItem, totalPrice, config.getExpireHours(), advertised, offersEnabled);
             if (ok) {
                 // Oyuncunun envanterinden eşyayı düş (paketse içindeki her eşyayı)
                 removeFromInventory(currentPlayer, sellItem);
