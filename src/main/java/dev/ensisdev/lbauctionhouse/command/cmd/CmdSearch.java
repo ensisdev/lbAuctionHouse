@@ -57,7 +57,7 @@ public class CmdSearch extends AuctionCmd {
         List<AuctionListing> results = service.search(filter);
         int count = service.count(filter);
 
-        msg("§e§l━━━ İlan Arama Sonuçları §7(" + count + " ilan) §e§l━━━");
+        msg("§e▪▪▪ ✦ İlan Arama Sonuçları §7(" + count + " ilan) §e✦ ▪▪▪");
         if (results.isEmpty()) {
             msg("§7Arama kriterlerine uygun ilan bulunamadı.");
             return;

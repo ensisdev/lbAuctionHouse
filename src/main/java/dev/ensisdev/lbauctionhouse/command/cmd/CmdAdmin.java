@@ -28,7 +28,7 @@ public class CmdAdmin extends AuctionCmd {
     @Override
     protected void execute() {
         if (!hasArg(0)) {
-            msg("§6=== Yönetim Paneli ===");
+            msg("§6▪▪▪ ✦ Yönetim Paneli ✦ ▪▪▪");
             msg("§7/" + label + " stats — İstatistikler");
             msg("§7/" + label + " logs — Son işlemleri göster");
             msg("§7/" + label + " clear — Tüm ilanları temizle");
