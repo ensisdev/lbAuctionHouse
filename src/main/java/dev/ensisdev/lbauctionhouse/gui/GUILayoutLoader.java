@@ -91,14 +91,15 @@ public class GUILayoutLoader {
                         load(fileName); // diske kopyalar + parse eder + cache'ler
                         count++;
                     } catch (Exception e) {
-                        plugin.getLogger().severe("[GUILayoutLoader] '" + fileName + "' ön yüklenirken hata:");
-                        e.printStackTrace(); // TAM stack trace — yutulmaz
+                        // TAM stack trace yutulmaz; System.err yerine logger kullanılır (Nag uyarısı yok)
+                        plugin.getLogger().log(java.util.logging.Level.SEVERE,
+                                "[GUILayoutLoader] '" + fileName + "' ön yüklenirken hata:", e);
                     }
                 }
             }
         } catch (Exception e) {
-            plugin.getLogger().severe("[GUILayoutLoader] gui dosyaları ön yüklenirken hata:");
-            e.printStackTrace(); // TAM stack trace — yutulmaz
+            plugin.getLogger().log(java.util.logging.Level.SEVERE,
+                    "[GUILayoutLoader] gui dosyaları ön yüklenirken hata:", e);
         } finally {
             try {
                 if (jar != null) jar.close();

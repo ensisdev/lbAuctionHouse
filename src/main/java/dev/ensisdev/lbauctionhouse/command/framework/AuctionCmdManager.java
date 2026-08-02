@@ -52,8 +52,9 @@ public class AuctionCmdManager implements CommandExecutor, TabCompleter {
                 commandMap = (CommandMap) field.get(Bukkit.getServer());
             }
         } catch (Exception e) {
-            System.err.println("[lbSmpCore-Auction] CommandMap alınamadı!");
-            e.printStackTrace();
+            // System.err yerine logger — stack trace'i yutmayız ama Nag uyarısı çıkmaz.
+            org.bukkit.Bukkit.getLogger().log(java.util.logging.Level.SEVERE,
+                    "[lbAuctionHouse] CommandMap alınamadı!", e);
         }
     }
 

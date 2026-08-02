@@ -5,23 +5,10 @@ import java.util.logging.LogRecord;
 import java.util.logging.Logger;
 
 /**
- * Addon'lar için özel logger — mesajları {@code [lbSmpCore-<AddonID>]} prefix'i ile loglar.
+ * lbAuctionHouse için logger sarmalayıcı.
  * <p>
- * Core'un standart logger'ını sarar (wrap), böylece addon mesajları
- * konsolda diğer plugin mesajlarıyla tutarlı görünür.
- * <p>
- * Kullanım (addon içinden):
- * <pre>
- * public class OrderAddon extends JavaPlugin implements LbSmpAddon {
- *     private AddonLogger addonLogger;
- *
- *     public void onAddonEnable(AuctionAPI api, JavaPlugin plugin) {
- *         addonLogger = new AddonLogger("Order", api.getLogger());
- *         addonLogger.info("Addon başlatıldı!");
- *     }
- * }
- * </pre>
- * Konsol çıktısı: {@code [lbSmpCore-Order] Addon başlatıldı!}
+ * Plugin kendi logger'ı zaten {@code [lbAuctionHouse]} prefix'ini ekler; bu
+ * sarmalayıcı fazladan prefix eklemez (eski lbSmpCore-* addon prefix'i kaldırıldı).
  */
 public class AddonLogger {
 
@@ -29,12 +16,12 @@ public class AddonLogger {
     private final String prefix;
 
     /**
-     * @param addonId Addon ID'si (örn: "Order")
-     * @param delegate Core'un logger'ı (veya JavaPlugin.getLogger())
+     * @param addonId  (geriye uyumluluk için; prefix'e artık dahil edilmez)
+     * @param delegate JavaPlugin.getLogger()
      */
     public AddonLogger(String addonId, Logger delegate) {
         this.delegate = delegate;
-        this.prefix = "[lbSmpCore-" + addonId + "] ";
+        this.prefix = "";
     }
 
     public void info(String message) {
