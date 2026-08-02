@@ -293,7 +293,13 @@ public class AuctionManager {
                 // "BOTH" tipinde: BIN fiyatı varsa onu kullan, yoksa price kullan
                 double buyPrice = fresh.isBoth() && fresh.binPrice() > 0 ? fresh.binPrice() : fresh.price();
                 if (!economy.has(buyer, buyPrice)) return PurchaseResult.INSUFFICIENT_FUNDS;
-                if (!economy.withdraw(buyer, buyPrice)) return PurchaseResult.TRANSACTION_FAILED;
+                // Çapraz sunucu (MySQL) güvenliği: ilanı ATOMIK olarak claim et —
+                // yalnızca hâlâ satılmamışsa satılır, iki sunucu aynı anda satamaz.
+                if (!data.markSoldIfAvailable(lid)) return PurchaseResult.ALREADY_SOLD;
+                if (!economy.withdraw(buyer, buyPrice)) {
+                    data.undoSold(lid); // para çekilemedi → claim'i geri al
+                    return PurchaseResult.TRANSACTION_FAILED;
+                }
 
                 ItemStack itemStack = fresh.item().clone();
                 // Paket (fıçı) ise eşyaları AÇ ve tek tek ver; shulker kutusu olduğu gibi verilir.

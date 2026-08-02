@@ -236,6 +236,38 @@ public class AuctionData {
         }
     }
 
+    /**
+     * Atomik satış claim'i — ilan yalnızca hâlâ satılmamışsa satılır.
+     * <p>
+     * ÇAPRAZ SUNUCU (MySQL) senaryosunda iki sunucu aynı ilanı aynı anda
+     * satın almaya çalışırsa, yalnızca biri başarılı sayılır (UPDATE ... AND sold=0).
+     *
+     * @return bu sunucu ilanı claim edebildi mi
+     */
+    public boolean markSoldIfAvailable(UUID listingId) {
+        try (Connection conn = dataManager.getAdapter().getConnection();
+             PreparedStatement st = conn.prepareStatement(
+                     "UPDATE auction_listings SET sold = 1 WHERE id = ? AND sold = 0")) {
+            st.setString(1, listingId.toString());
+            return st.executeUpdate() == 1;
+        } catch (SQLException e) {
+            logger.log(Level.WARNING, "Atomik satış claim hatası", e);
+        }
+        return false;
+    }
+
+    /**
+     * Atomik claim başarılı ama sonrası (para çekme vb.) başarısız olduysa geri alır.
+     */
+    public void undoSold(UUID listingId) {
+        try {
+            dataManager.getAdapter().execute(
+                "UPDATE auction_listings SET sold = 0 WHERE id = ?", listingId.toString());
+        } catch (SQLException e) {
+            logger.log(Level.WARNING, "Satış claim geri alma hatası", e);
+        }
+    }
+
     public void deleteListing(UUID listingId) {
         try {
             dataManager.getAdapter().execute(

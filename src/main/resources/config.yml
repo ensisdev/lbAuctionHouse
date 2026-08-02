@@ -10,6 +10,23 @@ settings:
 
 addon-display-name: "İhale"
 
+# ───────────────────────────────────────────────
+#  VERİ DEPOLAMA
+#  • sqlite (varsayılan): tek sunucu, <pluginfolder>/data/database.db
+#  • mysql: ÇAPRAZ SUNUCU — birden fazla sunucu aynı ilan havuzunu paylaşır.
+#    Not: MySQL kullanınca diğer sunucularda değişikliklerin anında görünmesi
+#    için cluster.mode 'redis' de açmanız önerilir.
+# ───────────────────────────────────────────────
+storage:
+  type: sqlite
+  mysql:
+    host: localhost
+    port: 3306
+    database: lbsmpcore
+    username: root
+    password: ""
+    pool-size: 10
+
 # ════════════════════════════════════════════════════════════
 #  MESAJ DİLİ — oyunculara gösterilen metinlerin dili.
 #  tr | en | de | fr | ar   (lang/ klasöründeki dosyalar)
