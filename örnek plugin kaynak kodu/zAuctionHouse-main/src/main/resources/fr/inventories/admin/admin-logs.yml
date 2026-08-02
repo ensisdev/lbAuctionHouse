@@ -1,0 +1,192 @@
+################################################################################################################################
+#
+#   zAuctionHouse V4 - Inventaire des logs admin
+#
+#   Cet inventaire affiche tous les logs d'actions d'un joueur.
+#   Les logs enregistrent chaque action d'enchères: mise en vente, achat et suppression d'items.
+#
+#   TYPES DE LOG:
+#   - SALE: Item mis en vente
+#   - PURCHASE: Item acheté
+#   - REMOVE_LISTED: Item retiré de la vente active
+#   - REMOVE_SELLING: Item récupéré de l'inventaire de vente
+#   - REMOVE_EXPIRED: Item récupéré de l'inventaire expiré
+#   - REMOVE_PURCHASED: Item récupéré de l'inventaire acheté
+#
+#   FONCTIONNALITÉS:
+#   - Filtrer par type de log
+#   - Filtrer par plage de dates
+#   - Récupérer les items des entrées de log (récupération admin)
+#
+#   ACCÈS:
+#   - Depuis le menu principal historique admin → Bouton Logs
+#
+#   Documentation: https://docs.groupez.dev/zauctionhouse/introduction
+#   Discord: https://discord.groupez.dev/
+#
+################################################################################################################################
+
+#=============================================================================
+# PARAMÈTRES DE L'INVENTAIRE
+#=============================================================================
+
+# Titre de l'inventaire avec placeholders de pagination.
+name: '#0c1719Logs admin (%page%/%max-page%)'
+
+# Taille de l'inventaire - 6 lignes.
+size: 54
+
+#=============================================================================
+# PATTERNS
+#=============================================================================
+
+patterns:
+  # Bordures décoratives en vitres.
+  - 'zauctionhouse-decoration'
+  # Boutons page précédente/suivante.
+  - 'zauctionhouse-pagination'
+  # Bouton retour vers le menu principal admin.
+  - 'zauctionhouse-back'
+
+#=============================================================================
+# ITEMS
+#=============================================================================
+
+items:
+
+  #---------------------------------------------------------------------------
+  # AFFICHAGE DES ENTRÉES DE LOG
+  #---------------------------------------------------------------------------
+  # Affiche toutes les entrées de log du joueur cible.
+  # Chaque entrée montre le type d'action, l'item et l'horodatage.
+
+  items:
+    # Type de bouton - affiche les entrées de log.
+    type: ZAUCTIONHOUSE_ADMIN_LOGS
+
+    # Slot pour l'indicateur de chargement.
+    loading-slot: 22
+
+    # Slots pour afficher les entrées de log (4 lignes × 9 colonnes = 36 slots).
+    slots:
+      - 9-17    # Ligne 2
+      - 18-26   # Ligne 3
+      - 27-35   # Ligne 4
+      - 36-44   # Ligne 5
+
+    # Item affiché pendant le chargement.
+    item:
+      material: BARRIER
+      name: "#ff0000Chargement..."
+
+    # Item affiché quand aucun log n'existe.
+    else:
+      slots:
+        - 22
+      item:
+        material: BARRIER
+        name: '#ff0000&nAucune Vente Trouvée'
+        lore:
+          - ''
+          - '&7Vous n''avez pas encore vendu d''items.'
+
+  #---------------------------------------------------------------------------
+  # BOUTON FILTRE PAR TYPE
+  #---------------------------------------------------------------------------
+  # Parcourt les filtres de type de log.
+
+  filter-type:
+    # Type de bouton - gère le filtrage par type.
+    type: ZAUCTIONHOUSE_ADMIN_LOGS_FILTER_TYPE
+
+    # Position du slot.
+    slot: 47
+
+    # Format pour le type actuellement sélectionné.
+    enable-text: ' #F27438➜ %type%'
+
+    # Format pour les types non sélectionnés.
+    disable-text: ' #76CDCD➜ %type%'
+
+    # Nom d'affichage pour l'option "tous les types".
+    all-types-name: "Tous"
+
+    # Types de log disponibles pour le filtrage.
+    types:
+      - SALE              # Items mis en vente
+      - PURCHASE          # Items achetés
+      - REMOVE_LISTED     # Items retirés des ventes actives
+      - REMOVE_SELLING    # Items récupérés de l'inventaire de vente
+      - REMOVE_EXPIRED    # Items récupérés de l'inventaire expiré
+      - REMOVE_PURCHASED  # Items récupérés de l'inventaire acheté
+
+    # Noms d'affichage pour chaque type.
+    type-names:
+      SALE: "Vente"
+      PURCHASE: "Achat"
+      REMOVE_LISTED: "Retrait Vente"
+      REMOVE_SELLING: "Retrait Possession"
+      REMOVE_EXPIRED: "Retrait Expiré"
+      REMOVE_PURCHASED: "Retrait Acheté"
+
+    item:
+      material: HOPPER
+      name: '#2CCED2<bold>ғɪʟᴛʀᴇʀ ᴘᴀʀ ᴛʏᴘᴇ'
+      lore:
+        - '#92ffffTypes disponibles:'
+        # Placeholders pour chaque type (formatés par enable/disable-text).
+        - '%ALL%'
+        - '%SALE%'
+        - '%PURCHASE%'
+        - '%REMOVE_LISTED%'
+        - '%REMOVE_SELLING%'
+        - '%REMOVE_EXPIRED%'
+        - '%REMOVE_PURCHASED%'
+        - ''
+        - '#8c8c8c• #2CCED2Cliquez #92ffffpour changer le filtre'
+
+  #---------------------------------------------------------------------------
+  # BOUTON FILTRE PAR DATE
+  #---------------------------------------------------------------------------
+  # Parcourt les filtres de plage de dates.
+
+  filter-date:
+    # Type de bouton - gère le filtrage par date.
+    type: ZAUCTIONHOUSE_ADMIN_LOGS_FILTER_DATE
+
+    slot: 51
+
+    # Format pour la plage de dates actuellement sélectionnée.
+    enable-text: ' #F27438➜ %date%'
+
+    # Format pour les plages de dates non sélectionnées.
+    disable-text: ' #76CDCD➜ %date%'
+
+    # Filtres de dates disponibles.
+    filters:
+      - ALL         # Tout le temps
+      - TODAY       # Aujourd'hui seulement
+      - THIS_WEEK   # 7 derniers jours
+      - THIS_MONTH  # 30 derniers jours
+      - THIS_YEAR   # 365 derniers jours
+
+    # Noms d'affichage pour chaque filtre de date.
+    filter-names:
+      ALL: "Tout"
+      TODAY: "Aujourd'hui"
+      THIS_WEEK: "Cette Semaine"
+      THIS_MONTH: "Ce Mois"
+      THIS_YEAR: "Cette Année"
+
+    item:
+      material: CLOCK
+      name: '#2CCED2<bold>ғɪʟᴛʀᴇʀ ᴘᴀʀ ᴅᴀᴛᴇ'
+      lore:
+        - '#92ffffFiltres disponibles:'
+        - '%ALL%'
+        - '%TODAY%'
+        - '%THIS_WEEK%'
+        - '%THIS_MONTH%'
+        - '%THIS_YEAR%'
+        - ''
+        - '#8c8c8c• #2CCED2Cliquez #92ffffpour changer le filtre'

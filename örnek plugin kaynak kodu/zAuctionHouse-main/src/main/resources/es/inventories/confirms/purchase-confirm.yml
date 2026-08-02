@@ -1,0 +1,134 @@
+################################################################################################################################
+#
+#   zAuctionHouse V4 - Inventario de Confirmacion de Compra
+#
+#   Este inventario pide a los jugadores confirmar su compra antes de finalizarla.
+#   Muestra el objeto a comprar con las opciones confirmar/cancelar.
+#
+#   FUNCIONALIDADES:
+#   - Vista previa del objeto antes de la compra
+#   - Ver el contenido de las shulker (si aplica)
+#   - Confirmar o cancelar la compra
+#
+#   ACCESO:
+#   - Se abre automaticamente al hacer clic en un objeto para comprar en la casa de subastas
+#
+#   Documentacion: https://docs.groupez.dev/zauctionhouse/introduction
+#   Discord: https://discord.groupez.dev/
+#
+################################################################################################################################
+
+#=============================================================================
+# CONFIGURACION DEL INVENTARIO
+#=============================================================================
+
+# Titulo del inventario - formato pregunta para mayor claridad.
+name: "#0c1719Comprar este objeto?"
+
+# Tamano del inventario - 3 filas (27 slots) para un dialogo de confirmacion compacto.
+size: 27
+
+#=============================================================================
+# OBJETOS
+#=============================================================================
+
+items:
+
+  #---------------------------------------------------------------------------
+  # BOTON CONFIRMAR
+  #---------------------------------------------------------------------------
+  # Finaliza la compra y transfiere dinero/objeto.
+
+  confirm:
+    # Tipo de boton - gestiona la confirmacion de compra.
+    type: ZAUCTIONHOUSE_CONFIRM_PURCHASE
+
+    item:
+      # Cristal verde para la accion de confirmar.
+      material: GREEN_STAINED_GLASS_PANE
+      name: "#2CCED2<bold>ᴄᴏᴍᴘʀᴀʀ"
+      lore:
+        - "#92ffffComprar este objeto."
+        - ""
+        - "#8c8c8c• #2CCED2Clic #92ffffpara comprar"
+
+    # Multiples slots para una zona de clic mas grande.
+    # Lado izquierdo del inventario (cuadricula 3x3).
+    slots:
+      - 0-2     # Fila superior izquierda
+      - 9-11    # Fila central izquierda
+      - 18-20   # Fila inferior izquierda
+
+  #---------------------------------------------------------------------------
+  # BOTON CANCELAR/ATRAS
+  #---------------------------------------------------------------------------
+  # Cancela la compra y vuelve a la casa de subastas.
+
+  deny:
+    # Tipo de boton - vuelve al inventario anterior.
+    type: BACK
+
+    item:
+      # Cristal rojo para la accion de cancelar.
+      material: RED_STAINED_GLASS_PANE
+      name: "#2CCED2<bold>ᴀᴛʀᴀs"
+      lore:
+        - "#92ffffVolver atras."
+        - ""
+        - "#8c8c8c• #2CCED2Clic #92ffffpara volver"
+
+    # Lado derecho del inventario (cuadricula 3x3).
+    slots:
+      - 6-8     # Fila superior derecha
+      - 15-17   # Fila central derecha
+      - 24-26   # Fila inferior derecha
+
+  #---------------------------------------------------------------------------
+  # DECORACION
+  #---------------------------------------------------------------------------
+  # Rellena la columna central con cristales.
+
+  decoration:
+    item:
+      material: LIGHT_BLUE_STAINED_GLASS_PANE
+      name: "#2CCED2"
+
+    # Columna central y slots circundantes.
+    slots:
+      - 3-5     # Centro arriba
+      - 12      # Centro-izquierda del medio
+      - 14      # Centro-derecha del medio
+      - 21-23   # Centro abajo
+
+  #---------------------------------------------------------------------------
+  # VISTA PREVIA DEL OBJETO
+  #---------------------------------------------------------------------------
+  # Muestra el objeto a comprar en el centro.
+
+  show:
+    # Tipo de boton - muestra el objeto de la subasta.
+    type: ZAUCTIONHOUSE_SHOW
+
+    # Slot central.
+    slot: 13
+
+  #---------------------------------------------------------------------------
+  # BOTON CONTENIDO SHULKER
+  #---------------------------------------------------------------------------
+  # Abre el visualizador del contenido shulker (mostrado solo para objetos shulker).
+
+  shulker:
+    # Tipo de boton - abre la vista previa del contenido shulker.
+    # Visible solo cuando el objeto contiene cajas shulker.
+    type: ZAUCTIONHOUSE_SHULKER_OPEN
+
+    # Posicion del slot.
+    slot: 4
+
+    item:
+      material: SHULKER_BOX
+      name: "#2CCED2<bold>ᴠᴇʀ ᴄᴏɴᴛᴇɴɪᴅᴏ sʜᴜʟᴋᴇʀ"
+      lore:
+        - "#92ffffVer el contenido de las cajas shulker."
+        - ""
+        - "#8c8c8c• #2CCED2Clic #92ffffpara ver el contenido"

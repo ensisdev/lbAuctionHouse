@@ -1,0 +1,330 @@
+################################################################################################################################
+#
+#   zAuctionHouse V4 - Inventario Principale della Casa d'Aste
+#
+#   Questo è l'inventario principale che mostra tutti gli oggetti in vendita.
+#   I giocatori vi accedono tramite /ah o cliccando su un NPC.
+#
+#   Questo inventario mostra:
+#   - Tutti gli oggetti attualmente in vendita
+#   - Navigazione verso categorie, oggetti scaduti, oggetti acquistati
+#   - Opzioni di ordinamento
+#   - Paginazione per sfogliare più pagine
+#
+#   Documentazione: https://docs.groupez.dev/zauctionhouse/introduction
+#   Discord: https://discord.groupez.dev/
+#
+################################################################################################################################
+
+#=============================================================================
+# IMPOSTAZIONI DELL'INVENTARIO
+#=============================================================================
+
+# Titolo dell'inventario mostrato in alto del GUI.
+# Supporta i placeholder e la formattazione MiniMessage.
+# Placeholder disponibili:
+#   %page%                        - Numero di pagina attuale
+#   %max-page%                    - Numero totale di pagine
+#   %zauctionhouse_category_name% - Nome della categoria attuale
+name: "%zauctionhouse_category_name% (%page%/%max-page%)"
+
+# Dimensione dell'inventario in slot (deve essere un multiplo di 9).
+# Opzioni: 9, 18, 27, 36, 45, 54 (1-6 righe)
+# 54 slot (6 righe) è consigliato per la casa d'aste.
+size: 54
+
+#=============================================================================
+# PATTERN
+#=============================================================================
+# I pattern sono modelli riutilizzabili che aggiungono elementi comuni.
+# Vengono applicati in ordine; i pattern successivi possono sovrascrivere i precedenti.
+
+patterns:
+  # Aggiunge bordi decorativi in vetro (righe superiore e inferiore)
+  - 'zauctionhouse-decoration'
+  # Aggiunge i pulsanti di navigazione (pagina precedente/successiva)
+  - "zauctionhouse-pagination"
+
+#=============================================================================
+# OGGETTI
+#=============================================================================
+# Gli oggetti definiscono i pulsanti e le visualizzazioni in questo inventario.
+# Ogni oggetto ha una chiave univoca (es: 'display-items', 'categories').
+
+items:
+
+  #---------------------------------------------------------------------------
+  # VISUALIZZAZIONE DEGLI OGGETTI IN VENDITA
+  #---------------------------------------------------------------------------
+  # Questa è la visualizzazione principale che mostra tutti gli oggetti in vendita.
+  # Gli oggetti sono paginati e possono essere filtrati per categoria.
+
+  display-items:
+    # Tipo di pulsante - ZAUCTIONHOUSE_LISTED_ITEMS è un tipo specifico del plugin.
+    # Gestisce automaticamente:
+    # - Caricamento e visualizzazione degli oggetti
+    # - Filtraggio per categoria
+    # - Ordinamento
+    # - Azioni al clic (acquista/ritira)
+    type: ZAUCTIONHOUSE_LISTED_ITEMS
+
+    # Slot per mostrare l'oggetto "vuoto" quando non viene trovato nessun oggetto.
+    # Questo slot viene usato quando la casa d'aste è vuota.
+    empty-slot: 22
+
+    # Slot dove vengono mostrati gli oggetti.
+    # Queste dovrebbero essere le righe centrali (lasciando alto/basso per l'UI).
+    # Intervalli di slot: '9-17' significa slot dal 9 al 17 (9 oggetti per riga).
+    # Totale: 36 slot per oggetti (4 righe × 9 colonne)
+    slots:
+      - 9-17    # Riga 2
+      - 18-26   # Riga 3
+      - 27-35   # Riga 4
+      - 36-44   # Riga 5
+
+    # Oggetto mostrato quando non ci sono oggetti in vendita (casa d'aste vuota).
+    item:
+      material: BARRIER
+      # &n crea testo sottolineato (formattazione legacy)
+      name: '#ff0000&nNessun oggetto trovato'
+
+  #---------------------------------------------------------------------------
+  # PULSANTE CATEGORIE
+  #---------------------------------------------------------------------------
+  # Apre l'inventario di selezione categoria per filtrare gli oggetti.
+
+  categories:
+    # Posizione dello slot - centro della riga superiore.
+    slot: 4
+
+    # Tipo di pulsante - 'inventory' apre un altro inventario zMenu.
+    type: inventory
+
+    # Plugin proprietario dell'inventario target.
+    plugin: "zAuctionHouse"
+
+    # File di inventario da aprire (inventories/categories.yml).
+    inventory: "categories"
+    is-permanent: true
+
+    # Aspetto del pulsante
+    item:
+      material: CHEST
+      name: "#2CCED2<bold>ᴄᴀᴛᴇɢᴏʀɪᴇ"
+      lore:
+        - ""
+        - "#8c8c8c• #2CCED2Clicca #92ffffper aprire"
+
+  #---------------------------------------------------------------------------
+  # PULSANTE OGGETTI SCADUTI
+  #---------------------------------------------------------------------------
+  # Mostra gli oggetti del giocatore che sono scaduti (non venduti in tempo).
+  # L'aspetto del pulsante cambia a seconda se esistono oggetti.
+
+  expired-items:
+    # Tipo di pulsante - apre l'inventario degli oggetti scaduti se ci sono oggetti.
+    type: ZAUCTIONHOUSE_EXPIRED_INVENTORY
+
+    # Posizione dello slot - estrema sinistra della riga inferiore.
+    slot: 45
+
+    # Oggetto mostrato quando il giocatore HA oggetti scaduti.
+    item:
+      # Texture di testa personalizzata (icona clessidra/orologio).
+      url: "eyJ0ZXh0dXJlcyI6eyJTS0lOIjp7InVybCI6Imh0dHA6Ly90ZXh0dXJlcy5taW5lY3JhZnQubmV0L3RleHR1cmUvZjdhYWRmZjlkZGM1NDZmZGNlYzZlZDU5MTljYzM5ZGZhOGQwYzA3ZmY0YmM2MTNhMTlmMmU2ZDdmMjU5MyJ9fX0="
+      name: "#2CCED2<bold>ᴏɢɢᴇᴛᴛɪ sᴄᴀᴅᴜᴛɪ"
+      lore:
+        # %expired-items% = numero di oggetti scaduti
+        # %s% = suffisso di pluralizzazione ("" per 1, "i" per 2+)
+        - "#92ffffHai #2CCED2%expired-items% #92ffffoggett%s% scadut%s%."
+        - ""
+        - "#8c8c8c• #2CCED2Clicca #92ffffper aprire"
+
+    # Oggetto mostrato quando il giocatore NON HA oggetti scaduti.
+    else:
+      item:
+        url: "eyJ0ZXh0dXJlcyI6eyJTS0lOIjp7InVybCI6Imh0dHA6Ly90ZXh0dXJlcy5taW5lY3JhZnQubmV0L3RleHR1cmUvZjdhYWRmZjlkZGM1NDZmZGNlYzZlZDU5MTljYzM5ZGZhOGQwYzA3ZmY0YmM2MTNhMTlmMmU2ZDdmMjU5MyJ9fX0="
+        name: "#2CCED2<bold>ᴏɢɢᴇᴛᴛɪ sᴄᴀᴅᴜᴛɪ"
+        lore:
+          - "#ff3535Non hai oggetti scaduti."
+
+  #---------------------------------------------------------------------------
+  # PULSANTE OGGETTI ACQUISTATI
+  #---------------------------------------------------------------------------
+  # Mostra gli oggetti che il giocatore ha acquistato ma non ancora ritirato.
+
+  purchased-items:
+    # Tipo di pulsante - apre l'inventario degli oggetti acquistati se ci sono oggetti.
+    type: ZAUCTIONHOUSE_PURCHASED_INVENTORY
+
+    # Posizione dello slot - secondo da sinistra nella riga inferiore.
+    slot: 46
+
+    # Oggetto mostrato quando il giocatore HA oggetti acquistati da ritirare.
+    item:
+      # Texture icona baule.
+      url: "eyJ0ZXh0dXJlcyI6eyJTS0lOIjp7InVybCI6Imh0dHA6Ly90ZXh0dXJlcy5taW5lY3JhZnQubmV0L3RleHR1cmUvZjM3Y2FlNWM1MWViMTU1OGVhODI4ZjU4ZTBkZmY4ZTZiN2IwYjFhMTgzZDczN2VlY2Y3MTQ2NjE3NjEifX19"
+      name: "#2CCED2<bold>ᴏɢɢᴇᴛᴛɪ ᴀᴄQᴜɪsᴛᴀᴛɪ"
+      lore:
+        - "#92ffffHai #2CCED2%purchased-items% #92ffffoggett%s% acquistat%s%."
+        - ""
+        - "#8c8c8c• #2CCED2Clicca #92ffffper aprire"
+
+    # Oggetto mostrato quando il giocatore NON HA oggetti acquistati.
+    else:
+      item:
+        url: "eyJ0ZXh0dXJlcyI6eyJTS0lOIjp7InVybCI6Imh0dHA6Ly90ZXh0dXJlcy5taW5lY3JhZnQubmV0L3RleHR1cmUvZjM3Y2FlNWM1MWViMTU1OGVhODI4ZjU4ZTBkZmY4ZTZiN2IwYjFhMTgzZDczN2VlY2Y3MTQ2NjE3NjEifX19"
+        name: "#2CCED2<bold>ᴏɢɢᴇᴛᴛɪ ᴀᴄQᴜɪsᴛᴀᴛɪ"
+        lore:
+          - "#ff3535Non hai oggetti acquistati."
+
+  #---------------------------------------------------------------------------
+  # PULSANTE I TUOI OGGETTI (IN VENDITA)
+  #---------------------------------------------------------------------------
+  # Mostra gli oggetti che il giocatore ha attualmente in vendita.
+
+  selling-items:
+    # Tipo di pulsante - apre l'inventario degli oggetti in vendita se ci sono oggetti.
+    type: ZAUCTIONHOUSE_SELLING_INVENTORY
+
+    # Posizione dello slot - estrema destra della riga inferiore.
+    slot: 53
+
+    # Oggetto mostrato quando il giocatore HA oggetti in vendita.
+    item:
+      # Texture icona giocatore.
+      url: "eyJ0ZXh0dXJlcyI6eyJTS0lOIjp7InVybCI6Imh0dHA6Ly90ZXh0dXJlcy5taW5lY3JhZnQubmV0L3RleHR1cmUvMjU4MDdjYzRjM2I2OTU4YWVhNjE1NmU4NDUxOGQ5MWE0OWM1ZjMyOTcxZTZlYjI2OWEyM2EyNWEyNzE0NSJ9fX0="
+      name: "#2CCED2<bold>ɪ ᴛᴜᴏɪ ᴏɢɢᴇᴛᴛɪ"
+      lore:
+        - "#92ffffHai #2CCED2%selling-items% #92ffffoggett%s% in vendita."
+        - ""
+        - "#8c8c8c• #2CCED2Clicca #92ffffper aprire"
+
+    # Oggetto mostrato quando il giocatore NON HA oggetti in vendita.
+    else:
+      item:
+        url: "eyJ0ZXh0dXJlcyI6eyJTS0lOIjp7InVybCI6Imh0dHA6Ly90ZXh0dXJlcy5taW5lY3JhZnQubmV0L3RleHR1cmUvMjU4MDdjYzRjM2I2OTU4YWVhNjE1NmU4NDUxOGQ5MWE0OWM1ZjMyOTcxZTZlYjI2OWEyM2EyNWEyNzE0NSJ9fX0="
+        name: "#2CCED2<bold>ɪ ᴛᴜᴏɪ ᴏɢɢᴇᴛᴛɪ"
+        lore:
+          - "#ff3535Non hai oggetti in vendita."
+
+  #---------------------------------------------------------------------------
+  # PULSANTE CERCA
+  #---------------------------------------------------------------------------
+  # Apre l'input di ricerca nella chat per filtrare gli oggetti.
+
+  search:
+    type: ZAUCTIONHOUSE_SEARCH
+    slot: 47
+    is-permanent: true
+    # Valore mostrato in %search_query% quando nessuna ricerca è attiva.
+    none-value: "Nessuna"
+    # Valore mostrato in %search_active% quando una ricerca è attiva.
+    active-value: "true"
+    # Valore mostrato in %search_active% quando nessuna ricerca è attiva.
+    inactive-value: "false"
+    item:
+      material: COMPASS
+      name: "#2CCED2<bold>ᴄᴇʀᴄᴀ"
+      lore:
+        - ""
+        - "#92ffffRicerca attuale#8c8c8c: #2CCED2%search_query%"
+        - ""
+        - "#92ffffFiltri#8c8c8c:"
+        - "#8c8c8c  name #76CDCD~ #8c8c8cvalore    #555555(contiene)"
+        - "#8c8c8c  name #76CDCD= #8c8c8cvalore    #555555(esatto)"
+        - "#8c8c8c  name #76CDCD~= #8c8c8cvalore   #555555(contiene, ignora maiuscole)"
+        - "#8c8c8c  name #76CDCD== #8c8c8cvalore   #555555(esatto, ignora maiuscole)"
+        - ""
+        - "#92ffffCampi#8c8c8c: #76CDCDname#8c8c8c, #76CDCDmaterial#8c8c8c, #76CDCDlore#8c8c8c, #76CDCDseller"
+        - ""
+        - "#92ffffEsempi#8c8c8c:"
+        - "#8c8c8c  seller #76CDCD= #8c8c8cNotch"
+        - "#8c8c8c  name #76CDCD~ #8c8c8cDiamond"
+        - ""
+        - "#8c8c8c- #2CCED2Clic sinistro #92ffffper cercare"
+        - "#8c8c8c- #2CCED2Clic destro #92ffffper cancellare la ricerca"
+
+  #---------------------------------------------------------------------------
+  # PULSANTE AGGIORNA
+  #---------------------------------------------------------------------------
+  # Mostra le informazioni della casa d'aste e aggiorna la lista.
+
+  refresh:
+    # Tipo di pulsante - ZAUCTIONHOUSE_REFRESH gestisce l'aggiornamento asincrono.
+    type: ZAUCTIONHOUSE_REFRESH
+
+    # Posizione dello slot - centro della riga inferiore.
+    slot: 49
+
+    # Oggetto mostrato durante il caricamento/aggiornamento (previene i clic spam).
+    loading-item:
+      material: CLOCK
+      name: "#2CCED2<bold>ᴀɢɢɪᴏʀɴᴀᴍᴇɴᴛᴏ..."
+      lore:
+        - "#8c8c8c• #ff3535Caricamento, attendere..."
+
+    # Visualizzazione normale del pulsante di aggiornamento.
+    item:
+      material: BELL
+      name: "#2CCED2<bold>ɪɴғᴏʀᴍᴀᴢɪᴏɴɪ"
+      lore:
+        - "#92ffffBenvenuto nella casa d'aste."
+        - "#92ffffScambia oggetti con altri giocatori."
+        - ""
+        - "#92ffffUtilizzo#8c8c8c:"
+        - "#2CCED2/ah sell #92ffff<prezzo> [<quantità>]"
+        - ""
+        # Placeholder PlaceholderAPI per le statistiche dinamiche.
+        - "#92ffffNumero di oggetti#8c8c8c: #2CCED2%zauctionhouse_listed_items%"
+        - "#92ffffTipo di ordinamento#8c8c8c: #2CCED2%zauctionhouse_sorting_name%"
+        - ""
+        - "#8c8c8c• #2CCED2Clicca #92ffffper aggiornare gli oggetti"
+
+  #---------------------------------------------------------------------------
+  # PULSANTE TIPO DI ORDINAMENTO
+  #---------------------------------------------------------------------------
+  # Cambia l'ordine di ordinamento degli oggetti visualizzati.
+
+  change-sort:
+    # Tipo di pulsante - gestisce il ciclo di ordinamento.
+    type: ZAUCTIONHOUSE_CHANGE_SORT
+
+    # Opzioni di ordinamento disponibili (cicli in questo ordine).
+    # Opzioni: DECREASING_DATE, DECREASING_PRICE, ASCENDING_DATE, ASCENDING_PRICE
+    sorts:
+      - DECREASING_DATE   # Più recente prima (predefinito)
+      - DECREASING_PRICE  # Più costoso prima
+      - ASCENDING_DATE    # Più vecchio prima
+      - ASCENDING_PRICE   # Più economico prima
+
+    # Formato per l'opzione di ordinamento attualmente SELEZIONATA nel lore.
+    # %sorting% viene sostituito con il nome dell'ordinamento da config.yml.
+    enable-text: ' #F27438➜ %sorting%'
+
+    # Formato per le opzioni di ordinamento NON selezionate nel lore.
+    disable-text: ' #76CDCD➜ %sorting%'
+
+    # Oggetto mostrato durante il caricamento/ordinamento (previene i clic spam).
+    loading-item:
+      material: HOPPER
+      name: "#2CCED2<bold>ᴛɪᴘᴏ ᴅɪ ᴏʀᴅɪɴᴀᴍᴇɴᴛᴏ"
+      lore:
+        - "#8c8c8c• #ff3535Caricamento, attendere"
+
+    # Posizione dello slot - lato destro della riga inferiore.
+    slot: 52
+
+    # Visualizzazione normale del pulsante di ordinamento.
+    item:
+      material: HOPPER
+      name: "#2CCED2<bold>ᴛɪᴘᴏ ᴅɪ ᴏʀᴅɪɴᴀᴍᴇɴᴛᴏ"
+      lore:
+        - "#92ffffTipi di ordinamento disponibili:"
+        # Placeholder per ogni opzione di ordinamento (formattati da enable/disable-text).
+        - "%DECREASING_DATE%"
+        - "%DECREASING_PRICE%"
+        - "%ASCENDING_DATE%"
+        - "%ASCENDING_PRICE%"
+        - ""
+        - "#8c8c8c• #2CCED2Clicca #92ffffper cambiare il tipo di ordinamento"

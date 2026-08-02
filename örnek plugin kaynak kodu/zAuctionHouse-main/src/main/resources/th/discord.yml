@@ -1,0 +1,309 @@
+################################################################################################################################
+#
+#   zAuctionHouse V4 - การตั้งค่า Discord Webhook
+#
+#   ไฟล์นี้ใช้กำหนดการแจ้งเตือนผ่าน Discord webhook สำหรับกิจกรรมในระบบประมูล
+#   ส่งการแจ้งเตือนไปยังเซิร์ฟเวอร์ Discord ของคุณเมื่อมีการลงขายหรือซื้อไอเท็ม
+#
+#   วิธีตั้งค่า:
+#   1. ใน Discord ไปที่ ตั้งค่าเซิร์ฟเวอร์ → Integrations → Webhooks
+#   2. สร้าง webhook ใหม่และคัดลอก URL ของ webhook
+#   3. วาง URL ในช่อง 'url' ด้านล่าง
+#   4. เปิดใช้งาน webhook และปรับแต่ง embed ตามต้องการ
+#
+#   รูปแบบ WEBHOOK URL:
+#   https://discord.com/api/webhooks/WEBHOOK_ID/WEBHOOK_TOKEN
+#
+#   Documentation: https://docs.groupez.dev/zauctionhouse/introduction
+#   Discord: https://discord.groupez.dev/
+#
+################################################################################################################################
+
+#=============================================================================
+# การตั้งค่าทั่วไป
+#=============================================================================
+
+# เปิดหรือปิดการแจ้งเตือน Discord webhook ทั้งหมด
+# เมื่อปิด จะไม่มีการส่ง webhook ใด ๆ โดยไม่คำนึงถึงการตั้งค่า webhook แต่ละตัว
+enabled: false
+
+# ชื่อเซิร์ฟเวอร์ที่ใช้ในข้อความ webhook
+# แสดงใน footer และข้อความเพื่อระบุว่าเซิร์ฟเวอร์ไหนส่งการแจ้งเตือน
+# มีประโยชน์สำหรับการตั้งค่าหลายเซิร์ฟเวอร์ที่ใช้ช่อง Discord ร่วมกัน
+server-name: "My Server"
+
+#=============================================================================
+# การตั้งค่ารูปภาพไอเท็ม
+#=============================================================================
+
+# รูปแบบ URL สำหรับดึงรูปภาพไอเท็ม
+# ใช้แสดงไอคอนไอเท็มใน embed ของ webhook
+# ฟีเจอร์สีหลักสามารถดึงสีจากรูปภาพเหล่านี้ได้
+#
+# ค่าเริ่มต้นใช้ API รูปภาพไอเท็ม Minecraft สาธารณะ
+# คุณสามารถโฮสต์รูปเองหรือใช้ API อื่นได้
+item-image-url: "https://img.groupez.dev/minecraft/%item_material%.png"
+
+# เปิดใช้การดึงสีหลักจากรูปภาพไอเท็ม
+# เมื่อเปิด ปลั๊กอินจะดึงรูปภาพไอเท็มและสกัดสีหลักออกมา
+# สีนี้สามารถใช้ใน embed ผ่าน placeholder %item_dominant_color%
+# คำเตือน: จะเพิ่ม HTTP request ซึ่งอาจทำให้เกิดความล่าช้า
+# แนะนำ: ปิดไว้ยกเว้นต้องการสี embed แบบไดนามิกโดยเฉพาะ
+extract-dominant-color: false
+
+# สีเริ่มต้นสำหรับ embed เมื่อ:
+# - การดึงสีหลักถูกปิด
+# - การดึงสีล้มเหลว (เครือข่ายผิดพลาด, รูปภาพไม่ถูกต้อง)
+# ใช้รูปแบบ hex: "#RRGGBB"
+# สีแบรนด์เริ่มต้นของ Discord คือ #5865F2 (Blurple)
+default-color: "#5865F2"
+
+#=============================================================================
+# รูปภาพที่กำหนดเองต่อไอเท็ม
+#=============================================================================
+# แทนที่รูปภาพ (%item_image_url%) สำหรับไอเท็มที่ระบุ
+# เหมาะสำหรับไอเท็มที่กำหนดเอง (ItemsAdder, Oraxen, Nexo, MMOItems, ...) ที่
+# รูปภาพตามวัสดุด้านบนไม่ได้แสดงถึงไอเท็มจริง
+#
+# แต่ละรายการจับคู่ 'rule' (วิธีจดจำไอเท็ม) กับ 'image' (URL)
+# กฎใช้รูปแบบเดียวกับ categories.yml / rules.yml กฎแรกที่ตรงกันจะถูกใช้
+# ดังนั้นให้วางกฎที่เจาะจงที่สุดไว้ก่อน
+# ไอเท็มที่ไม่ตรงกับกฎใดเลยจะใช้รูปแบบ 'item-image-url' ด้านบน
+#
+# ประเภทกฎที่ใช้บ่อย:
+#   type: material           ->  materials: [DIAMOND_SWORD, NETHERITE_SWORD]
+#   type: name               ->  mode: CONTAINS|EQUALS   values: ["Excalibur"]
+#   type: lore               ->  mode: CONTAINS|EQUALS   values: ["Legendary"]
+#   type: custom-model-data  ->  values: [10001]   (หรือ ranges: [{min: 10000, max: 10999}])
+#   type: oraxen             ->  items: [ruby_sword]
+#   type: itemsadder         ->  items: ["mynamespace:ruby_sword"]
+#   type: nexo               ->  items: [ruby_sword]
+#   type: mmoitems           ->  items: ["SWORD:EXCALIBUR"]
+#
+# ปล่อยลิสต์ว่าง ([]) เพื่อปิดฟีเจอร์นี้
+custom-images: []
+#  - rule:
+#      type: oraxen
+#      items:
+#        - ruby_sword
+#    image: "https://example.com/images/ruby_sword.png"
+#  - rule:
+#      type: material
+#      materials:
+#        - DIAMOND_SWORD
+#    image: "https://example.com/images/diamond_sword.png"
+#  - rule:
+#      type: custom-model-data
+#      values:
+#        - 10001
+#    image: "https://example.com/images/legendary.png"
+
+#=============================================================================
+# การตั้งค่า WEBHOOK
+#=============================================================================
+
+webhooks:
+
+  #---------------------------------------------------------------------------
+  # WEBHOOK สำหรับการลงขาย
+  #---------------------------------------------------------------------------
+  # ส่งเมื่อผู้เล่นลงขายไอเท็มใหม่ใน auction house
+
+  sell:
+    # เปิดหรือปิด webhook นี้
+    enabled: false
+
+    # URL ของ Discord webhook สำหรับการแจ้งเตือนการลงขาย
+    # รับ URL จาก Discord: ตั้งค่าเซิร์ฟเวอร์ → Integrations → Webhooks
+    # สำคัญ: เก็บ URL นี้เป็นความลับ! ใครก็ตามที่มี URL นี้สามารถโพสต์ไปยังช่องของคุณได้
+    url: "https://discord.com/api/webhooks/YOUR_WEBHOOK_ID/YOUR_WEBHOOK_TOKEN"
+
+    # ชื่อผู้ใช้กำหนดเองสำหรับบอท webhook
+    # จะแทนที่ชื่อเริ่มต้นที่ตั้งไว้ในการตั้งค่า Discord webhook
+    # เว้นว่างเพื่อใช้ค่าเริ่มต้นของ Discord
+    username: "zAuctionHouse"
+
+    # URL อวาตาร์กำหนดเองสำหรับบอท webhook
+    # ต้องเป็น URL รูปภาพที่ถูกต้อง (PNG, JPG, GIF)
+    # เว้นว่างเพื่อใช้ค่าเริ่มต้นของ Discord
+    avatar-url: ""
+
+    # เนื้อหาข้อความที่ปรากฏเหนือ embed
+    # เป็นข้อความธรรมดา ไม่ใช่ส่วนหนึ่งของ embed
+    # รองรับการกล่าวถึงใน Discord: <@USER_ID>, <@&ROLE_ID>, @everyone, @here
+    # เว้นว่างหากไม่ต้องการข้อความเนื้อหา
+    content: ""
+
+    # การตั้งค่า Embed (กล่องข้อความแบบ rich)
+    embed:
+      # ชื่อ embed - แสดงที่ด้านบนเป็นตัวหนา
+      # รองรับ placeholder
+      title: "New Item Listed!"
+
+      # คำอธิบาย embed - เนื้อหาข้อความหลัก
+      # รองรับ placeholder และ Discord markdown
+      # ใช้ ** สำหรับตัวหนา, * สำหรับตัวเอียง, ` สำหรับโค้ด
+      description: "**%seller_name%** has listed an item for sale"
+
+      # สี sidebar ของ embed ในรูปแบบ hex
+      # ใช้ "#RRGGBB" หรือ placeholder %item_dominant_color% สำหรับสีแบบไดนามิก
+      color: "#00FF00"
+
+      # ฟิลด์ embed - ข้อมูลที่จัดรูปแบบแสดงเป็นคอลัมน์
+      # แต่ละฟิลด์ประกอบด้วย:
+      #   name: ชื่อฟิลด์ (แสดงเป็นตัวหนา)
+      #   value: เนื้อหาฟิลด์
+      #   inline: true = เรียงข้างกัน, false = เต็มความกว้าง
+      # สูงสุด 25 ฟิลด์, ชื่อฟิลด์สูงสุด 256 ตัวอักษร, ค่าสูงสุด 1024 ตัวอักษร
+      fields:
+        - name: "Item"
+          value: "%item_display%"
+          inline: true
+        - name: "Price"
+          value: "%formatted_price%"
+          inline: true
+        - name: "Quantity"
+          value: "%item_amount%"
+          inline: true
+        - name: "Economy"
+          value: "%economy_display_name%"
+          inline: true
+
+      # การตั้งค่า Footer (ข้อความขนาดเล็กที่ด้านล่าง)
+      footer:
+        # ข้อความ footer (สูงสุด 2048 ตัวอักษร)
+        text: "Server: %server_name%"
+        # ไอคอนขนาดเล็กข้างข้อความ footer (ต้องเป็น URL รูปภาพที่ถูกต้อง)
+        icon-url: ""
+
+      # การตั้งค่า Author (แสดงเหนือชื่อพร้อมไอคอน)
+      author:
+        # ชื่อผู้เขียน (สูงสุด 256 ตัวอักษร)
+        name: "%seller_name%"
+        # URL เมื่อคลิกชื่อผู้เขียน (เว้นว่างเพื่อปิดใช้งาน)
+        url: ""
+        # ไอคอนผู้เขียน (ปกติใช้หัวผู้เล่น)
+        # mc-heads.net ให้อวาตาร์ผู้เล่น Minecraft ตาม UUID
+        icon-url: "https://mc-heads.net/avatar/%seller_uuid%"
+
+      # Thumbnail - รูปภาพขนาดเล็กทางด้านขวาของ embed
+      thumbnail:
+        # URL รูปภาพ (ไอคอนไอเท็มตามรูปแบบที่กำหนดด้านบน)
+        url: "%item_image_url%"
+
+      # Image - รูปภาพขนาดใหญ่ที่ด้านล่างของ embed
+      image:
+        # เว้นว่างเพื่อปิดใช้งาน
+        url: ""
+
+      # เพิ่ม timestamp ใน embed (แสดงเวลาปัจจุบันตามเขตเวลาของผู้ใช้)
+      timestamp: true
+
+  #---------------------------------------------------------------------------
+  # WEBHOOK สำหรับการซื้อ
+  #---------------------------------------------------------------------------
+  # ส่งเมื่อผู้เล่นซื้อไอเท็มจาก auction house
+
+  purchase:
+    # เปิดหรือปิด webhook นี้
+    enabled: false
+
+    # URL ของ Discord webhook สำหรับการแจ้งเตือนการซื้อ
+    # สามารถใช้ URL เดียวกันหรือต่างจาก webhook การลงขายก็ได้
+    url: "https://discord.com/api/webhooks/YOUR_WEBHOOK_ID/YOUR_WEBHOOK_TOKEN"
+
+    # ชื่อผู้ใช้กำหนดเองสำหรับบอท webhook
+    username: "zAuctionHouse"
+
+    # URL อวาตาร์กำหนดเองสำหรับบอท webhook
+    avatar-url: ""
+
+    # เนื้อหาข้อความเหนือ embed
+    content: ""
+
+    # การตั้งค่า Embed
+    embed:
+      title: "Item Purchased!"
+      description: "**%buyer_name%** has purchased an item from **%seller_name%**"
+
+      # สีทองสำหรับการซื้อ
+      color: "#FFD700"
+
+      fields:
+        - name: "Item"
+          value: "%item_display%"
+          inline: true
+        - name: "Price"
+          value: "%formatted_price%"
+          inline: true
+        - name: "Buyer"
+          value: "%buyer_name%"
+          inline: true
+        - name: "Seller"
+          value: "%seller_name%"
+          inline: true
+
+      footer:
+        text: "Server: %server_name%"
+        icon-url: ""
+
+      # Author แสดงผู้ซื้อสำหรับการแจ้งเตือนการซื้อ
+      author:
+        name: "%buyer_name%"
+        url: ""
+        icon-url: "https://mc-heads.net/avatar/%buyer_uuid%"
+
+      thumbnail:
+        url: "%item_image_url%"
+
+      image:
+        url: ""
+
+      timestamp: true
+
+#=============================================================================
+# PLACEHOLDER ที่ใช้ได้
+#=============================================================================
+# ใช้ placeholder เหล่านี้ในช่องข้อความใด ๆ ด้านบน
+# Placeholder จะถูกแทนที่ด้วยค่าจริงเมื่อส่ง webhook
+#
+# PLACEHOLDER ไอเท็ม:
+#   %item_id%              - ID ไอเท็มภายใน
+#   %item_material%        - ชื่อวัสดุ (ตัวพิมพ์เล็ก เช่น "diamond_sword")
+#   %item_display%         - ชื่อแสดงของไอเท็มพร้อมรูปแบบ
+#   %item_amount%          - จำนวนในกอง
+#   %item_lore%            - Lore ของไอเท็ม (อาจยาว ใช้อย่างระวัง)
+#   %item_enchantments%    - รายการ enchantment
+#   %item_custom_model_data% - ค่า CustomModelData (สำหรับ resource pack)
+#   %item_dominant_color%  - สีหลักที่ดึงออกมา (ต้องเปิด extract-dominant-color: true)
+#   %item_image_url%       - URL เต็มไปยังรูปภาพไอเท็ม (ใช้การแทนที่ 'custom-images' เมื่อไอเท็มตรงกับกฎ)
+#
+# PLACEHOLDER ผู้เล่น:
+#   %seller_name%          - ชื่อผู้ใช้ของผู้ขาย
+#   %seller_uuid%          - UUID ของผู้ขาย (สำหรับ URL อวาตาร์)
+#   %buyer_name%           - ชื่อผู้ใช้ของผู้ซื้อ (เฉพาะ webhook การซื้อ)
+#   %buyer_uuid%           - UUID ของผู้ซื้อ (เฉพาะ webhook การซื้อ)
+#
+# PLACEHOLDER ราคา:
+#   %price%                - ตัวเลขราคาดิบ
+#   %formatted_price%      - ราคาพร้อมรูปแบบ economy (เช่น "1,000$")
+#   %economy_name%         - ชื่อ economy ภายใน
+#   %economy_display_name% - ชื่อแสดงของ economy
+#
+# PLACEHOLDER เวลา:
+#   %created_at%           - เมื่อสร้างรายการลงขาย
+#   %expires_at%           - เมื่อรายการลงขายหมดอายุ (Discord dynamic timestamp แสดงตามเขตเวลาของผู้ใช้แต่ละคน)
+#   %remaining_time%       - เวลาที่เหลือก่อนหมดอายุ
+#   %timestamp%            - Timestamp ปัจจุบัน
+#
+# PLACEHOLDER เซิร์ฟเวอร์:
+#   %server_name%          - ชื่อเซิร์ฟเวอร์ (จาก config ด้านบน)
+#
+# PLACEHOLDER หมวดหมู่:
+#   %category_names%       - รายชื่อหมวดหมู่ที่ตรงกัน คั่นด้วยเครื่องหมายจุลภาค
+#   %category_count%       - จำนวนหมวดหมู่ที่ตรงกัน
+#
+# เคล็ดลับ:
+# - ใช้ %item_dominant_color% สำหรับสี embed เพื่อทำให้แต่ละไอเท็มมีเอกลักษณ์
+# - เก็บค่าฟิลด์ embed ให้สั้นเพื่อหลีกเลี่ยงขีดจำกัดตัวอักษรของ Discord
+# - ทดสอบการตั้งค่า webhook กับช่องส่วนตัวก่อน

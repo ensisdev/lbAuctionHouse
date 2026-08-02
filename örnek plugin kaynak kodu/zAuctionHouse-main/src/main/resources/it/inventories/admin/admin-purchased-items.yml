@@ -1,0 +1,73 @@
+################################################################################################################################
+#
+#   zAuctionHouse V4 - Inventario Oggetti Acquistati Admin
+#
+#   Questo inventario consente agli admin di visualizzare e gestire gli oggetti acquistati di un giocatore.
+#   Gli admin possono recuperare oggetti per conto di giocatori che potrebbero aver perso l'accesso.
+#
+#   AZIONI ADMIN:
+#   - Visualizza tutti gli oggetti acquistati del giocatore target
+#   - Recupera oggetti da restituire al giocatore
+#   - Utile per recuperare oggetti dopo reclami dei giocatori
+#
+#   ACCESSO:
+#   - Dal menu principale cronologia admin -> Pulsante Oggetti Acquistati
+#   - /ah admin open purchased <giocatore>
+#
+#   Documentazione: https://docs.groupez.dev/zauctionhouse/introduction
+#   Discord: https://discord.groupez.dev/
+#
+################################################################################################################################
+
+#=============================================================================
+# IMPOSTAZIONI INVENTARIO
+#=============================================================================
+
+# Titolo dell'inventario con placeholder di paginazione.
+name: '#0c1719Oggetti acquistati admin (%page%/%max-page%)'
+
+# Dimensione inventario - 6 righe.
+size: 54
+
+#=============================================================================
+# PATTERNS
+#=============================================================================
+
+patterns:
+  # Bordi decorativi in vetro.
+  - 'zauctionhouse-decoration'
+  # Pulsanti pagina precedente/successiva.
+  - 'zauctionhouse-pagination'
+  # Pulsante indietro per tornare alla cronologia admin.
+  - 'zauctionhouse-back'
+
+#=============================================================================
+# OGGETTI
+#=============================================================================
+
+items:
+
+  #---------------------------------------------------------------------------
+  # VISUALIZZAZIONE OGGETTI ACQUISTATI
+  #---------------------------------------------------------------------------
+  # Mostra tutti gli oggetti acquistati del giocatore target.
+  # Cliccando su un oggetto lo recupera (azione admin).
+
+  items:
+    # Tipo pulsante - visualizza oggetti acquistati admin con funzionalità di recupero.
+    type: ZAUCTIONHOUSE_ADMIN_PURCHASED_ITEMS
+
+    # Slot per visualizzare gli oggetti acquistati (4 righe x 9 colonne = 36 slot).
+    slots:
+      - 9-17    # Riga 2
+      - 18-26   # Riga 3
+      - 27-35   # Riga 4
+      - 36-44   # Riga 5
+
+    # Fallback quando non ci sono oggetti acquistati.
+    else:
+      slots:
+        - 22
+      item:
+        material: BARRIER
+        name: '#ff0000&nNessun Oggetto Trovato'

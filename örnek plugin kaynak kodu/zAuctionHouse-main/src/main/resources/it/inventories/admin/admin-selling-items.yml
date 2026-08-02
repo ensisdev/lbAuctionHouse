@@ -1,0 +1,74 @@
+################################################################################################################################
+#
+#   zAuctionHouse V4 - Inventario Oggetti in Vendita Admin
+#
+#   Questo inventario consente agli admin di visualizzare e gestire le inserzioni attive di un giocatore.
+#   Gli admin possono rimuovere oggetti dalla vendita per conto dei giocatori.
+#
+#   AZIONI ADMIN:
+#   - Visualizza tutti gli oggetti attualmente in vendita del giocatore target
+#   - Rimuovi oggetti dalla vendita (annulla l'inserzione)
+#   - Utile per rimuovere inserzioni inappropriate o truffe
+#
+#   ACCESSO:
+#   - Dal menu principale cronologia admin -> Pulsante Oggetti in Vendita
+#   - /ah admin open selling <giocatore>
+#
+#   Documentazione: https://docs.groupez.dev/zauctionhouse/introduction
+#   Discord: https://discord.groupez.dev/
+#
+################################################################################################################################
+
+#=============================================================================
+# IMPOSTAZIONI INVENTARIO
+#=============================================================================
+
+# Titolo dell'inventario con placeholder di paginazione.
+# Nota: Il titolo dice "inseriti" ma il tipo usa "selling" per coerenza.
+name: '#0c1719Oggetti inseriti admin (%page%/%max-page%)'
+
+# Dimensione inventario - 6 righe.
+size: 54
+
+#=============================================================================
+# PATTERNS
+#=============================================================================
+
+patterns:
+  # Bordi decorativi in vetro.
+  - 'zauctionhouse-decoration'
+  # Pulsanti pagina precedente/successiva.
+  - 'zauctionhouse-pagination'
+  # Pulsante indietro per tornare alla cronologia admin.
+  - 'zauctionhouse-back'
+
+#=============================================================================
+# OGGETTI
+#=============================================================================
+
+items:
+
+  #---------------------------------------------------------------------------
+  # VISUALIZZAZIONE OGGETTI IN VENDITA
+  #---------------------------------------------------------------------------
+  # Mostra tutti gli oggetti attualmente in vendita del giocatore target.
+  # Cliccando su un oggetto lo rimuove dalla vendita (azione admin).
+
+  items:
+    # Tipo pulsante - visualizza oggetti in vendita admin con funzionalità di rimozione.
+    type: ZAUCTIONHOUSE_ADMIN_SELLING_ITEMS
+
+    # Slot per visualizzare gli oggetti in vendita (4 righe x 9 colonne = 36 slot).
+    slots:
+      - 9-17    # Riga 2
+      - 18-26   # Riga 3
+      - 27-35   # Riga 4
+      - 36-44   # Riga 5
+
+    # Fallback quando non ci sono oggetti in vendita.
+    else:
+      slots:
+        - 22
+      item:
+        material: BARRIER
+        name: '#ff0000&nNessun Oggetto Trovato'

@@ -1,0 +1,26 @@
+# İlan Bilgileri GUI'si (27 slot) — ayarlanabilir layout
+# Bir ilana sağ tıklayınca açılır.
+#
+#   • item-slot    → ilan edilen eşya bilgileri
+#   • seller-slot  → satıcı bilgileri (oyuncu kafası + istatistik)
+#   • buy-slot     → satın alma butonu
+#   • close-slot   → geri dön butonu
+# Tüm slot'lar ve görünüm özelleştirilebilir.
+
+title: "&8İlan Bilgileri"
+rows: 3
+
+border:
+  material: GRAY_STAINED_GLASS_PANE
+  name: " "
+  slots: "0-8, 18-26"
+
+item-slot: 14
+seller-slot: 11
+buy-slot: 17
+close-slot: 22
+
+buy-material: LIME_WOOL
+buy-name: "&a&l✔ Satın Al"
+buy-lore:
+  - "&7Tıkla — satın almayı onayla"

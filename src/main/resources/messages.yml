@@ -1,0 +1,118 @@
+# lbSmpCore-Auction Mesajları (Varsayılan — Türkçe taban)
+# MiniMessage formatı desteklenir (& kodları da çalışır)
+# Placeholder'lar: %seller%, %price%, %item%, %time_left%, %amount%, %player%
+#
+# ────────────────────────────────────────────────────────────────
+#  MESAJ DİLİ SEÇİCİ (message-lang) — commands.yml'deki command-lang
+#  ile aynı mantıkta çalışır:
+#    • none (varsayılan) → bu dosya (messages.yml) olduğu gibi kullanılır.
+#    • tr | en | de | fr | ar → lang/<dil>.yml dosyasındaki mesajlar
+#      bu dosyanın ÜZERİNE birleştirilir (eksik anahtar buradan düşer).
+#  Boş bırakılırsa config.yml içindeki "lang" değeri kullanılır.
+# ────────────────────────────────────────────────────────────────
+message-lang: none
+
+prefix: "<dark_gray>[</dark_gray><gold>İhale</gold><dark_gray>]</dark_gray>"
+
+auction:
+  listing:
+    success: "<green>Eşyan <white>%price%</white> fiyatına ihaleye konuldu!</green>"
+    failed-limit: "<red>İlan limitine ulaştın! Daha fazla eşya satamazsın.</red>"
+    failed-blacklist: "<red>Bu eşya ihaleye konulamaz!</red>"
+    failed-price: "<red>Geçersiz fiyat! (Min: %min% / Max: %max%)</red>"
+    failed-economy: "<red>Ekonomi sistemi kullanılamıyor.</red>"
+    failed-hand: "<red>Önce eline bir eşya al!</red>"
+    failed-number: "<red>Geçersiz fiyat! Sayı girmelisin.</red>"
+    auto-renewed: "<gold>⏰ <white>%item%</white> ilanınız otomatik yenilendi!</gold>"
+  purchase:
+    success: "<green><white>%item%</white> eşyasını <white>%price%</white> karşılığında satın aldın!</green>"
+    sold-notification: "<green><white>%item%</white> eşyan <white>%price%</white> karşılığında satıldı!</green>"
+    insufficient-funds: "<red>Yetersiz bakiye!</red>"
+    already-sold: "<red>Bu ilan artık mevcut değil.</red>"
+    cannot-buy-own: "<red>Kendi ilanını satın alamazsın!</red>"
+    error: "<red>Satın alma sırasında bir hata oluştu.</red>"
+    inventory-full: "<red>Envanterin dolu! Önce yer aç.</red>"
+  cancel:
+    success: "<green>İlan iptal edildi. Eşya envanterine geri verildi.</green>"
+    failed: "<red>İlan iptal edilemedi.</red>"
+  bid:
+    placed: "<gold>%player% ilanına %amount% teklif verdi!</gold>"
+    won: "<green>İhaleyi kazandın! Eşyan kolinde.</green>"
+    autobid-placed: "<green>🤖 Auto-bid: <white>%amount%</white> teklif verildi (max: %max%)</green>"
+    outbid: "<yellow>%player% ilanında teklifin geçildi! Yeni teklif: %amount%</yellow>"
+    autobid-set: "<green>Auto-bid aktif: Maksimum <white>%max%</white> olarak ayarlandı.</green>"
+    autobid-removed: "<yellow>Auto-bid iptal edildi.</yellow>"
+    autobid-exists: "<red>Zaten auto-bid'in var!</red>"
+  rental:
+    returned: "<gold>Kiralanan eşyan geri döndü: %item%</gold>"
+  lootbox:
+    not-configured: "<red>Lootbox tanımlı değil!</red>"
+    result: "<gold>Lootbox'tan %item% çıktı!</gold>"
+    error: "<red>Hatalı lootbox yapılandırması: %item%</red>"
+  collection:
+    empty: "<yellow>Bekleyen ödülün yok.</yellow>"
+    notify-join: "<gold>Bekleyen <white>%count%</white> ödülün var! <white>/%command% collect</white></gold>"
+    claimed: "<green>Eşya alındı!</green>"
+    claimed-money: "<green>%amount% hesabına yatırıldı!</green>"
+    inventory-full: "<red>Envanterin dolu!</red>"
+  sell:
+    no-item: "<red>Önce satılacak eşyayı koy!</red>"
+    blacklisted: "<red>Bu eşya ihaleye konulamaz!</red>"
+    success: "<green>Eşyan <white>%price%</white> fiyatına ihaleye konuldu!</green>"
+    failed: "<red>İlan yayınlanamadı! (Limit / hata)</red>"
+    invalid-number: "<red>Geçersiz sayı!</red>"
+    min-price: "<red>Minimum fiyat: %price%</red>"
+    max-price: "<red>Maksimum fiyat: %price%</red>"
+    advertised-success: "<gold>📢 Reklamlı ilan yayınlandı! Tüm oyunculara duyuruldu.</gold>"
+    advertised-limit: "<red>Reklam limitine ulaştın! (%max% aktif reklamlı ilan)</red>"
+    advertised-fee: "<yellow>Reklam ücreti kesildi: %price%</yellow>"
+  admin:
+    header: "<gold>=== Admin Panel ===</gold>"
+    remove-usage: "<gray>/%cmd% admin remove <uuid></gray> <dark_gray>— İlan kaldır</dark_gray>"
+    clear-usage: "<gray>/%cmd% admin clear</gray> <dark_gray>— Tüm ilanları temizle</dark_gray>"
+    logs-usage: "<gray>/%cmd% admin logs</gray> <dark_gray>— Son işlemleri göster</dark_gray>"
+    unknown: "<red>Bilinmeyen alt komut: %arg%</red>"
+    removed: "<green>İlan kaldırıldı. Eşya satıcının kolisine düştü.</green>"
+    cleared: "<green><white>%count%</white> ilan temizlendi. Eşyalar satıcıların kolisine düştü.</green>"
+    not-found: "<red>İlan bulunamadı.</red>"
+    no-logs: "<red>Henüz işlem kaydı yok.</red>"
+    logs-header: "<gold>=== Son %count% İşlem ===</gold>"
+    invalid-number: "<red>Geçersiz sayı!</red>"
+    invalid-uuid: "<red>Geçersiz UUID!</red>"
+    stats-header: "<gold>=== İhale İstatistikleri ===</gold>"
+    stats-line: "<gray>%label%:</gray> <white>%value%</white>"
+    stats-total-sales: "Toplam Satış"
+    stats-total-revenue: "Toplam Gelir"
+    stats-total-tax: "Toplam Vergi"
+    stats-total-listings: "Toplam İlan"
+    stats-active-listings: "Aktif İlan"
+    stats-total-bids: "Toplam Teklif"
+    ban:
+      player-not-found: "<red>Oyuncu bulunamadı!</red>"
+      banned: "<red>%player% ihalelerden yasaklandı. Sebep: %reason%</red>"
+      you-were-banned: "<red>İhalelerden yasaklandınız! Sebep: %reason%</red>"
+      player-offline-no-uuid: "<red>Oyuncu bulunamadı. Çevrimiçi olmayan oyuncular için UUID girin.</red>"
+      unbanned: "<green>%player% yasağı kaldırıldı.</green>"
+      no-banned: "<green>Yasaklı oyuncu yok.</green>"
+      banned-list-header: "<gold>=== Yasaklı Oyuncular (%count%) ===</gold>"
+  flash-sale:
+    active: "<gold>⚡ İNDİRİM! %discount%% indirim!</gold>"
+    ended: "<yellow>Flash sale süren doldu: %item%</yellow>"
+  wishlist:
+    added: "<green>❤ <white>%item%</white> takip listenize eklendi!</green>"
+    removed: "<yellow>❤ <white>%item%</white> takip listenizden çıkarıldı.</yellow>"
+    notify: "<gold>❤ Takip ettiğin <white>%item%</white> ihaleye konuldu! <gray>(%price% - %seller%)</gray></gold>"
+  search:
+    usage: "<red>Kullanım:</red> <gray>/%cmd% search <sorgu> [min:100] [max:500] [type:BIN] [seller:isim] [mat:DIAMOND] [ads]</gray>"
+    example: "<gray>Örnek: /%cmd% search elmas min:100 max:500</gray>"
+    example-seller: "<gray>Örnek: /%cmd% search seller:Notch ads</gray>"
+    header: "<gold>=== İlan Arama Sonuçları (%count%) ===</gold>"
+    empty: "<red>Arama kriterlerine uygun ilan bulunamadı.</red>"
+    line: "<gray>• %item% %price% • %seller%%advertised%</gray>"
+  view:
+    usage: "<red>Kullanım:</red> <gray>/%cmd% gör <oyuncu></gray>"
+    not-found: "<red>Oyuncu bulunamadı. İlk olarak oyuncunun tam adını girin.</red>"
+    empty: "<yellow>%seller% oyuncusunun aktif ilanı yok.</yellow>"
+    opening: "<green>%seller% oyuncusunun aktif ilanları açılıyor…</green>"
+  reload: "<green>İhale konfigürasyonu yeniden yüklendi.</green>"
+  "reload-restart": "<gray>Not: Ekonomi ve Cluster tipi değişiklikleri için sunucu restart'ı gerekir.</gray>"

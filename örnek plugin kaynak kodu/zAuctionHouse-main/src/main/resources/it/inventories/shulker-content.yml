@@ -1,0 +1,143 @@
+################################################################################################################################
+#
+#   zAuctionHouse V4 - Inventario del Contenuto Shulker
+#
+#   Questo inventario mostra il contenuto delle scatole shulker in vendita.
+#   Permette agli acquirenti di vedere l'anteprima di cosa c'è dentro prima dell'acquisto.
+#
+#   FUNZIONALITÀ:
+#   - Anteprima di tutti gli oggetti nelle scatole shulker
+#   - Navigare tra più shulker (vendite in lotto)
+#   - Modalità sola lettura - gli oggetti non possono essere presi
+#
+#   ACCESSO:
+#   - Clicca sul pulsante "Vedi il contenuto shulker" nelle conferme di acquisto/ritiro
+#   - Appare solo quando l'oggetto in vendita contiene scatole shulker
+#
+#   Documentazione: https://docs.groupez.dev/zauctionhouse/introduction
+#   Discord: https://discord.groupez.dev/
+#
+################################################################################################################################
+
+#=============================================================================
+# IMPOSTAZIONI DELL'INVENTARIO
+#=============================================================================
+
+# Titolo dell'inventario con placeholder di navigazione shulker.
+# %shulker-current% = numero dello shulker attualmente visualizzato (base 1)
+# %shulker-total% = numero totale di shulker nella vendita
+name: "#0c1719Contenuto Shulker (%shulker-current%/%shulker-total%)"
+
+# Dimensione dell'inventario - 6 righe.
+size: 54
+
+#=============================================================================
+# PATTERN
+#=============================================================================
+
+patterns:
+  # Bordi decorativi in vetro.
+  - 'zauctionhouse-decoration'
+  # Pulsante indietro per tornare allo schermo di conferma.
+  - 'zauctionhouse-back'
+
+#=============================================================================
+# OGGETTI
+#=============================================================================
+
+items:
+
+  #---------------------------------------------------------------------------
+  # VISUALIZZAZIONE DEL CONTENUTO SHULKER
+  #---------------------------------------------------------------------------
+  # Mostra il contenuto della scatola shulker attualmente selezionata.
+  # Gli oggetti sono mostrati in una griglia 7×4 per imitare lo storage shulker.
+
+  content:
+    # Tipo di pulsante - mostra il contenuto dello shulker.
+    type: ZAUCTIONHOUSE_SHULKER_CONTENT
+
+    # Slot per visualizzare il contenuto dello shulker.
+    # 4 righe × 7 colonne = 28 slot (le shulker contengono 27 oggetti).
+    slots:
+      - 9-17    # Riga 2
+      - 18-26   # Riga 3
+      - 27-35   # Riga 4
+      - 36-44   # Riga 5
+
+    # Slot in cui viene mostrato l'indicatore vuoto quando lo shulker non ha oggetti.
+    empty-slot: 22
+
+    # Oggetto visualizzato quando la scatola shulker è vuota.
+    item:
+      material: BARRIER
+      name: "#2CCED2<bold>sʜᴜʟᴋᴇʀ ᴠᴜᴏᴛᴏ"
+      lore:
+        - "#92ffffQuesta scatola shulker non contiene nessun oggetto."
+
+  #---------------------------------------------------------------------------
+  # VISUALIZZAZIONE INFO SHULKER
+  #---------------------------------------------------------------------------
+  # Mostra informazioni sullo shulker attualmente visualizzato.
+
+  shulker-info:
+    # Tipo di pulsante - mostra le info dello shulker attuale.
+    type: ZAUCTIONHOUSE_SHULKER_INFO
+
+    # Posizione dello slot - centro della riga superiore.
+    slot: 4
+
+    item:
+      material: SHULKER_BOX
+      name: "#2CCED2<bold>sᴄᴀᴛᴏʟᴀ sʜᴜʟᴋᴇʀ"
+      lore:
+        # Mostra la posizione attuale nella lista degli shulker.
+        - "#92ffffVisualizzazione shulker #2CCED2%shulker_current% #92ffffdi #2CCED2%shulker_total%"
+        - ""
+        - "#8c8c8c• Usa i pulsanti di navigazione per cambiare"
+
+  #---------------------------------------------------------------------------
+  # PULSANTE SHULKER PRECEDENTE
+  #---------------------------------------------------------------------------
+  # Naviga allo shulker precedente nelle vendite in lotto.
+
+  previous:
+    # Tipo di pulsante - gestisce la navigazione tra shulker.
+    type: ZAUCTIONHOUSE_SHULKER_NAVIGATION
+
+    # Direzione di navigazione.
+    direction: previous
+
+    # Posizione dello slot - a sinistra del centro nella riga inferiore.
+    slot: 48
+
+    item:
+      material: ARROW
+      name: "#2CCED2<bold>sʜᴜʟᴋᴇʀ ᴘʀᴇᴄᴇᴅᴇɴᴛᴇ"
+      lore:
+        - "#92ffffVedi la scatola shulker precedente."
+        - ""
+        - "#8c8c8c• #2CCED2Clicca #92ffffper vedere la precedente"
+
+  #---------------------------------------------------------------------------
+  # PULSANTE SHULKER SUCCESSIVO
+  #---------------------------------------------------------------------------
+  # Naviga allo shulker successivo nelle vendite in lotto.
+
+  next:
+    # Tipo di pulsante - gestisce la navigazione tra shulker.
+    type: ZAUCTIONHOUSE_SHULKER_NAVIGATION
+
+    # Direzione di navigazione.
+    direction: next
+
+    # Posizione dello slot - a destra del centro nella riga inferiore.
+    slot: 50
+
+    item:
+      material: ARROW
+      name: "#2CCED2<bold>sʜᴜʟᴋᴇʀ sᴜᴄᴄᴇssɪᴠᴏ"
+      lore:
+        - "#92ffffVedi la scatola shulker successiva."
+        - ""
+        - "#8c8c8c• #2CCED2Clicca #92ffffper vedere la successiva"

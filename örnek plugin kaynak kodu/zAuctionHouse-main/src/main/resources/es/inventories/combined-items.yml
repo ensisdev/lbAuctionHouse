@@ -1,0 +1,62 @@
+################################################################################################################################
+#
+#   zAuctionHouse V4 - Inventario Combinado
+#
+#   Este inventario combina los items en venta, expirados y comprados en una
+#   sola lista paginada. Puedes configurar qué tipos incluir.
+#
+#   CARACTERÍSTICAS:
+#   - Combinar items en venta, expirados y comprados en una sola vista
+#   - Cada tipo usa su propia configuración de lore (desde config.yml item-lore)
+#   - La acción al hacer clic se adapta al tipo de almacenamiento del item:
+#     - Items en venta: retira/cancela la venta
+#     - Items expirados: reclama el item
+#     - Items comprados: reclama el item comprado
+#
+#   CONFIGURACIÓN:
+#   - include-selling: true/false - incluir items en venta
+#   - include-expired: true/false - incluir items expirados
+#   - include-purchased: true/false - incluir items comprados
+#
+#   Documentación: https://docs.groupez.dev/zauctionhouse/introduction
+#   Discord: https://discord.groupez.dev/
+#
+################################################################################################################################
+
+#=============================================================================
+# AJUSTES DEL INVENTARIO
+#=============================================================================
+
+name: '#0c1719Mis Items (%page%/%max-page%)'
+
+size: 54
+
+#=============================================================================
+# PATTERNS
+#=============================================================================
+
+patterns:
+  - 'zauctionhouse-decoration'
+  - 'zauctionhouse-pagination'
+  - 'zauctionhouse-back'
+
+#=============================================================================
+# ITEMS
+#=============================================================================
+
+items:
+
+  items:
+    type: ZAUCTIONHOUSE_COMBINED_ITEMS
+    empty-slot: 22
+    include-selling: true
+    include-expired: true
+    include-purchased: true
+    slots:
+      - 9-17
+      - 18-26
+      - 27-35
+      - 36-44
+    item:
+      material: BARRIER
+      name: '#ff0000&nNo se encontraron items'

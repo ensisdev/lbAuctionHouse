@@ -1,0 +1,147 @@
+# lbSmpCore-Auction — Fichier de langue française
+# Ce fichier contient à la fois les COMMANDES et les MESSAGES :
+#   • Commandes → utilisées quand commands.yml a "command-lang: fr"
+#   • Messages → utilisés quand config.yml a "lang: fr"
+#
+# Format des sous-commandes : [nom principal, alias1, alias2, ...]
+# Le premier élément est le nom principal, les autres sont des alias. Modifiable librement.
+
+main-command: auction
+aliases: [ah, encheres, vente]
+
+# Commande admin — commande DISTINCTE, indépendante de la commande principale.
+admin-command: encheresadmin
+admin-aliases: [ahadmin, administration]
+
+subcommands:
+  sell: [sell, vendre, list]
+  browse: [browse, ouvrir, parcourir, ah]
+  mylistings: [mylistings, mes, my]
+  collect: [collect, recuperer, claim]
+  remove: [remove, supprimer, delete]
+  reload: [reload, recharger, rld]
+  stats: [stats, statistiques]
+  ban: [ban, bannir]
+  search: [search, rechercher]
+  trade: [trade, echange]
+  view: [view, voir]
+
+# /<commande principale> admin <nom ici> sous-commandes
+admin:
+  stats: [stats, statistiques]
+  logs: [logs, historique, log]
+  clear: [clear, vider]
+  remove: [remove, supprimer]
+  ban: [ban, bannir]
+  unban: [unban, debannir]
+  banlist: [banlist, bannis]
+
+# ═══════════════════════════════════════════════════════════
+# MESSAGES  (config.yml → lang: fr)
+# Le format MiniMessage est pris en charge (les codes & aussi).
+# Placeholders : %seller% %price% %item% %time_left% %amount% %player% %cmd% ...
+# ═══════════════════════════════════════════════════════════
+prefix: "<dark_gray>[</dark_gray><gold>Enchères</gold><dark_gray>]</dark_gray>"
+
+auction:
+  listing:
+    success: "<green>Votre objet est maintenant mis en vente pour <white>%price%</white> !</green>"
+    failed-limit: "<red>Vous avez atteint la limite de ventes ! Impossible d'en ajouter davantage.</red>"
+    failed-blacklist: "<red>Cet objet ne peut pas être mis en vente !</red>"
+    failed-price: "<red>Prix invalide ! (Min : %min% / Max : %max%)</red>"
+    failed-economy: "<red>Le système économique est indisponible.</red>"
+    failed-hand: "<red>Tenez d'abord un objet en main !</red>"
+    failed-number: "<red>Prix invalide ! Vous devez entrer un nombre.</red>"
+    auto-renewed: "<gold>⏰ <white>%item%</white> a été automatiquement remis en vente !</gold>"
+  purchase:
+    success: "<green>Vous avez acheté <white>%item%</white> pour <white>%price%</white> !</green>"
+    sold-notification: "<green>Votre <white>%item%</white> a été vendu pour <white>%price%</white> !</green>"
+    insufficient-funds: "<red>Solde insuffisant !</red>"
+    already-sold: "<red>Cette annonce n'existe plus.</red>"
+    cannot-buy-own: "<red>Vous ne pouvez pas acheter votre propre annonce !</red>"
+    error: "<red>Une erreur est survenue lors de l'achat.</red>"
+    inventory-full: "<red>Votre inventaire est plein ! Faites de la place d'abord.</red>"
+  cancel:
+    success: "<green>Annonce annulée. Votre objet vous a été rendu.</green>"
+    failed: "<red>Impossible d'annuler l'annonce.</red>"
+  bid:
+    placed: "<gold>%player% a enchéri %amount% sur votre annonce !</gold>"
+    won: "<green>Vous avez gagné l'enchère ! Votre objet est dans la boîte de récupération.</green>"
+    autobid-placed: "<green>🤖 Auto-enchère : <white>%amount%</white> placée (max : %max%)</green>"
+    outbid: "<yellow>Votre enchère sur %player% a été dépassée ! Nouvelle enchère : %amount%</yellow>"
+    autobid-set: "<green>Auto-enchère active : maximum fixé à <white>%max%</white>.</green>"
+    autobid-removed: "<yellow>Auto-enchère annulée.</yellow>"
+    autobid-exists: "<red>Vous avez déjà une auto-enchère !</red>"
+  rental:
+    returned: "<gold>Votre objet loué est revenu : %item%</gold>"
+  lootbox:
+    not-configured: "<red>Lootbox non configurée !</red>"
+    result: "<gold>Vous avez obtenu %item% de la lootbox !</gold>"
+    error: "<red>Configuration de lootbox invalide : %item%</red>"
+  collection:
+    empty: "<yellow>Vous n'avez aucune récompense en attente.</yellow>"
+    notify-join: "<gold>Vous avez <white>%count%</white> récompenses en attente ! <white>/%command% collect</white></gold>"
+    claimed: "<green>Objet récupéré !</green>"
+    claimed-money: "<green>%amount% a été déposé sur votre compte !</green>"
+    inventory-full: "<red>Votre inventaire est plein !</red>"
+  sell:
+    no-item: "<red>Placez d'abord l'objet à vendre !</red>"
+    blacklisted: "<red>Cet objet ne peut pas être mis en vente !</red>"
+    success: "<green>Votre objet est maintenant en vente pour <white>%price%</white> !</green>"
+    failed: "<red>Impossible de publier l'annonce ! (Limite / erreur)</red>"
+    invalid-number: "<red>Nombre invalide !</red>"
+    min-price: "<red>Prix minimum : %price%</red>"
+    max-price: "<red>Prix maximum : %price%</red>"
+    advertised-success: "<gold>📢 Annonce publicitaire publiée ! Tous les joueurs ont été notifiés.</gold>"
+    advertised-limit: "<red>Vous avez atteint la limite de publicité ! (%max% annonces publicitaires actives)</red>"
+    advertised-fee: "<yellow>Frais de publicité déduits : %price%</yellow>"
+  admin:
+    header: "<gold>=== Panneau Admin ===</gold>"
+    remove-usage: "<gray>/%cmd% admin remove <uuid></gray> <dark_gray>— Retirer l'annonce</dark_gray>"
+    clear-usage: "<gray>/%cmd% admin clear</gray> <dark_gray>— Vider toutes les annonces</dark_gray>"
+    logs-usage: "<gray>/%cmd% admin logs</gray> <dark_gray>— Afficher les dernières actions</dark_gray>"
+    unknown: "<red>Sous-commande inconnue : %arg%</red>"
+    removed: "<green>Annonce retirée. L'objet a été remis dans la boîte du vendeur.</green>"
+    cleared: "<green><white>%count%</white> annonces vidées. Les objets ont été retournés aux vendeurs.</green>"
+    not-found: "<red>Annonce introuvable.</red>"
+    no-logs: "<red>Aucun journal d'actions pour l'instant.</red>"
+    logs-header: "<gold>=== Dernières %count% actions ===</gold>"
+    invalid-number: "<red>Nombre invalide !</red>"
+    invalid-uuid: "<red>UUID invalide !</red>"
+    stats-header: "<gold>=== Statistiques des enchères ===</gold>"
+    stats-line: "<gray>%label% :</gray> <white>%value%</white>"
+    stats-total-sales: "Ventes totales"
+    stats-total-revenue: "Revenus totaux"
+    stats-total-tax: "Taxes totales"
+    stats-total-listings: "Annonces totales"
+    stats-active-listings: "Annonces actives"
+    stats-total-bids: "Enchères totales"
+    ban:
+      player-not-found: "<red>Joueur introuvable !</red>"
+      banned: "<red>%player% a été banni des enchères. Raison : %reason%</red>"
+      you-were-banned: "<red>Vous avez été banni des enchères ! Raison : %reason%</red>"
+      player-offline-no-uuid: "<red>Joueur introuvable. Entrez un UUID pour les joueurs hors ligne.</red>"
+      unbanned: "<green>Le ban de %player% a été levé.</green>"
+      no-banned: "<green>Aucun joueur banni.</green>"
+      banned-list-header: "<gold>=== Joueurs bannis (%count%) ===</gold>"
+  flash-sale:
+    active: "<gold>⚡ SOLDES ! -%discount%% !</gold>"
+    ended: "<yellow>Votre vente flash est terminée : %item%</yellow>"
+  wishlist:
+    added: "<green>❤ <white>%item%</white> ajouté à votre liste de souhaits !</green>"
+    removed: "<yellow>❤ <white>%item%</white> retiré de votre liste de souhaits.</yellow>"
+    notify: "<gold>❤ <white>%item%</white> de votre liste est maintenant en vente ! <gray>(%price% - %seller%)</gray></gold>"
+  search:
+    usage: "<red>Utilisation :</red> <gray>/%cmd% search <requête> [min:100] [max:500] [type:BIN] [seller:nom] [mat:DIAMOND] [ads]</gray>"
+    example: "<gray>Exemple : /%cmd% search diamant min:100 max:500</gray>"
+    example-seller: "<gray>Exemple : /%cmd% search seller:Notch ads</gray>"
+    header: "<gold>=== Résultats de recherche (%count%) ===</gold>"
+    empty: "<red>Aucune annonce ne correspond à vos critères.</red>"
+    line: "<gray>• %item% %price% • %seller%%advertised%</gray>"
+  view:
+    usage: "<red>Utilisation :</red> <gray>/%cmd% view <joueur></gray>"
+    not-found: "<red>Joueur introuvable. Entrez d'abord le nom complet du joueur.</red>"
+    empty: "<yellow>%seller% n'a aucune annonce active.</yellow>"
+    opening: "<green>Ouverture des annonces actives de %seller%…</green>"
+  reload: "<green>Configuration des enchères rechargée.</green>"
+  "reload-restart": "<gray>Remarque : les changements d'économie et de type de cluster nécessitent un redémarrage du serveur.</gray>"

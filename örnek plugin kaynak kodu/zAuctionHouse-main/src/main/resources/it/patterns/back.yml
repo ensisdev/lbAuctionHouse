@@ -1,0 +1,62 @@
+################################################################################################################################
+#
+#   zAuctionHouse V4 - Pattern del Pulsante Indietro
+#
+#   Questo pattern fornisce un pulsante indietro per tornare all'inventario precedente.
+#   Usato nei sottomenu e nelle viste di dettaglio per navigare all'indietro.
+#
+#   FUNZIONAMENTO:
+#   - Cliccare sul pulsante indietro torna all'inventario precedentemente aperto
+#   - Usa il tipo di pulsante BACK integrato di zMenu
+#   - Lo storico degli inventari viene mantenuto automaticamente
+#
+#   UTILIZZO:
+#   Includi questo pattern nei file di inventario che necessitano di un pulsante indietro:
+#     patterns:
+#       - 'zauctionhouse-back'
+#
+#   Documentazione: https://docs.groupez.dev/zauctionhouse/introduction
+#   Discord: https://discord.groupez.dev/
+#
+################################################################################################################################
+
+# Nome del pattern - referenziato negli altri file di inventario.
+name: "zauctionhouse-back"
+
+# Dimensione dell'inventario (deve corrispondere agli inventari che usano questo pattern).
+# Progettato per inventari a 6 righe (54 slot).
+size: 54
+
+# Oggetto del pulsante indietro.
+items:
+
+  #---------------------------------------------------------------------------
+  # PULSANTE INDIETRO
+  #---------------------------------------------------------------------------
+  previous:
+    # Tipo di pulsante - BACK è un tipo integrato di zMenu.
+    # Riporta il giocatore all'inventario da cui è venuto.
+    # Funziona con il tracciamento dello storico degli inventari di zMenu.
+    type: BACK
+
+    # Gli oggetti permanenti non possono essere spostati dai giocatori.
+    is-permanent: true
+
+    # Posizione dello slot - centro della riga inferiore.
+    # Lo slot 49 è lo slot centrale nella riga inferiore di un inventario a 54 slot.
+    slot: 49
+
+    # Configurazione dell'oggetto
+    item:
+      # Il blocco barriera è comunemente usato per le azioni "chiudi" o "indietro".
+      # La sua X rossa visiva indica chiaramente una navigazione verso l'esterno.
+      material: BARRIER
+
+      # Nome di visualizzazione con formattazione MiniMessage.
+      name: "#2CCED2<bold>ɪɴᴅɪᴇᴛʀᴏ"
+
+      # Righe di lore che descrivono l'azione del pulsante.
+      lore:
+        - "#92ffffVai all'inventario precedente."
+        - ""
+        - "#8c8c8c• #2CCED2Clicca #92ffffper aprire"

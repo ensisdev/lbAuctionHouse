@@ -1,0 +1,62 @@
+################################################################################################################################
+#
+#   zAuctionHouse V4 - Pattern del Boton Atras
+#
+#   Este pattern proporciona un boton atras para volver al inventario anterior.
+#   Usado en submenus y vistas de detalle para navegar hacia atras.
+#
+#   FUNCIONAMIENTO:
+#   - Hacer clic en el boton atras vuelve al inventario previamente abierto
+#   - Usa el tipo de boton BACK integrado de zMenu
+#   - El historial de inventarios se mantiene automaticamente
+#
+#   USO:
+#   Incluye este pattern en los archivos de inventario que necesiten un boton atras:
+#     patterns:
+#       - 'zauctionhouse-back'
+#
+#   Documentacion: https://docs.groupez.dev/zauctionhouse/introduction
+#   Discord: https://discord.groupez.dev/
+#
+################################################################################################################################
+
+# Nombre del pattern - referenciado en otros archivos de inventario.
+name: "zauctionhouse-back"
+
+# Tamano del inventario (debe coincidir con los inventarios que usan este pattern).
+# Disenado para inventarios de 6 filas (54 slots).
+size: 54
+
+# Objeto del boton atras.
+items:
+
+  #---------------------------------------------------------------------------
+  # BOTON ATRAS
+  #---------------------------------------------------------------------------
+  previous:
+    # Tipo de boton - BACK es un tipo integrado de zMenu.
+    # Lleva al jugador de vuelta al inventario del que vino.
+    # Funciona con el seguimiento del historial de inventarios de zMenu.
+    type: BACK
+
+    # Los objetos permanentes no pueden ser movidos por los jugadores.
+    is-permanent: true
+
+    # Posicion del slot - centro de la fila inferior.
+    # El slot 49 es el slot central en la fila inferior de un inventario de 54 slots.
+    slot: 49
+
+    # Configuracion del objeto
+    item:
+      # El bloque barrera se usa comunmente para acciones "cerrar" o "atras".
+      # Su X roja visual indica claramente una navegacion hacia afuera.
+      material: BARRIER
+
+      # Nombre de visualizacion con formato MiniMessage.
+      name: "#2CCED2<bold>ᴀᴛʀᴀs"
+
+      # Lineas de lore que describen la accion del boton.
+      lore:
+        - "#92ffffIr al inventario anterior."
+        - ""
+        - "#8c8c8c• #2CCED2Clic #92ffffpara abrir"

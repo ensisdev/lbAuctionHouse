@@ -1,0 +1,54 @@
+################################################################################################################################
+#
+#   zAuctionHouse V4 - Inventario de Opciones
+#
+#   Este inventario permite a los jugadores gestionar sus preferencias personales.
+#
+################################################################################################################################
+
+name: '#0c1719Opciones'
+size: 27
+
+patterns:
+  - 'zauctionhouse-decoration'
+  - 'zauctionhouse-back'
+
+items:
+
+  broadcast-sell:
+    type: ZAUCTIONHOUSE_OPTION_TOGGLE
+    slot: 11
+    option-name: broadcast_sell
+    enable-text: '<green>Activado'
+    disable-text: '<red>Desactivado'
+    item:
+      material: OAK_SIGN
+      name: '#2CCED2<bold>Difusiones de Venta'
+      lore:
+        - ''
+        - '#92ffffActivar/desactivar mensajes de difusion'
+        - '#92ffffde venta. Cuando esta activado, veras'
+        - '#92ffffmensajes cuando los jugadores ponen objetos a la venta.'
+        - ''
+        - '#8c8c8cEstado: %option_status%'
+        - ''
+        - '#8c8c8c• #2CCED2Clic #92ffffpara alternar'
+
+  broadcast-purchase:
+    type: ZAUCTIONHOUSE_OPTION_TOGGLE
+    slot: 15
+    option-name: broadcast_purchase
+    enable-text: '<green>Activado'
+    disable-text: '<red>Desactivado'
+    item:
+      material: GOLD_INGOT
+      name: '#2CCED2<bold>Difusiones de Compra'
+      lore:
+        - ''
+        - '#92ffffActivar/desactivar mensajes de difusion'
+        - '#92ffffde compra. Cuando esta activado, veras'
+        - '#92ffffmensajes cuando los jugadores compran objetos.'
+        - ''
+        - '#8c8c8cEstado: %option_status%'
+        - ''
+        - '#8c8c8c• #2CCED2Clic #92ffffpara alternar'

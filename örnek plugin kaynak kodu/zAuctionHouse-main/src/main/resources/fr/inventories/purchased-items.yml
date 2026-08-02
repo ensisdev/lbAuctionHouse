@@ -1,0 +1,89 @@
+################################################################################################################################
+#
+#   zAuctionHouse V4 - Inventaire des Items Achetés
+#
+#   Cet inventaire affiche les items que le joueur a achetés dans l'hôtel des ventes.
+#   Les joueurs peuvent récupérer les items achetés dans leur inventaire.
+#
+#   LIVRAISON DES ITEMS:
+#   - Si 'give-item' est false dans config.yml, les items arrivent ici après l'achat
+#   - Si 'give-item' est true, les items vont directement dans l'inventaire (si place disponible)
+#   - Les items ici ont une expiration (par défaut: 1 semaine) avant suppression définitive
+#
+#   ACCÈS:
+#   - /ah purchased
+#   - Cliquez sur le bouton "Items achetés" dans l'hôtel des ventes principal
+#
+#   Documentation: https://docs.groupez.dev/zauctionhouse/introduction
+#   Discord: https://discord.groupez.dev/
+#
+################################################################################################################################
+
+#=============================================================================
+# PARAMÈTRES DE L'INVENTAIRE
+#=============================================================================
+
+# Titre de l'inventaire avec placeholders de pagination.
+name: '#0c1719Items achetés (%page%/%max-page%)'
+
+# Taille de l'inventaire - 6 rangées.
+size: 54
+
+#=============================================================================
+# PATTERNS
+#=============================================================================
+
+patterns:
+  # Bordures décoratives en vitres.
+  - 'zauctionhouse-decoration'
+  # Boutons page précédente/suivante.
+  - 'zauctionhouse-pagination'
+  # Bouton retour pour revenir à l'hôtel des ventes.
+  - 'zauctionhouse-back'
+
+#=============================================================================
+# ITEMS
+#=============================================================================
+
+items:
+
+  #---------------------------------------------------------------------------
+  # AFFICHAGE DES ITEMS ACHETÉS
+  #---------------------------------------------------------------------------
+  # Affiche tous les items achetés par le joueur.
+  # Cliquez sur les items pour les récupérer.
+
+  items:
+    # Type de bouton - affiche et gère les items achetés.
+    type: ZAUCTIONHOUSE_PURCHASED_ITEMS
+
+    # Slot pour le placeholder d'état vide.
+    empty-slot: 22
+
+    # Slots pour afficher les items achetés (4 rangées × 9 colonnes = 36 slots).
+    slots:
+      - 9-17    # Rangée 2
+      - 18-26   # Rangée 3
+      - 27-35   # Rangée 4
+      - 36-44   # Rangée 5
+
+    # Item placeholder quand aucun item acheté n'existe.
+    item:
+      material: BARRIER
+      name: '#ff0000&nAucun item trouvé'
+
+  #---------------------------------------------------------------------------
+  # BOUTON TOUT RECUPERER
+  #---------------------------------------------------------------------------
+
+  remove-all:
+    type: ZAUCTIONHOUSE_REMOVE_ALL_PURCHASED
+    is-permanent: true
+    slot: 47
+    item:
+      material: CHEST
+      name: "#2CCED2<bold>Tout recuperer"
+      lore:
+        - "#92ffffRecuperer tous les items achetes."
+        - ""
+        - "#8c8c8c• #2CCED2Cliquez #92ffffpour tout recuperer"

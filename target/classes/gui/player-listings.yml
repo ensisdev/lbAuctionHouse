@@ -1,0 +1,43 @@
+# Player Listings GUI Layout
+# /ihale gör <oyuncu> komutu ile açılır — başka bir oyuncunun aktif ilanları
+
+title: "&8Oyuncu İlanları"
+rows: 6
+
+border:
+  material: BLACK_STAINED_GLASS_PANE
+  name: " "
+  slots: "0-8, 45-53"
+
+navigation:
+  previous-page:
+    slot: 45
+    material: ARROW
+    name: "&a« Önceki"
+    lore: []
+    left-click: "previous_page"
+    right-click: ""
+  next-page:
+    slot: 53
+    material: ARROW
+    name: "&aSonraki »"
+    lore: []
+    left-click: "next_page"
+    right-click: ""
+  close:
+    slot: 49
+    material: BARRIER
+    name: "&cGeri Dön"
+    lore: []
+    left-click: "back"
+    right-click: ""
+
+content-slots: "9-44"
+
+lore-format:
+  - ""
+  - "&7Fiyat: &6%price%"
+  - "&7Kalan: &e%time_left%"
+  - "&7Satıcı: &f%seller%"
+  - ""
+  - "&eTıkla &7- satın al"

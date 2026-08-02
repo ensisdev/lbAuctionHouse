@@ -1,0 +1,132 @@
+################################################################################################################################
+#
+#   zAuctionHouse V4 - Inventario di Conferma Ritiro
+#
+#   Questo inventario chiede ai venditori di confermare il ritiro del loro oggetto dalla vendita.
+#   L'oggetto verrà restituito nella sezione degli oggetti scaduti del giocatore.
+#
+#   FUNZIONALITÀ:
+#   - Anteprima dell'oggetto prima di ritirarlo
+#   - Vedere il contenuto delle shulker (se applicabile)
+#   - Confermare o annullare il ritiro
+#
+#   ACCESSO:
+#   - Si apre automaticamente quando un venditore clicca sul proprio oggetto in vendita
+#   - Mostrato solo se open-confirm-inventory è true in config.yml
+#
+#   Documentazione: https://docs.groupez.dev/zauctionhouse/introduction
+#   Discord: https://discord.groupez.dev/
+#
+################################################################################################################################
+
+#=============================================================================
+# IMPOSTAZIONI DELL'INVENTARIO
+#=============================================================================
+
+# Titolo dell'inventario - formato domanda per maggiore chiarezza.
+name: "#0c1719Ritirare questo oggetto?"
+
+# Dimensione dell'inventario - 3 righe (27 slot) per un dialogo di conferma compatto.
+size: 27
+
+#=============================================================================
+# OGGETTI
+#=============================================================================
+
+items:
+
+  #---------------------------------------------------------------------------
+  # PULSANTE CONFERMA RITIRO
+  #---------------------------------------------------------------------------
+  # Ritira l'oggetto dalla vendita e lo sposta negli oggetti scaduti.
+
+  remove:
+    # Tipo di pulsante - gestisce il ritiro dell'annuncio.
+    type: ZAUCTIONHOUSE_CONFIRM_REMOVE_LISTED
+
+    item:
+      # Vetro verde per l'azione di conferma.
+      material: GREEN_STAINED_GLASS_PANE
+      name: "#2CCED2<bold>ʀɪᴛɪʀᴀ"
+      lore:
+        - "#92ffffRitira questo oggetto."
+        - ""
+        - "#8c8c8c• #2CCED2Clicca #92ffffper ritirare"
+
+    # Lato sinistro dell'inventario (griglia 3×3).
+    slots:
+      - 0-2     # Riga in alto a sinistra
+      - 9-11    # Riga centrale a sinistra
+      - 18-20   # Riga in basso a sinistra
+
+  #---------------------------------------------------------------------------
+  # PULSANTE ANNULLA/INDIETRO
+  #---------------------------------------------------------------------------
+  # Annulla il ritiro e torna alla casa d'aste.
+
+  deny:
+    # Tipo di pulsante - torna all'inventario precedente.
+    type: BACK
+
+    item:
+      # Vetro rosso per l'azione di annullamento.
+      material: RED_STAINED_GLASS_PANE
+      name: "#2CCED2<bold>ɪɴᴅɪᴇᴛʀᴏ"
+      lore:
+        - "#92ffffTorna indietro."
+        - ""
+        - "#8c8c8c• #2CCED2Clicca #92ffffper tornare"
+
+    # Lato destro dell'inventario (griglia 3×3).
+    slots:
+      - 6-8     # Riga in alto a destra
+      - 15-17   # Riga centrale a destra
+      - 24-26   # Riga in basso a destra
+
+  #---------------------------------------------------------------------------
+  # DECORAZIONE
+  #---------------------------------------------------------------------------
+  # Riempie la colonna centrale con vetri.
+
+  decoration:
+    item:
+      material: LIGHT_BLUE_STAINED_GLASS_PANE
+      name: "#2CCED2"
+
+    # Colonna centrale e slot circostanti.
+    slots:
+      - 3-5     # Centro in alto
+      - 12      # Centro-sinistra del mezzo
+      - 14      # Centro-destra del mezzo
+      - 21-23   # Centro in basso
+
+  #---------------------------------------------------------------------------
+  # ANTEPRIMA DELL'OGGETTO
+  #---------------------------------------------------------------------------
+  # Mostra l'oggetto da ritirare al centro.
+
+  show:
+    # Tipo di pulsante - mostra l'oggetto dell'asta.
+    type: ZAUCTIONHOUSE_SHOW
+
+    # Slot centrale.
+    slot: 13
+
+  #---------------------------------------------------------------------------
+  # PULSANTE CONTENUTO SHULKER
+  #---------------------------------------------------------------------------
+  # Apre il visualizzatore del contenuto shulker (mostrato solo per oggetti shulker).
+
+  shulker:
+    # Tipo di pulsante - apre l'anteprima del contenuto shulker.
+    type: ZAUCTIONHOUSE_SHULKER_OPEN
+
+    slot: 4
+
+    item:
+      material: SHULKER_BOX
+      name: "#2CCED2<bold>ᴠᴇᴅɪ ɪʟ ᴄᴏɴᴛᴇɴᴜᴛᴏ sʜᴜʟᴋᴇʀ"
+      lore:
+        - "#92ffffVedi il contenuto delle scatole shulker."
+        - ""
+        - "#8c8c8c• #2CCED2Clicca #92ffffper vedere il contenuto"

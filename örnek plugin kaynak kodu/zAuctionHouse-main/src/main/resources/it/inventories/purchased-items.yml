@@ -1,0 +1,85 @@
+################################################################################################################################
+#
+#   zAuctionHouse V4 - Inventario degli Oggetti Acquistati
+#
+#   Questo inventario mostra gli oggetti che il giocatore ha acquistato nella casa d'aste.
+#   I giocatori possono ritirare gli oggetti acquistati nel loro inventario.
+#
+#   CONSEGNA DEGLI OGGETTI:
+#   - Se 'give-item' è false in config.yml, gli oggetti arrivano qui dopo l'acquisto
+#   - Se 'give-item' è true, gli oggetti vanno direttamente nell'inventario (se c'è spazio)
+#   - Gli oggetti qui hanno una scadenza (predefinito: 1 settimana) prima della cancellazione definitiva
+#
+#   ACCESSO:
+#   - /ah purchased
+#   - Clicca sul pulsante "Oggetti acquistati" nella casa d'aste principale
+#
+#   Documentazione: https://docs.groupez.dev/zauctionhouse/introduction
+#   Discord: https://discord.groupez.dev/
+#
+################################################################################################################################
+
+#=============================================================================
+# IMPOSTAZIONI DELL'INVENTARIO
+#=============================================================================
+
+# Titolo dell'inventario con placeholder di paginazione.
+name: '#0c1719Oggetti acquistati (%page%/%max-page%)'
+
+# Dimensione dell'inventario - 6 righe.
+size: 54
+
+#=============================================================================
+# PATTERN
+#=============================================================================
+
+patterns:
+  # Bordi decorativi in vetro.
+  - 'zauctionhouse-decoration'
+  # Pulsanti pagina precedente/successiva.
+  - 'zauctionhouse-pagination'
+  # Pulsante indietro per tornare alla casa d'aste.
+  - 'zauctionhouse-back'
+
+#=============================================================================
+# OGGETTI
+#=============================================================================
+
+items:
+
+  #---------------------------------------------------------------------------
+  # VISUALIZZAZIONE DEGLI OGGETTI ACQUISTATI
+  #---------------------------------------------------------------------------
+  # Mostra tutti gli oggetti acquistati dal giocatore.
+  # Clicca sugli oggetti per ritirarli.
+
+  items:
+    # Tipo di pulsante - visualizza e gestisce gli oggetti acquistati.
+    type: ZAUCTIONHOUSE_PURCHASED_ITEMS
+
+    # Slot per il placeholder dello stato vuoto.
+    empty-slot: 22
+
+    # Slot per visualizzare gli oggetti acquistati (4 righe × 9 colonne = 36 slot).
+    slots:
+      - 9-17    # Riga 2
+      - 18-26   # Riga 3
+      - 27-35   # Riga 4
+      - 36-44   # Riga 5
+
+    # Oggetto placeholder quando non esistono oggetti acquistati.
+    item:
+      material: BARRIER
+      name: '#ff0000&nNessun oggetto trovato'
+
+  remove-all:
+    type: ZAUCTIONHOUSE_REMOVE_ALL_PURCHASED
+    is-permanent: true
+    slot: 47
+    item:
+      material: CHEST
+      name: "#2CCED2<bold>Ritira tutto"
+      lore:
+        - "#92ffffRitira tutti gli oggetti acquistati."
+        - ""
+        - "#8c8c8c• #2CCED2Clicca #92ffffper ritirare tutto"

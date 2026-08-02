@@ -1,0 +1,136 @@
+################################################################################################################################
+#
+#   zAuctionHouse V4 - Inventaire de l'Historique des Ventes
+#
+#   Cet inventaire affiche l'historique des ventes du joueur - les items qu'il a vendus.
+#   Montre les transactions complétées avec les informations sur l'acheteur et les prix.
+#
+#   FONCTIONNALITÉS:
+#   - Voir tous les items que vous avez vendus
+#   - Voir qui a acheté chaque item et quand
+#   - Trier par date, prix ou nom de l'acheteur
+#   - Les données historiques sont conservées indéfiniment (configurable)
+#
+#   ACCÈS:
+#   - /ah history
+#   - Cliquez sur le message de notification lors de la connexion après des ventes hors ligne
+#
+#   Documentation: https://docs.groupez.dev/zauctionhouse/introduction
+#   Discord: https://discord.groupez.dev/
+#
+################################################################################################################################
+
+#=============================================================================
+# PARAMÈTRES DE L'INVENTAIRE
+#=============================================================================
+
+# Titre de l'inventaire avec placeholders de pagination.
+name: '#0c1719Historique des ventes (%page%/%max-page%)'
+
+# Taille de l'inventaire - 6 rangées.
+size: 54
+
+#=============================================================================
+# PATTERNS
+#=============================================================================
+
+patterns:
+  # Bordures décoratives en vitres.
+  - 'zauctionhouse-decoration'
+  # Boutons page précédente/suivante.
+  - 'zauctionhouse-pagination'
+  # Bouton retour pour revenir à l'hôtel des ventes.
+  - 'zauctionhouse-back'
+
+#=============================================================================
+# ITEMS
+#=============================================================================
+
+items:
+
+  #---------------------------------------------------------------------------
+  # AFFICHAGE DE L'HISTORIQUE
+  #---------------------------------------------------------------------------
+  # Affiche tous les items vendus avec les détails de transaction.
+  # C'est une vue en lecture seule - les items ne peuvent pas être récupérés.
+
+  items:
+    # Type de bouton - affiche les ventes historiques.
+    type: ZAUCTIONHOUSE_HISTORY_ITEMS
+
+    # Slot pour l'indicateur de chargement lors de la récupération de l'historique.
+    loading-slot: 22
+
+    # Slots pour afficher les items de l'historique (4 rangées × 9 colonnes = 36 slots).
+    slots:
+      - 9-17    # Rangée 2
+      - 18-26   # Rangée 3
+      - 27-35   # Rangée 4
+      - 36-44   # Rangée 5
+
+    # Item affiché pendant le chargement de l'historique depuis la base de données.
+    item:
+      material: BARRIER
+      name: "#ff0000Chargement..."
+
+    # Item affiché quand aucune vente n'existe.
+    else:
+      slots:
+        - 22
+      item:
+        material: BARRIER
+        name: '#ff0000&nAucune vente trouvée'
+        lore:
+          - ''
+          - '&7Vous n''avez pas encore vendu d''items.'
+
+  #---------------------------------------------------------------------------
+  # BOUTON DE TRI
+  #---------------------------------------------------------------------------
+  # Change l'ordre de tri des entrées de l'historique.
+
+  sort:
+    # Type de bouton - gère le cycle de tri pour l'historique.
+    type: ZAUCTIONHOUSE_HISTORY_SORT
+
+    # Position du slot.
+    slot: 51
+
+    # Format pour l'option de tri actuellement sélectionnée.
+    enable-text: ' #F27438➜ %sorting%'
+
+    # Format pour les options de tri non sélectionnées.
+    disable-text: ' #76CDCD➜ %sorting%'
+
+    # Options de tri disponibles (cyclées dans cet ordre).
+    sorts:
+      - DATE_DESC    # Plus récent d'abord (par défaut)
+      - DATE_ASC     # Plus ancien d'abord
+      - PRICE_DESC   # Prix le plus élevé d'abord
+      - PRICE_ASC    # Prix le plus bas d'abord
+      - BUYER_ASC    # Nom acheteur A-Z
+      - BUYER_DESC   # Nom acheteur Z-A
+
+    # Noms d'affichage pour chaque option de tri.
+    sort-names:
+      DATE_DESC: "Plus récent"
+      DATE_ASC: "Plus ancien"
+      PRICE_DESC: "Prix le plus haut"
+      PRICE_ASC: "Prix le plus bas"
+      BUYER_ASC: "Acheteur A-Z"
+      BUYER_DESC: "Acheteur Z-A"
+
+    item:
+      material: HOPPER
+      name: "#2CCED2<bold>ᴛʀɪ"
+      lore:
+        - "#92ffffTypes de tri disponibles:"
+        # Placeholders pour chaque option de tri (formatés par enable/disable-text).
+        - "%DATE_DESC%"
+        - "%DATE_ASC%"
+        - "%PRICE_DESC%"
+        - "%PRICE_ASC%"
+        - "%BUYER_ASC%"
+        - "%BUYER_DESC%"
+        - ""
+        - "#8c8c8c• #2CCED2Cliquez #92ffffpour changer le type de tri"

@@ -1,0 +1,90 @@
+################################################################################################################################
+#
+#   zAuctionHouse V4 - Inventaire des Items Expirés
+#
+#   Cet inventaire affiche les items qui ont expiré sans être vendus.
+#   Les joueurs peuvent récupérer ces items dans leur inventaire.
+#
+#   EXPIRATION:
+#   - Les items expirent après le temps défini dans config.yml (par défaut: 2 jours)
+#   - Les items expirés sont déplacés des annonces actives vers cet inventaire
+#   - Les items ici ont aussi une expiration (par défaut: 1 semaine) avant suppression définitive
+#
+#   ACCÈS:
+#   - /ah expired
+#   - Cliquez sur le bouton "Items expirés" dans l'hôtel des ventes principal
+#
+#   Documentation: https://docs.groupez.dev/zauctionhouse/introduction
+#   Discord: https://discord.groupez.dev/
+#
+################################################################################################################################
+
+#=============================================================================
+# PARAMÈTRES DE L'INVENTAIRE
+#=============================================================================
+
+# Titre de l'inventaire avec placeholders de pagination.
+# %page% = page actuelle, %max-page% = total de pages
+name: '#0c1719Items expirés (%page%/%max-page%)'
+
+# Taille de l'inventaire - 6 rangées.
+size: 54
+
+#=============================================================================
+# PATTERNS
+#=============================================================================
+
+patterns:
+  # Bordures décoratives en vitres.
+  - 'zauctionhouse-decoration'
+  # Boutons page précédente/suivante.
+  - 'zauctionhouse-pagination'
+  # Bouton retour pour revenir à l'hôtel des ventes.
+  - 'zauctionhouse-back'
+
+#=============================================================================
+# ITEMS
+#=============================================================================
+
+items:
+
+  #---------------------------------------------------------------------------
+  # AFFICHAGE DES ITEMS EXPIRÉS
+  #---------------------------------------------------------------------------
+  # Affiche tous les items expirés appartenant au joueur.
+  # Cliquez sur les items pour les récupérer.
+
+  items:
+    # Type de bouton - affiche et gère les items expirés.
+    type: ZAUCTIONHOUSE_EXPIRED_ITEMS
+
+    # Slot pour le placeholder d'état vide.
+    empty-slot: 22
+
+    # Slots pour afficher les items expirés (4 rangées × 9 colonnes = 36 slots).
+    slots:
+      - 9-17    # Rangée 2
+      - 18-26   # Rangée 3
+      - 27-35   # Rangée 4
+      - 36-44   # Rangée 5
+
+    # Item placeholder quand aucun item expiré n'existe.
+    item:
+      material: BARRIER
+      name: '#ff0000&nAucun item trouvé'
+
+  #---------------------------------------------------------------------------
+  # BOUTON TOUT RECUPERER
+  #---------------------------------------------------------------------------
+
+  remove-all:
+    type: ZAUCTIONHOUSE_REMOVE_ALL_EXPIRED
+    is-permanent: true
+    slot: 47
+    item:
+      material: CHEST
+      name: "#2CCED2<bold>Tout recuperer"
+      lore:
+        - "#92ffffRecuperer tous les items expires."
+        - ""
+        - "#8c8c8c• #2CCED2Cliquez #92ffffpour tout recuperer"

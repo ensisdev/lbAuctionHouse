@@ -1,0 +1,62 @@
+################################################################################################################################
+#
+#   zAuctionHouse V4 - Pattern du Bouton Retour
+#
+#   Ce pattern fournit un bouton retour pour revenir à l'inventaire précédent.
+#   Utilisé dans les sous-menus et vues de détail pour naviguer en arrière.
+#
+#   FONCTIONNEMENT:
+#   - Cliquer sur le bouton retour revient à l'inventaire précédemment ouvert
+#   - Utilise le type de bouton BACK intégré de zMenu
+#   - L'historique des inventaires est maintenu automatiquement
+#
+#   UTILISATION:
+#   Incluez ce pattern dans les fichiers d'inventaire qui nécessitent un bouton retour:
+#     patterns:
+#       - 'zauctionhouse-back'
+#
+#   Documentation: https://docs.groupez.dev/zauctionhouse/introduction
+#   Discord: https://discord.groupez.dev/
+#
+################################################################################################################################
+
+# Nom du pattern - référencé dans les autres fichiers d'inventaire.
+name: "zauctionhouse-back"
+
+# Taille de l'inventaire (doit correspondre aux inventaires utilisant ce pattern).
+# Conçu pour les inventaires à 6 rangées (54 slots).
+size: 54
+
+# Item du bouton retour.
+items:
+
+  #---------------------------------------------------------------------------
+  # BOUTON RETOUR
+  #---------------------------------------------------------------------------
+  previous:
+    # Type de bouton - BACK est un type intégré de zMenu.
+    # Retourne le joueur à l'inventaire d'où il vient.
+    # Fonctionne avec le suivi de l'historique des inventaires de zMenu.
+    type: BACK
+
+    # Les items permanents ne peuvent pas être déplacés par les joueurs.
+    is-permanent: true
+
+    # Position du slot - centre de la rangée du bas.
+    # Le slot 49 est le slot du milieu dans la rangée du bas d'un inventaire à 54 slots.
+    slot: 49
+
+    # Configuration de l'item
+    item:
+      # Le bloc barrière est couramment utilisé pour les actions "fermer" ou "retour".
+      # Son visuel X rouge indique clairement une navigation vers l'extérieur.
+      material: BARRIER
+
+      # Nom d'affichage avec formatage MiniMessage.
+      name: "#2CCED2<bold>ʀᴇᴛᴏᴜʀ"
+
+      # Lignes de lore décrivant l'action du bouton.
+      lore:
+        - "#92ffffAller à l'inventaire précédent."
+        - ""
+        - "#8c8c8c• #2CCED2Cliquez #92ffffpour ouvrir"

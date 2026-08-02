@@ -1,0 +1,74 @@
+################################################################################################################################
+#
+#   zAuctionHouse V4 - Inventario Objetos en Venta Admin
+#
+#   Este inventario permite a los administradores ver y gestionar las publicaciones activas de un jugador.
+#   Los administradores pueden eliminar objetos de la venta en nombre de los jugadores.
+#
+#   ACCIONES ADMIN:
+#   - Ver todos los objetos actualmente en venta del jugador objetivo
+#   - Eliminar objetos de la venta (cancelar la publicacion)
+#   - Util para eliminar publicaciones inapropiadas o estafas
+#
+#   ACCESO:
+#   - Desde el menu principal historial admin -> Boton Objetos en Venta
+#   - /ah admin open selling <jugador>
+#
+#   Documentacion: https://docs.groupez.dev/zauctionhouse/introduction
+#   Discord: https://discord.groupez.dev/
+#
+################################################################################################################################
+
+#=============================================================================
+# CONFIGURACION DEL INVENTARIO
+#=============================================================================
+
+# Titulo del inventario con placeholder de paginacion.
+# Nota: El titulo dice "publicados" pero el tipo usa "selling" para coherencia.
+name: '#0c1719Objetos publicados admin (%page%/%max-page%)'
+
+# Tamano del inventario - 6 filas.
+size: 54
+
+#=============================================================================
+# PATTERNS
+#=============================================================================
+
+patterns:
+  # Bordes decorativos de cristal.
+  - 'zauctionhouse-decoration'
+  # Botones pagina anterior/siguiente.
+  - 'zauctionhouse-pagination'
+  # Boton atras para volver al historial admin.
+  - 'zauctionhouse-back'
+
+#=============================================================================
+# OBJETOS
+#=============================================================================
+
+items:
+
+  #---------------------------------------------------------------------------
+  # VISUALIZACION DE OBJETOS EN VENTA
+  #---------------------------------------------------------------------------
+  # Muestra todos los objetos actualmente en venta del jugador objetivo.
+  # Al hacer clic en un objeto lo elimina de la venta (accion admin).
+
+  items:
+    # Tipo de boton - visualiza objetos en venta admin con funcionalidad de eliminacion.
+    type: ZAUCTIONHOUSE_ADMIN_SELLING_ITEMS
+
+    # Slots para mostrar los objetos en venta (4 filas x 9 columnas = 36 slots).
+    slots:
+      - 9-17    # Fila 2
+      - 18-26   # Fila 3
+      - 27-35   # Fila 4
+      - 36-44   # Fila 5
+
+    # Fallback cuando no hay objetos en venta.
+    else:
+      slots:
+        - 22
+      item:
+        material: BARRIER
+        name: '#ff0000&nNingun Objeto Encontrado'

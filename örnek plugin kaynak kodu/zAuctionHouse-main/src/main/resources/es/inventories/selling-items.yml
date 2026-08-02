@@ -1,0 +1,86 @@
+################################################################################################################################
+#
+#   zAuctionHouse V4 - Inventario de Objetos en Venta (Tus Objetos)
+#
+#   Este inventario muestra los objetos que el jugador tiene actualmente en venta.
+#   Los jugadores pueden retirar sus anuncios y recuperar sus objetos.
+#
+#   FUNCIONALIDADES:
+#   - Ver todos tus anuncios activos
+#   - Ver el tiempo restante antes de la caducidad
+#   - Retirar objetos de la venta (cancelar el anuncio)
+#   - Los objetos no son comprables desde esta vista (son tus objetos)
+#
+#   ACCESO:
+#   - /ah selling
+#   - Clic en el boton "Tus objetos" en la casa de subastas principal
+#
+#   Documentacion: https://docs.groupez.dev/zauctionhouse/introduction
+#   Discord: https://discord.groupez.dev/
+#
+################################################################################################################################
+
+#=============================================================================
+# CONFIGURACION DEL INVENTARIO
+#=============================================================================
+
+# Titulo del inventario con placeholder de paginacion.
+name: '#0c1719Objetos en venta (%page%/%max-page%)'
+
+# Tamano del inventario - 6 filas.
+size: 54
+
+#=============================================================================
+# PATRONES
+#=============================================================================
+
+patterns:
+  # Bordes decorativos de vidrio.
+  - 'zauctionhouse-decoration'
+  # Botones pagina anterior/siguiente.
+  - 'zauctionhouse-pagination'
+  # Boton volver para regresar a la casa de subastas.
+  - 'zauctionhouse-back'
+
+#=============================================================================
+# OBJETOS
+#=============================================================================
+
+items:
+
+  #---------------------------------------------------------------------------
+  # VISUALIZACION DE OBJETOS EN VENTA
+  #---------------------------------------------------------------------------
+  # Muestra todos los objetos actualmente en venta por el jugador.
+  # Clic en los objetos para retirarlos de la venta.
+
+  items:
+    # Tipo de boton - visualiza y gestiona los objetos en venta del jugador.
+    type: ZAUCTIONHOUSE_SELLING_ITEMS
+
+    # Slot para el placeholder de estado vacio.
+    empty-slot: 22
+
+    # Slots para mostrar los objetos en venta (4 filas x 9 columnas = 36 slots).
+    slots:
+      - 9-17    # Fila 2
+      - 18-26   # Fila 3
+      - 27-35   # Fila 4
+      - 36-44   # Fila 5
+
+    # Objeto placeholder cuando no hay objetos en venta.
+    item:
+      material: BARRIER
+      name: '#ff0000&nNingun objeto encontrado'
+
+  remove-all:
+    type: ZAUCTIONHOUSE_REMOVE_ALL_SELLING
+    is-permanent: true
+    slot: 47
+    item:
+      material: CHEST
+      name: "#2CCED2<bold>Retirar todo"
+      lore:
+        - "#92ffffRetirar todos los objetos en venta."
+        - ""
+        - "#8c8c8c• #2CCED2Clic #92ffffpara retirar todo"

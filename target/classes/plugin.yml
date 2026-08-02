@@ -1,0 +1,37 @@
+name: lbAuctionHouse
+version: 1.0.0
+main: dev.ensisdev.lbauctionhouse.LbAuctionHouse
+api-version: 1.20
+authors: [EnsisDev, LBDev]
+description: Auction House plugin — standalone (independent from lbSmpCore)
+softdepend: [PlaceholderAPI]
+
+commands:
+  auction:
+    description: Main Auction command
+    # usage: bilinçli olarak TANIMLANMADI — statik/İngilizce kullanım mesajı gösterilmez.
+    # Gerçek kullanım mesajları messages.yml üzerinden dinamik olarak yönetilir.
+    permission: lbsmpcore.auction.use
+
+permissions:
+  lbsmpcore.auction.use:
+    description: Allows using the auction system
+    default: true
+  lbsmpcore.auction.admin:
+    description: Allows admin auction commands (remove, reload, clear)
+    default: op
+  lbsmpcore.auction.limit.5:
+    description: Allows 5 active listings
+    default: true
+  lbsmpcore.auction.limit.10:
+    description: Allows 10 active listings
+    default: op
+  lbsmpcore.auction.limit.15:
+    description: Allows 15 active listings
+    default: op
+  lbsmpcore.auction.limit.20:
+    description: Allows 20 active listings
+    default: op
+  lbsmpcore.auction.limit.50:
+    description: Allows 50 active listings
+    default: op

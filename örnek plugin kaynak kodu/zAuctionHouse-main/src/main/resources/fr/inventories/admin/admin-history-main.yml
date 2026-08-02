@@ -1,0 +1,160 @@
+################################################################################################################################
+#
+#   zAuctionHouse V4 - Inventaire principal de l'historique admin
+#
+#   C'est le hub admin pour voir l'historique des enchères d'un joueur.
+#   Depuis ici, les admins peuvent accéder à toutes les activités d'enchères d'un joueur.
+#
+#   FONCTIONNALITÉS:
+#   - Voir les items expirés du joueur cible
+#   - Voir les items achetés du joueur cible
+#   - Voir les items en vente du joueur cible
+#   - Accéder aux logs d'actions
+#   - Accéder à l'historique des transactions
+#
+#   ACCÈS:
+#   - /ah admin history <joueur>
+#   - Nécessite la permission admin
+#
+#   Documentation: https://docs.groupez.dev/zauctionhouse/introduction
+#   Discord: https://discord.groupez.dev/
+#
+################################################################################################################################
+
+#=============================================================================
+# PARAMÈTRES DE L'INVENTAIRE
+#=============================================================================
+
+# Titre de l'inventaire avec placeholder du joueur cible.
+# %target% = nom du joueur visualisé
+name: '#0c1719Historique admin global (%target%)'
+
+# Taille de l'inventaire - 6 lignes.
+size: 54
+
+#=============================================================================
+# ITEMS
+#=============================================================================
+
+items:
+
+  #---------------------------------------------------------------------------
+  # TÊTE DU JOUEUR CIBLE
+  #---------------------------------------------------------------------------
+  # Affiche la tête du joueur cible visualisé.
+
+  target:
+    # Type de bouton - affiche les informations du joueur cible.
+    type: ZAUCTIONHOUSE_ADMIN_HISTORY_MAIN
+
+    # Position du slot - centre haut.
+    slot: 13
+
+    item:
+      # Affiche la tête du joueur cible.
+      # %target% est remplacé par le nom du joueur.
+      player-head: '%target%'
+      name: '#2CCED2<bold>%target%'
+
+  #---------------------------------------------------------------------------
+  # BOUTON ITEMS EXPIRÉS
+  #---------------------------------------------------------------------------
+  # Ouvre les items expirés du joueur cible.
+
+  expired:
+    # Type de bouton - ouvre la vue admin des items expirés.
+    type: ZAUCTIONHOUSE_ADMIN_HISTORY_EXPIRED
+
+    # Position du slot.
+    slot: 28
+
+    item:
+      # Texture sablier/horloge.
+      url: "eyJ0ZXh0dXJlcyI6eyJTS0lOIjp7InVybCI6Imh0dHA6Ly90ZXh0dXJlcy5taW5lY3JhZnQubmV0L3RleHR1cmUvZjdhYWRmZjlkZGM1NDZmZGNlYzZlZDU5MTljYzM5ZGZhOGQwYzA3ZmY0YmM2MTNhMTlmMmU2ZDdmMjU5MyJ9fX0="
+      name: '#2CCED2<bold>ɪᴛᴇᴍs ᴇxᴘɪʀᴇ́s'
+      lore:
+        # %expired-items% = nombre d'items expirés pour la cible
+        # %s% = suffixe de pluralisation
+        - '#92ffff%target% a #2CCED2%expired-items% #92ffffitem%s% expiré%s%.'
+        - ''
+        - '#8c8c8c• #2CCED2Cliquez #92ffffpour ouvrir'
+
+  #---------------------------------------------------------------------------
+  # BOUTON ITEMS ACHETÉS
+  #---------------------------------------------------------------------------
+  # Ouvre les items achetés du joueur cible.
+
+  purchased:
+    # Type de bouton - ouvre la vue admin des items achetés.
+    type: ZAUCTIONHOUSE_ADMIN_HISTORY_PURCHASED
+
+    slot: 29
+
+    item:
+      # Texture coffre.
+      url: "eyJ0ZXh0dXJlcyI6eyJTS0lOIjp7InVybCI6Imh0dHA6Ly90ZXh0dXJlcy5taW5lY3JhZnQubmV0L3RleHR1cmUvZjM3Y2FlNWM1MWViMTU1OGVhODI4ZjU4ZTBkZmY4ZTZiN2IwYjFhMTgzZDczN2VlY2Y3MTQ2NjE3NjEifX19"
+      name: '#2CCED2<bold>ɪᴛᴇᴍs ᴀᴄʜᴇᴛᴇ́s'
+      lore:
+        # %purchased-items% = nombre d'items achetés
+        - '#92ffff%target% a #2CCED2%purchased-items% #92ffffitem%s% acheté%s%.'
+        - ''
+        - '#8c8c8c• #2CCED2Cliquez #92ffffpour ouvrir'
+
+  #---------------------------------------------------------------------------
+  # BOUTON ITEMS EN VENTE
+  #---------------------------------------------------------------------------
+  # Ouvre les items actuellement en vente du joueur cible.
+
+  selling:
+    # Type de bouton - ouvre la vue admin des items en vente.
+    type: ZAUCTIONHOUSE_ADMIN_HISTORY_SELLING
+
+    slot: 30
+
+    item:
+      # Texture icône joueur.
+      url: "eyJ0ZXh0dXJlcyI6eyJTS0lOIjp7InVybCI6Imh0dHA6Ly90ZXh0dXJlcy5taW5lY3JhZnQubmV0L3RleHR1cmUvMjU4MDdjYzRjM2I2OTU4YWVhNjE1NmU4NDUxOGQ5MWE0OWM1ZjMyOTcxZTZlYjI2OWEyM2EyNWEyNzE0NSJ9fX0="
+      name: '#2CCED2<bold>ɪᴛᴇᴍs ᴇɴ ᴠᴇɴᴛᴇ'
+      lore:
+        # %selling-items% = nombre d'items en vente
+        - '#92ffff%target% a #2CCED2%selling-items% #92ffffitem%s% en vente.'
+        - ''
+        - '#8c8c8c• #2CCED2Cliquez #92ffffpour ouvrir'
+
+  #---------------------------------------------------------------------------
+  # BOUTON LOGS
+  #---------------------------------------------------------------------------
+  # Ouvre les logs d'actions du joueur cible.
+  # Les logs montrent toutes les actions d'enchères: mises en vente, achats, suppressions.
+
+  logs:
+    # Type de bouton - ouvre la vue admin des logs.
+    type: ZAUCTIONHOUSE_ADMIN_HISTORY_LOGS
+
+    slot: 33
+
+    item:
+      material: SUNFLOWER
+      name: '#2CCED2<bold>ʟᴏɢs'
+      lore:
+        - ''
+        - '#8c8c8c• #2CCED2Cliquez #92ffffpour ouvrir'
+
+  #---------------------------------------------------------------------------
+  # BOUTON TRANSACTIONS
+  #---------------------------------------------------------------------------
+  # Ouvre l'historique des transactions du joueur cible.
+  # Les transactions montrent les ventes complétées avec les détails financiers.
+
+  transactions:
+    # Type de bouton - ouvre la vue admin des transactions.
+    type: ZAUCTIONHOUSE_ADMIN_HISTORY_TRANSACTIONS
+
+    slot: 34
+
+    item:
+      material: NETHER_STAR
+      name: '#2CCED2<bold>ᴛʀᴀɴsᴀᴄᴛɪᴏɴs'
+      lore:
+        - ''
+        - '#8c8c8c• #2CCED2Cliquez #92ffffpour ouvrir'

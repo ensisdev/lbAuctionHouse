@@ -1,0 +1,90 @@
+################################################################################################################################
+#
+#   zAuctionHouse V4 - Inventaire des Items en Vente (Vos Items)
+#
+#   Cet inventaire affiche les items que le joueur a actuellement en vente.
+#   Les joueurs peuvent retirer leurs annonces et récupérer leurs items.
+#
+#   FONCTIONNALITÉS:
+#   - Voir toutes vos annonces actives
+#   - Voir le temps restant avant expiration
+#   - Retirer les items de la vente (annuler l'annonce)
+#   - Les items ne sont pas achetables depuis cette vue (ce sont vos propres items)
+#
+#   ACCÈS:
+#   - /ah selling
+#   - Cliquez sur le bouton "Vos items" dans l'hôtel des ventes principal
+#
+#   Documentation: https://docs.groupez.dev/zauctionhouse/introduction
+#   Discord: https://discord.groupez.dev/
+#
+################################################################################################################################
+
+#=============================================================================
+# PARAMÈTRES DE L'INVENTAIRE
+#=============================================================================
+
+# Titre de l'inventaire avec placeholders de pagination.
+name: '#0c1719Items en vente (%page%/%max-page%)'
+
+# Taille de l'inventaire - 6 rangées.
+size: 54
+
+#=============================================================================
+# PATTERNS
+#=============================================================================
+
+patterns:
+  # Bordures décoratives en vitres.
+  - 'zauctionhouse-decoration'
+  # Boutons page précédente/suivante.
+  - 'zauctionhouse-pagination'
+  # Bouton retour pour revenir à l'hôtel des ventes.
+  - 'zauctionhouse-back'
+
+#=============================================================================
+# ITEMS
+#=============================================================================
+
+items:
+
+  #---------------------------------------------------------------------------
+  # AFFICHAGE DES ITEMS EN VENTE
+  #---------------------------------------------------------------------------
+  # Affiche tous les items actuellement en vente par le joueur.
+  # Cliquez sur les items pour les retirer de la vente.
+
+  items:
+    # Type de bouton - affiche et gère les items en vente du joueur.
+    type: ZAUCTIONHOUSE_SELLING_ITEMS
+
+    # Slot pour le placeholder d'état vide.
+    empty-slot: 22
+
+    # Slots pour afficher les items en vente (4 rangées × 9 colonnes = 36 slots).
+    slots:
+      - 9-17    # Rangée 2
+      - 18-26   # Rangée 3
+      - 27-35   # Rangée 4
+      - 36-44   # Rangée 5
+
+    # Item placeholder quand aucun item n'est en vente.
+    item:
+      material: BARRIER
+      name: '#ff0000&nAucun item trouvé'
+
+  #---------------------------------------------------------------------------
+  # BOUTON TOUT RECUPERER
+  #---------------------------------------------------------------------------
+
+  remove-all:
+    type: ZAUCTIONHOUSE_REMOVE_ALL_SELLING
+    is-permanent: true
+    slot: 47
+    item:
+      material: CHEST
+      name: "#2CCED2<bold>Tout recuperer"
+      lore:
+        - "#92ffffRecuperer tous les items en vente."
+        - ""
+        - "#8c8c8c• #2CCED2Cliquez #92ffffpour tout recuperer"

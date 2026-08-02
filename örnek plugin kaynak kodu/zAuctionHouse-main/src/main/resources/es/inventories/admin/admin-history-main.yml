@@ -1,0 +1,160 @@
+################################################################################################################################
+#
+#   zAuctionHouse V4 - Inventario Principal Historial Admin
+#
+#   Este es el hub admin para ver el historial de subastas de un jugador.
+#   Desde aqui, los administradores pueden acceder a todos los aspectos de la actividad de subasta de un jugador.
+#
+#   FUNCIONALIDADES:
+#   - Ver los objetos caducados del jugador objetivo
+#   - Ver los objetos comprados del jugador objetivo
+#   - Ver los objetos en venta del jugador objetivo
+#   - Acceder a los registros de acciones
+#   - Acceder al historial de transacciones
+#
+#   ACCESO:
+#   - /ah admin history <jugador>
+#   - Requiere permisos de admin
+#
+#   Documentacion: https://docs.groupez.dev/zauctionhouse/introduction
+#   Discord: https://discord.groupez.dev/
+#
+################################################################################################################################
+
+#=============================================================================
+# CONFIGURACION DEL INVENTARIO
+#=============================================================================
+
+# Titulo del inventario con placeholder del jugador objetivo.
+# %target% = nombre del jugador visualizado
+name: '#0c1719Historial global admin (%target%)'
+
+# Tamano del inventario - 6 filas.
+size: 54
+
+#=============================================================================
+# OBJETOS
+#=============================================================================
+
+items:
+
+  #---------------------------------------------------------------------------
+  # CABEZA DEL JUGADOR OBJETIVO
+  #---------------------------------------------------------------------------
+  # Muestra la cabeza del jugador objetivo visualizado.
+
+  target:
+    # Tipo de boton - visualiza informacion del jugador objetivo.
+    type: ZAUCTIONHOUSE_ADMIN_HISTORY_MAIN
+
+    # Posicion del slot - centro arriba.
+    slot: 13
+
+    item:
+      # Muestra la cabeza del jugador objetivo.
+      # %target% se reemplaza con el nombre del jugador.
+      player-head: '%target%'
+      name: '#2CCED2<bold>%target%'
+
+  #---------------------------------------------------------------------------
+  # BOTON OBJETOS CADUCADOS
+  #---------------------------------------------------------------------------
+  # Abre los objetos caducados del jugador objetivo.
+
+  expired:
+    # Tipo de boton - abre la vista objetos caducados admin.
+    type: ZAUCTIONHOUSE_ADMIN_HISTORY_EXPIRED
+
+    # Posicion del slot.
+    slot: 28
+
+    item:
+      # Textura reloj de arena/reloj.
+      url: "eyJ0ZXh0dXJlcyI6eyJTS0lOIjp7InVybCI6Imh0dHA6Ly90ZXh0dXJlcy5taW5lY3JhZnQubmV0L3RleHR1cmUvZjdhYWRmZjlkZGM1NDZmZGNlYzZlZDU5MTljYzM5ZGZhOGQwYzA3ZmY0YmM2MTNhMTlmMmU2ZDdmMjU5MyJ9fX0="
+      name: '#2CCED2<bold>ᴏʙᴊᴇᴛᴏs ᴄᴀᴅᴜᴄᴀᴅᴏs'
+      lore:
+        # %expired-items% = numero de objetos caducados para objetivo
+        # %s% = sufijo pluralizacion
+        - '#92ffff%target% tiene #2CCED2%expired-items% #92ffffobjeto%s% caducado%s%.'
+        - ''
+        - '#8c8c8c• #2CCED2Clic #92ffffpara abrir'
+
+  #---------------------------------------------------------------------------
+  # BOTON OBJETOS COMPRADOS
+  #---------------------------------------------------------------------------
+  # Abre los objetos comprados del jugador objetivo.
+
+  purchased:
+    # Tipo de boton - abre la vista objetos comprados admin.
+    type: ZAUCTIONHOUSE_ADMIN_HISTORY_PURCHASED
+
+    slot: 29
+
+    item:
+      # Textura cofre.
+      url: "eyJ0ZXh0dXJlcyI6eyJTS0lOIjp7InVybCI6Imh0dHA6Ly90ZXh0dXJlcy5taW5lY3JhZnQubmV0L3RleHR1cmUvZjM3Y2FlNWM1MWViMTU1OGVhODI4ZjU4ZTBkZmY4ZTZiN2IwYjFhMTgzZDczN2VlY2Y3MTQ2NjE3NjEifX19"
+      name: '#2CCED2<bold>ᴏʙᴊᴇᴛᴏs ᴄᴏᴍᴘʀᴀᴅᴏs'
+      lore:
+        # %purchased-items% = numero de objetos comprados
+        - '#92ffff%target% tiene #2CCED2%purchased-items% #92ffffobjeto%s% comprado%s%.'
+        - ''
+        - '#8c8c8c• #2CCED2Clic #92ffffpara abrir'
+
+  #---------------------------------------------------------------------------
+  # BOTON OBJETOS EN VENTA
+  #---------------------------------------------------------------------------
+  # Abre los objetos actualmente en venta del jugador objetivo.
+
+  selling:
+    # Tipo de boton - abre la vista objetos en venta admin.
+    type: ZAUCTIONHOUSE_ADMIN_HISTORY_SELLING
+
+    slot: 30
+
+    item:
+      # Textura icono jugador.
+      url: "eyJ0ZXh0dXJlcyI6eyJTS0lOIjp7InVybCI6Imh0dHA6Ly90ZXh0dXJlcy5taW5lY3JhZnQubmV0L3RleHR1cmUvMjU4MDdjYzRjM2I2OTU4YWVhNjE1NmU4NDUxOGQ5MWE0OWM1ZjMyOTcxZTZlYjI2OWEyM2EyNWEyNzE0NSJ9fX0="
+      name: '#2CCED2<bold>ᴏʙᴊᴇᴛᴏs ᴇɴ ᴠᴇɴᴛᴀ'
+      lore:
+        # %selling-items% = numero de objetos en venta
+        - '#92ffff%target% tiene #2CCED2%selling-items% #92ffffobjeto%s% en venta.'
+        - ''
+        - '#8c8c8c• #2CCED2Clic #92ffffpara abrir'
+
+  #---------------------------------------------------------------------------
+  # BOTON REGISTROS
+  #---------------------------------------------------------------------------
+  # Abre los registros de acciones para el jugador objetivo.
+  # Los registros muestran todas las acciones de subasta: publicaciones, compras, eliminaciones.
+
+  logs:
+    # Tipo de boton - abre la vista registros admin.
+    type: ZAUCTIONHOUSE_ADMIN_HISTORY_LOGS
+
+    slot: 33
+
+    item:
+      material: SUNFLOWER
+      name: '#2CCED2<bold>ʀᴇɢɪsᴛʀᴏs'
+      lore:
+        - ''
+        - '#8c8c8c• #2CCED2Clic #92ffffpara abrir'
+
+  #---------------------------------------------------------------------------
+  # BOTON TRANSACCIONES
+  #---------------------------------------------------------------------------
+  # Abre el historial de transacciones para el jugador objetivo.
+  # Las transacciones muestran las ventas completadas con detalles financieros.
+
+  transactions:
+    # Tipo de boton - abre la vista transacciones admin.
+    type: ZAUCTIONHOUSE_ADMIN_HISTORY_TRANSACTIONS
+
+    slot: 34
+
+    item:
+      material: NETHER_STAR
+      name: '#2CCED2<bold>ᴛʀᴀɴsᴀᴄᴄɪᴏɴᴇs'
+      lore:
+        - ''
+        - '#8c8c8c• #2CCED2Clic #92ffffpara abrir'

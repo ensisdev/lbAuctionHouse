@@ -1,0 +1,620 @@
+package fr.maxlego08.zauctionhouse;
+
+import com.tcoded.folialib.FoliaLib;
+import com.tcoded.folialib.impl.PlatformScheduler;
+import fr.maxlego08.zauctionhouse.api.AuctionManager;
+import fr.maxlego08.zauctionhouse.api.AuctionPlugin;
+import fr.maxlego08.zauctionhouse.api.InventoriesLoader;
+import fr.maxlego08.zauctionhouse.api.category.CategoryManager;
+import fr.maxlego08.zauctionhouse.api.cluster.AuctionClusterBridge;
+import fr.maxlego08.zauctionhouse.api.command.CommandManager;
+import fr.maxlego08.zauctionhouse.api.configuration.Configuration;
+import fr.maxlego08.zauctionhouse.api.configuration.ConfigurationFile;
+import fr.maxlego08.zauctionhouse.api.economy.EconomyManager;
+import fr.maxlego08.zauctionhouse.api.hooks.itemcontent.ItemContentManager;
+import fr.maxlego08.zauctionhouse.api.hooks.permission.OfflinePermission;
+import fr.maxlego08.zauctionhouse.api.messages.Message;
+import fr.maxlego08.zauctionhouse.api.migration.MigrationProvider;
+import fr.maxlego08.zauctionhouse.api.migration.MigrationRegistry;
+import fr.maxlego08.zauctionhouse.api.placeholders.Placeholder;
+import fr.maxlego08.zauctionhouse.api.placeholders.PlaceholderRegister;
+import fr.maxlego08.zauctionhouse.api.rules.ItemRuleManager;
+import fr.maxlego08.zauctionhouse.api.rules.loader.RuleLoaderRegistry;
+import fr.maxlego08.zauctionhouse.api.storage.StorageManager;
+import fr.maxlego08.zauctionhouse.api.utils.Plugins;
+import fr.maxlego08.zauctionhouse.category.ZCategoryManager;
+import fr.maxlego08.zauctionhouse.cluster.LocalAuctionClusterBridge;
+import fr.maxlego08.zauctionhouse.command.ZCommandManager;
+import fr.maxlego08.zauctionhouse.command.commands.CommandAuction;
+import fr.maxlego08.zauctionhouse.configuration.MainConfiguration;
+import fr.maxlego08.zauctionhouse.discord.DiscordWebhookService;
+import fr.maxlego08.zauctionhouse.economy.ZEconomyManager;
+import fr.maxlego08.zauctionhouse.hooks.itemcontent.VanillaShulkerContentProvider;
+import fr.maxlego08.zauctionhouse.hooks.itemcontent.ZItemContentManager;
+import fr.maxlego08.zauctionhouse.hooks.permissions.EmptyOfflinePermission;
+import fr.maxlego08.zauctionhouse.hooks.permissions.LuckPermsOfflinePermission;
+import fr.maxlego08.zauctionhouse.listeners.PlayerListener;
+import fr.maxlego08.zauctionhouse.loader.MessageLoader;
+import fr.maxlego08.zauctionhouse.loader.ZInventoriesLoader;
+import fr.maxlego08.zauctionhouse.migration.ZMigrationRegistry;
+import fr.maxlego08.zauctionhouse.migration.v3.V3MigrationProvider;
+import fr.maxlego08.zauctionhouse.permissions.PermissionRegistrar;
+import fr.maxlego08.zauctionhouse.placeholder.DistantPlaceholder;
+import fr.maxlego08.zauctionhouse.placeholder.LocalPlaceholder;
+import fr.maxlego08.zauctionhouse.placeholder.placeholders.GlobalPlaceholders;
+import fr.maxlego08.zauctionhouse.placeholder.placeholders.OptionPlaceholders;
+import fr.maxlego08.zauctionhouse.placeholder.placeholders.PlayerPlaceholders;
+import fr.maxlego08.zauctionhouse.services.BroadcastService;
+import fr.maxlego08.zauctionhouse.rule.ZItemRuleManager;
+import fr.maxlego08.zauctionhouse.rule.ZRuleLoaderRegistry;
+import fr.maxlego08.zauctionhouse.search.ChatSearchListener;
+import fr.maxlego08.zauctionhouse.storage.ZStorageManager;
+import fr.maxlego08.zauctionhouse.utils.LocaleHelper;
+import fr.maxlego08.zauctionhouse.utils.Metrics;
+import fr.maxlego08.zauctionhouse.utils.VersionChecker;
+import fr.maxlego08.zauctionhouse.utils.documentation.DocumentationGenerator;
+import fr.maxlego08.zauctionhouse.utils.yaml.YamlUpdater;
+import org.bukkit.Bukkit;
+import org.bukkit.event.Listener;
+import org.bukkit.plugin.Plugin;
+import org.bukkit.plugin.ServicePriority;
+import org.bukkit.plugin.java.JavaPlugin;
+
+import java.io.File;
+import java.io.IOException;
+import java.io.InputStream;
+import java.io.OutputStream;
+import java.nio.file.Files;
+import java.util.concurrent.ExecutorService;
+import java.util.concurrent.Executors;
+import java.util.concurrent.TimeUnit;
+import java.util.logging.Level;
+
+public class ZAuctionPlugin extends JavaPlugin implements AuctionPlugin {
+
+    private final StorageManager storageManager = new ZStorageManager(this);
+    private final Configuration configuration = new MainConfiguration(this);
+    private final ConfigurationFile messageLoader = new MessageLoader(this);
+    private final ZCommandManager commandManager = new ZCommandManager(this);
+    private final AuctionManager auctionManager = new ZAuctionManager(this);
+    private final EconomyManager economyManager = new ZEconomyManager(this);
+    private final ExecutorService asyncExecutor = Executors.newFixedThreadPool(4);
+    private final Placeholder placeholder = new LocalPlaceholder(this);
+    private final ZRuleLoaderRegistry ruleLoaderRegistry = new ZRuleLoaderRegistry(this);
+    private final ItemRuleManager itemRuleManager = new ZItemRuleManager(this, ruleLoaderRegistry);
+    private final CategoryManager categoryManager = new ZCategoryManager(this, ruleLoaderRegistry);
+    private final YamlUpdater yamlUpdater = new YamlUpdater(this);
+    private final MigrationRegistry migrationRegistry = new ZMigrationRegistry(this);
+    private final PermissionRegistrar permissionRegistrar = new PermissionRegistrar(this);
+    private final ItemContentManager itemContentManager = new ZItemContentManager();
+    private final MessageHelper messageHelper = new MessageHelper();
+    private LocaleHelper localeHelper;
+    private InventoriesLoader inventoriesLoader;
+    private ChatSearchListener chatSearchListener;
+    private BroadcastService broadcastService;
+    private DiscordWebhookService discordWebhookService;
+    private VersionChecker versionChecker;
+    private boolean isEnabled = false;
+    private PlatformScheduler platformScheduler;
+    private AuctionClusterBridge auctionClusterBridge = new LocalAuctionClusterBridge();
+    private OfflinePermission offlinePermission = new EmptyOfflinePermission();
+
+    @Override
+    public void onEnable() {
+
+        var dataFolder = this.getDataFolder();
+        if (!dataFolder.exists()) dataFolder.mkdirs();
+
+        // Load language.yml first (not localized, always from root resources)
+        this.saveLanguageFile();
+        String configuredLanguage = this.loadLanguageConfiguration();
+
+        // Initialize locale helper with configured language or automatic detection
+        this.localeHelper = new LocaleHelper(getLogger(), configuredLanguage);
+
+        // Now save config.yml with the correct language
+        this.saveFile("config.yml", true);
+
+        FoliaLib foliaLib = new FoliaLib(this);
+        this.platformScheduler = foliaLib.getScheduler();
+
+        // We must create the inventory class before loading the configuration, this allows using the zmenu interfaces everywhere.
+        this.inventoriesLoader = new ZInventoriesLoader(this);
+
+        // Register rule loaders BEFORE loading files (categories need them)
+        this.ruleLoaderRegistry.registerDefaultLoaders();
+        this.registerCustomItemLoaders();
+
+        this.loadFiles();
+        this.permissionRegistrar.register();
+
+        this.auctionManager.setupSortedItemsCache();
+
+        if (!this.storageManager.onEnable()) return;
+
+        this.registerDefaultMigrationProviders();
+
+        this.broadcastService = new BroadcastService(this);
+        this.discordWebhookService = new DiscordWebhookService(this);
+
+        this.chatSearchListener = new ChatSearchListener(this);
+        this.addListener(new PlayerListener(this));
+        this.addListener(this.chatSearchListener);
+
+        java.util.List<String> aliases = new java.util.ArrayList<>(getConfig().getStringList("commands.main-command.aliases"));
+        String primaryCommand;
+        if (!aliases.isEmpty()) {
+            primaryCommand = aliases.removeFirst();
+            aliases.add("zauctionhouse");
+        } else {
+            primaryCommand = "zauctionhouse";
+        }
+        this.commandManager.registerCommand(this, primaryCommand, new CommandAuction(this), aliases);
+
+        this.inventoriesLoader.load();
+
+        this.storageManager.loadItems();
+
+        this.registerPlaceholders();
+        this.registerHooks();
+
+        new Metrics(this, 5326);
+
+        if (getConfig().getBoolean("enable-version-checker", true)) {
+            this.versionChecker = new VersionChecker(this, 1);
+            this.versionChecker.useLastVersion();
+        }
+
+        var documentation = new DocumentationGenerator(this);
+        documentation.generate(this.commandManager.getCommands(), ((LocalPlaceholder) placeholder).getAutoPlaceholders());
+
+        getServer().getServicesManager().register(AuctionPlugin.class, this, this, ServicePriority.Highest);
+
+        isEnabled = true;
+        this.getLogger().info("zAuctionHouse has just been loaded successfully!");
+    }
+
+    @Override
+    public void onDisable() {
+
+        if (!this.isEnabled) return;
+
+        // Unregister version checker listener
+        if (this.versionChecker != null) {
+            this.versionChecker.unregister();
+        }
+
+        // Shutdown the sorted items cache (closes ForkJoinPool)
+        this.auctionManager.shutdown();
+
+        // Shutdown the async executor service
+        this.asyncExecutor.shutdown();
+        try {
+            if (!this.asyncExecutor.awaitTermination(5, TimeUnit.SECONDS)) {
+                this.asyncExecutor.shutdownNow();
+                if (!this.asyncExecutor.awaitTermination(2, TimeUnit.SECONDS)) {
+                    getLogger().warning("ExecutorService did not terminate properly");
+                }
+            }
+        } catch (InterruptedException e) {
+            this.asyncExecutor.shutdownNow();
+            Thread.currentThread().interrupt();
+        }
+
+        this.storageManager.onDisable();
+    }
+
+    @Override
+    public void reload() {
+
+        if (!new File(getDataFolder(), "config.yml").exists()) {
+            this.saveFile("config.yml", true);
+        }
+
+        this.reloadConfig();
+
+        // Re-initialize locale helper with configured language from language.yml
+        String configuredLanguage = this.loadLanguageConfiguration();
+        this.localeHelper = new LocaleHelper(getLogger(), configuredLanguage);
+
+        this.loadFiles();
+        this.permissionRegistrar.register();
+        this.inventoriesLoader.reload();
+
+        // Update economy references for all items after reload
+        this.auctionManager.updateItemEconomies();
+    }
+
+    private void loadFiles() {
+        this.configuration.load(); // Load config.yml
+        this.messageLoader.load(); // Load messages.yml
+        this.economyManager.loadEconomies(); // Load economies.yml
+        this.itemRuleManager.loadRules(); // Load rules.yml
+        this.categoryManager.loadCategories(); // Load categories.yml
+
+        if (this.discordWebhookService != null) {
+            this.discordWebhookService.loadConfiguration(); // Load discord.yml
+        }
+    }
+
+    private void registerPlaceholders() {
+        DistantPlaceholder distantPlaceholder = new DistantPlaceholder(this, this.placeholder);
+        distantPlaceholder.register();
+
+        this.registerPlaceholder(PlayerPlaceholders.class);
+        this.registerPlaceholder(GlobalPlaceholders.class);
+        this.registerPlaceholder(OptionPlaceholders.class);
+    }
+
+    private void registerHooks() {
+
+        if (isEnable(Plugins.LUCKPERMS)) {
+            this.offlinePermission = new LuckPermsOfflinePermission();
+            this.getLogger().info("LuckPerms has been enabled successfully!");
+        }
+
+        this.registerItemContentProviders();
+    }
+
+    private void registerItemContentProviders() {
+        // Default vanilla shulker box provider (priority 100)
+        this.itemContentManager.registerProvider(new VanillaShulkerContentProvider());
+
+        if (isEnable(Plugins.AXSHULKERS)) {
+            this.registerOptionalItemContentProvider("fr.maxlego08.zauctionhouse.hooks.axshulkers.AxShulkersContentProvider", "AxShulkers");
+        }
+    }
+
+    private void registerOptionalItemContentProvider(String className, String name) {
+        try {
+            var clazz = Class.forName(className);
+            var provider = (fr.maxlego08.zauctionhouse.api.hooks.itemcontent.ItemContentProvider) clazz.getDeclaredConstructor().newInstance();
+            this.itemContentManager.registerProvider(provider);
+            this.getLogger().info(name + " item content provider registered.");
+        } catch (Exception exception) {
+            this.getLogger().log(Level.WARNING, "Failed to register " + name + " item content provider.", exception);
+        }
+    }
+
+    private void registerCustomItemLoaders() {
+        if (isEnable(Plugins.ITEMSADDER)) {
+            this.ruleLoaderRegistry.registerItemsAdderLoader();
+            this.getLogger().info("ItemsAdder rule loader registered.");
+        }
+
+        if (isEnable(Plugins.ORAXEN)) {
+            this.ruleLoaderRegistry.registerOraxenLoader();
+            this.getLogger().info("Oraxen rule loader registered.");
+        }
+
+        if (isEnable(Plugins.NEXO)) {
+            this.ruleLoaderRegistry.registerNexoLoader();
+            this.getLogger().info("Nexo rule loader registered.");
+        }
+
+        if (isEnable(Plugins.MMOITEMS)) {
+            this.ruleLoaderRegistry.registerMMOItemsLoader();
+            this.getLogger().info("MMOItems rule loader registered.");
+        }
+
+        if (isEnable(Plugins.EXECUTABLE_ITEMS)) {
+            this.ruleLoaderRegistry.registerExecutableItemsLoader();
+            this.getLogger().info("ExecutableItems rule loader registered.");
+        }
+
+        if (isEnable(Plugins.SLIMEFUN)) {
+            this.ruleLoaderRegistry.registerSlimefunLoader();
+            this.getLogger().info("Slimefun rule loader registered.");
+        }
+
+        if (isEnable(Plugins.HEADDATABASE)) {
+            this.ruleLoaderRegistry.registerHeadDatabaseLoader();
+            this.getLogger().info("HeadDatabase rule loader registered.");
+        }
+
+        if (isEnable(Plugins.NOVA)) {
+            this.ruleLoaderRegistry.registerNovaLoader();
+            this.getLogger().info("Nova rule loader registered.");
+        }
+
+        if (isEnable(Plugins.DENIZEN)) {
+            this.ruleLoaderRegistry.registerDenizenLoader();
+            this.getLogger().info("Denizen rule loader registered.");
+        }
+
+        if (isEnable(Plugins.CRAFTENGINE)) {
+            this.ruleLoaderRegistry.registerCraftEngineLoader();
+            this.getLogger().info("CraftEngine rule loader registered.");
+        }
+
+        if (isEnable(Plugins.EXECUTABLE_BLOCKS)) {
+            this.ruleLoaderRegistry.registerExecutableBlocksLoader();
+            this.getLogger().info("ExecutableBlocks rule loader registered.");
+        }
+    }
+
+    private void registerDefaultMigrationProviders() {
+        this.migrationRegistry.register(new V3MigrationProvider());
+        this.registerOptionalMigrationProvider("fr.maxlego08.zauctionhouse.hooks.zelauction.ZelAuctionMigrationProvider", "ZelAuction");
+        this.registerOptionalMigrationProvider("fr.maxlego08.zauctionhouse.hooks.donutauction.DonutAuctionMigrationProvider", "DonutAuction");
+        this.registerOptionalMigrationProvider("fr.maxlego08.zauctionhouse.hooks.crazyauctions.CrazyAuctionsMigrationProvider", "CrazyAuctions");
+    }
+
+    /**
+     * Registers a migration provider using reflection.
+     * Used for optional hooks that may not be included in the build.
+     *
+     * @param className   The fully qualified class name
+     * @param displayName The display name for logging
+     */
+    private void registerOptionalMigrationProvider(String className, String displayName) {
+        try {
+            Class<?> clazz = Class.forName(className);
+            MigrationProvider provider = (MigrationProvider) clazz.getDeclaredConstructor().newInstance();
+            this.migrationRegistry.register(provider);
+            // this.getLogger().info(displayName + " migration provider registered.");
+        } catch (ClassNotFoundException ignored) {
+            // Hook not included in build, skip silently
+        } catch (Exception exception) {
+            this.getLogger().warning("Failed to register " + displayName + " migration provider: " + exception.getMessage());
+        }
+    }
+
+    @Override
+    public PlatformScheduler getScheduler() {
+        return this.platformScheduler;
+    }
+
+    @Override
+    public StorageManager getStorageManager() {
+        return this.storageManager;
+    }
+
+    @Override
+    public Configuration getConfiguration() {
+        return this.configuration;
+    }
+
+    @Override
+    public AuctionManager getAuctionManager() {
+        return this.auctionManager;
+    }
+
+    @Override
+    public CommandManager getCommandManager() {
+        return commandManager;
+    }
+
+    @Override
+    public void sendMessage(org.bukkit.command.CommandSender sender, Message message, Object... args) {
+        messageHelper.send(this, sender, message, args);
+    }
+
+    @Override
+    public InventoriesLoader getInventoriesLoader() {
+        return this.inventoriesLoader;
+    }
+
+    @Override
+    public EconomyManager getEconomyManager() {
+        return this.economyManager;
+    }
+
+    @Override
+    public ExecutorService getExecutorService() {
+        return this.asyncExecutor;
+    }
+
+    @Override
+    public AuctionClusterBridge getAuctionClusterBridge() {
+        return this.auctionClusterBridge;
+    }
+
+    @Override
+    public void setAuctionClusterBridge(AuctionClusterBridge auctionClusterBridge) {
+        this.auctionClusterBridge = auctionClusterBridge;
+    }
+
+    @Override
+    public ItemRuleManager getItemRuleManager() {
+        return this.itemRuleManager;
+    }
+
+    @Override
+    public CategoryManager getCategoryManager() {
+        return this.categoryManager;
+    }
+
+    @Override
+    public RuleLoaderRegistry getRuleLoaderRegistry() {
+        return this.ruleLoaderRegistry;
+    }
+
+    @Override
+    public MigrationRegistry getMigrationRegistry() {
+        return this.migrationRegistry;
+    }
+
+    @Override
+    public ItemContentManager getItemContentManager() {
+        return this.itemContentManager;
+    }
+
+    @Override
+    public OfflinePermission getOfflinePermission() {
+        return this.offlinePermission;
+    }
+
+    @Override
+    public void setOfflinePermission(OfflinePermission offlinePermission) {
+        this.offlinePermission = offlinePermission;
+    }
+
+    @Override
+    public Placeholder getPlaceholder() {
+        return this.placeholder;
+    }
+
+    public ChatSearchListener getChatSearchListener() {
+        return this.chatSearchListener;
+    }
+
+    public BroadcastService getBroadcastService() {
+        return this.broadcastService;
+    }
+
+    public DiscordWebhookService getDiscordWebhookService() {
+        return this.discordWebhookService;
+    }
+
+    /**
+     * Gets the YAML updater that preserves comments when updating configuration files.
+     *
+     * @return The YamlUpdater instance
+     */
+    public YamlUpdater getYamlUpdater() {
+        return this.yamlUpdater;
+    }
+
+    private void addListener(Listener listener) {
+        this.getServer().getPluginManager().registerEvents(listener, this);
+    }
+
+    @Override
+    public boolean resourceExist(String resourcePath) {
+        if (resourcePath != null && !resourcePath.isEmpty()) {
+            resourcePath = resourcePath.replace('\\', '/');
+            InputStream in = this.getResource(resourcePath);
+            return in != null;
+        }
+        return false;
+    }
+
+    @Override
+    public void saveResource(String resourcePath, String toPath, boolean replace) {
+        if (resourcePath != null && !resourcePath.isEmpty()) {
+            resourcePath = resourcePath.replace('\\', '/');
+            InputStream in = this.getResource(resourcePath);
+            if (in == null) {
+                throw new IllegalArgumentException("The embedded resource '" + resourcePath + "' cannot be found in " + this.getFile());
+            } else {
+                File outFile = new File(getDataFolder(), toPath);
+                int lastIndex = toPath.lastIndexOf(47);
+                File outDir = new File(getDataFolder(), toPath.substring(0, Math.max(lastIndex, 0)));
+                if (!outDir.exists()) {
+                    outDir.mkdirs();
+                }
+
+                if (outFile.exists() && !replace) {
+                    getLogger().log(Level.WARNING, "Could not save " + outFile.getName() + " to " + outFile + " because " + outFile.getName() + " already exists.");
+                } else {
+                    try (OutputStream out = Files.newOutputStream(outFile.toPath()); in) {
+                        byte[] buf = new byte[1024];
+                        int len;
+                        while ((len = in.read(buf)) > 0) {
+                            out.write(buf, 0, len);
+                        }
+                    } catch (IOException exception) {
+                        getLogger().log(Level.SEVERE, "Could not save " + outFile.getName() + " to " + outFile, exception);
+                    }
+                }
+
+            }
+        } else throw new IllegalArgumentException("ResourcePath cannot be null or empty");
+    }
+
+    @Override
+    public void saveOrUpdateConfiguration(String resourcePath, String toPath, boolean deep) {
+        File file = new File(getDataFolder(), toPath);
+        if (!file.exists()) {
+            saveResource(resourcePath, toPath, false);
+            return;
+        }
+
+        // Use the new YamlUpdater that preserves comments
+        this.yamlUpdater.update(resourcePath, toPath);
+    }
+
+    /**
+     * Saves the language.yml file from resources.
+     * This file is NOT localized and is always loaded from the root resources.
+     */
+    private void saveLanguageFile() {
+        File languageFile = new File(getDataFolder(), "language.yml");
+        if (!languageFile.exists()) {
+            this.saveResource("language.yml", "language.yml", false);
+        } else {
+            // Update with new keys while preserving user settings
+            this.yamlUpdater.update("language.yml", "language.yml");
+        }
+    }
+
+    /**
+     * Loads the language configuration from language.yml.
+     *
+     * @return The configured language code, or null for auto-detection
+     */
+    private String loadLanguageConfiguration() {
+        File languageFile = new File(getDataFolder(), "language.yml");
+        if (!languageFile.exists()) {
+            return null;
+        }
+
+        var config = org.bukkit.configuration.file.YamlConfiguration.loadConfiguration(languageFile);
+        String language = config.getString("language", "auto");
+
+        if (language == null || language.equalsIgnoreCase("auto")) {
+            return null; // Will trigger auto-detection in LocaleHelper
+        }
+
+        return language.toLowerCase();
+    }
+
+    @Override
+    public void saveFile(String resourcePath, boolean saveOrUpdate) {
+        this.saveFile(resourcePath, resourcePath, saveOrUpdate);
+    }
+
+    @Override
+    public void saveFile(String resourcePath, String toPath, boolean saveOrUpdate) {
+        var langResourcePath = localeHelper.getLanguage() + "/" + resourcePath;
+        var finalPath = resourcePath;
+        if (this.resourceExist(langResourcePath)) {
+            finalPath = langResourcePath;
+        }
+
+        if (saveOrUpdate) this.saveOrUpdateConfiguration(finalPath, toPath, false);
+        else this.saveResource(finalPath, toPath, false);
+    }
+
+    private <T extends PlaceholderRegister> T registerPlaceholder(Class<T> placeholderClass) {
+        try {
+            T placeholderRegister = placeholderClass.getConstructor().newInstance();
+            placeholderRegister.register(this.placeholder, this);
+            return placeholderRegister;
+        } catch (Exception exception) {
+            exception.printStackTrace();
+        }
+        return null;
+    }
+
+    public boolean isEnable(Plugins pluginName) {
+        Plugin plugin = getPlugin(pluginName);
+        return plugin != null && plugin.isEnabled();
+    }
+
+    public boolean isActive(Plugins pluginName) {
+        Plugin plugin = getPlugin(pluginName);
+        return plugin != null;
+    }
+
+    protected Plugin getPlugin(Plugins plugin) {
+        return Bukkit.getPluginManager().getPlugin(plugin.getName());
+    }
+
+    private static class MessageHelper extends fr.maxlego08.zauctionhouse.utils.MessageUtils {
+        void send(AuctionPlugin plugin, org.bukkit.command.CommandSender sender, Message message, Object... args) {
+            this.message(plugin, sender, message, args);
+        }
+    }
+}

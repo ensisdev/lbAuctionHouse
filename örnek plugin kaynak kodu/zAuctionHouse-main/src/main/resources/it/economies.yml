@@ -1,0 +1,269 @@
+################################################################################################################################
+#
+#   zAuctionHouse V4 - Configurazione delle Economie
+#
+#   Questo file configura i fornitori di economia per la casa d'aste.
+#   Puoi attivare più economie per permettere ai giocatori di scambiare con diverse valute.
+#
+#   Documentazione: https://docs.groupez.dev/zauctionhouse/introduction
+#   Discord: https://discord.groupez.dev/
+#
+################################################################################################################################
+
+#=============================================================================
+# FORNITORI DI ECONOMIA
+#=============================================================================
+# Lista dei fornitori di economia attivati.
+# Ogni economia permette ai giocatori di comprare e vendere oggetti con quella valuta.
+# Puoi attivare più economie per dare ai giocatori la scelta.
+#
+# TIPI DI ECONOMIA SUPPORTATI:
+#   - VAULT        : Economia Vault standard (funziona con qualsiasi plugin compatibile Vault)
+#   - PLAYERPOINTS : Valuta del plugin PlayerPoints
+#   - COINSENGINE  : Valute del plugin CoinsEngine
+#   - REDIRECT     : Reindirizza a un'altra economia per nome
+#   - ITEM         : Economia basata su oggetti (scambia oggetti specifici come valuta)
+#   - LEVEL        : Livelli di esperienza come valuta
+#   - EXPERIENCE   : Punti esperienza come valuta
+#
+# Ogni economia può avere:
+#   - Limiti di prezzo min/max
+#   - Configurazione delle tasse
+#   - Formato di visualizzazione
+#   - Comportamento di auto-riscossione
+
+economies:
+
+  #---------------------------------------------------------------------------
+  # ECONOMIA VAULT
+  #---------------------------------------------------------------------------
+  # Economia standard che usa l'API Vault.
+  # Funziona con: EssentialsX Economy, CMI, DeluxeCoins, e molti altri.
+  - type: VAULT
+
+    # Attivare o disattivare questa economia
+    # Quando disattivato, i giocatori non possono usare questa valuta.
+    is-enable: true
+
+    # Identificatore interno per questa economia (deve essere univoco).
+    # Usato nei comandi: /ah sell <prezzo> <quantità> <economia>
+    # Usato nei riferimenti config e nell'archiviazione database.
+    # IMPORTANTE: Non cambiare dopo che i giocatori hanno elencato oggetti con questa economia.
+    name: vault
+
+    # Nome di visualizzazione mostrato nel GUI e nei messaggi.
+    # Supporta la formattazione MiniMessage e i colori.
+    display-name: "Vault"
+
+    # Formato di visualizzazione del prezzo nella casa d'aste.
+    # %price% viene sostituito dal numero del prezzo formattato.
+    # Esempi:
+    #   "%price%€"      → "1.000€"
+    #   "€%price%"      → "€1.000"
+    #   "%price% monete" → "1.000 monete"
+    format: "%price%€"
+
+    # Simbolo corto usato nelle visualizzazioni compatte (autocompletamento, ecc.)
+    symbol: "v"
+
+    # Se true, il denaro dalle vendite viene depositato immediatamente al venditore.
+    # Se false, i venditori devono usare /ah claim per ricevere il loro denaro in sospeso.
+    # Consigliato: true per configurazioni semplici, false se usi un'economia cross-server.
+    auto-claim: true
+
+    # Se true, il denaro viene depositato solo quando il venditore è online.
+    # Se false, il denaro viene depositato anche quando il venditore è offline.
+    # Utile per plugin di economia che non supportano le transazioni offline.
+    must-be-online: false
+
+    # Permesso opzionale richiesto per usare questa economia.
+    # Lascia commentato per permettere a tutti di usarla.
+    # permission: "zauctionhouse.economy.vault"
+
+    # Stringa di motivazione per i prelievi di economia (mostrata nei log di economia).
+    # Placeholder disponibile: %items% (mostra i nomi degli oggetti)
+    withdraw-reason: "Acquisto di %items% (zAuctionHouse)"
+
+    # Stringa di motivazione per i depositi di economia (mostrata nei log di economia).
+    deposit-reason: "Vendita di %items% (zAuctionHouse)"
+
+    # Modalità di formattazione dei numeri di prezzo.
+    # Opzioni:
+    #   - PRICE_WITH_DECIMAL_FORMAT : Usa l'impostazione 'price-decimal-format' qui sotto
+    #   - PRICE_WITHOUT_DECIMAL     : Nessun decimale (solo numeri interi)
+    #   - PRICE_WITH_REDUCTION      : Usa le impostazioni 'price-reductions' qui sotto
+    price-format: PRICE_WITH_DECIMAL_FORMAT
+
+    # Limiti di prezzo minimo per diversi tipi di vendita.
+    # I giocatori non possono elencare oggetti per meno di questi importi.
+    # Previene gli annunci spam e protegge l'equilibrio economico.
+    min-prices:
+      auction: 10       # Prezzo minimo per le aste regolari
+      rent: 500         # Prezzo minimo per gli annunci di affitto (funzionalità futura)
+      bid: 500          # Offerta iniziale minima (funzionalità futura)
+
+    # Prezzo massimo per qualsiasi annuncio.
+    # I giocatori non possono elencare oggetti per più di questo importo.
+    # Previene abusi economici con prezzi irrealistici.
+    max-prices: 10000000000  # 10 miliardi
+
+    #-------------------------------------------------------------------------
+    # CONFIGURAZIONE DELLE TASSE
+    #-------------------------------------------------------------------------
+    # Sistema di tassazione per le transazioni d'asta.
+    # Utile per rimuovere valuta dall'economia (pozzo) o finanziare le banche del server.
+    tax:
+      # Attivare o disattivare le tasse per questa economia
+      enabled: false
+
+      # Il tipo di tassa determina quando e come viene raccolta la tassa:
+      #
+      # SELL:       La tassa viene pagata dal VENDITORE durante l'elenco di un oggetto.
+      #             Esempio: Elencare un oggetto a 1000€ con 5% di tassa → Il venditore paga 50€ di commissione.
+      #             L'acquirente paga: 1000€ | Il venditore riceve: 1000€
+      #
+      # PURCHASE:   La tassa viene dedotta dai guadagni del VENDITORE quando l'oggetto viene venduto.
+      #             Esempio: L'oggetto viene venduto a 1000€ con 5% di tassa → Il venditore riceve 950€.
+      #             L'acquirente paga: 1000€ | Il venditore riceve: 950€
+      #
+      # BOTH:       La tassa viene applicata all'elenco E alla vendita.
+      #             Esempio: 5% di tassa all'elenco E alla vendita.
+      #             Elenco: Il venditore paga 50€ | Vendita: Il venditore riceve 950€
+      #
+      # CAPITALISM: Tassa stile IVA dove l'ACQUIRENTE paga di più, il venditore riceve il prezzo intero.
+      #             Esempio: Oggetto elencato a 1000€ con 5% di IVA → L'acquirente paga 1050€.
+      #             L'acquirente paga: 1050€ | Il venditore riceve: 1000€
+      type: SELL
+
+      # Metodo di calcolo della tassa:
+      # - PERCENTAGE : La tassa è una percentuale del prezzo (il più comune)
+      # - FIXED      : La tassa è un importo fisso indipendentemente dal prezzo
+      amount-type: PERCENTAGE
+
+      # Importo della tassa (percentuale o valore fisso secondo amount-type)
+      # Esempio: 5 = 5% di tassa (se PERCENTAGE) o 5€ di tassa (se FIXED)
+      amount: 5
+
+      # Permesso per aggirare completamente tutte le tasse
+      # I giocatori con questo permesso non pagano nessuna tassa su nessuna transazione.
+      bypass-permission: "zauctionhouse.tax.bypass"
+
+      # Riduzioni delle tasse basate sui permessi.
+      # I giocatori con questi permessi ottengono aliquote fiscali ridotte.
+      # Verificate in ordine - il primo permesso corrispondente viene applicato.
+      # La riduzione è una percentuale IN MENO sull'aliquota fiscale normale.
+      reductions:
+        - permission: "zauctionhouse.tax.vip"
+          percentage: 50  # 50% di riduzione (5% tassa → 2.5% effettivo)
+        - permission: "zauctionhouse.tax.premium"
+          percentage: 25  # 25% di riduzione (5% tassa → 3.75% effettivo)
+        - permission: "zauctionhouse.tax.member"
+          percentage: 10  # 10% di riduzione (5% tassa → 4.5% effettivo)
+
+      #-----------------------------------------------------------------------
+      # REGOLE DI TASSA SPECIFICHE PER OGGETTI
+      #-----------------------------------------------------------------------
+      # Sovrascrivere le impostazioni di tassa predefinite per oggetti specifici.
+      # Utile per tassare oggetti di valore diversamente da oggetti comuni.
+      item-rules:
+        # Attivare o disattivare le regole di tassa specifiche per oggetti
+        enabled: false
+
+        # Lista delle regole di tassa per oggetti specifici.
+        # Le regole con priorità più alta vengono verificate prima.
+        # La prima regola corrispondente viene applicata; se nessuna corrisponde, viene usata la tassa predefinita.
+        rules: []
+
+        # ESEMPI DI REGOLE (decommentare e modificare per usare):
+        #
+        # - name: "tassa_diamante"          # Identificatore univoco della regola
+        #   priority: 100                   # Più alto = verificato prima
+        #   type: PURCHASE                  # Tipo di tassa per questa regola
+        #   amount-type: PERCENTAGE
+        #   amount: 10                      # 10% di tassa sui diamanti
+        #   rule:
+        #     type: material                # Tipo di regola: material, lore, name, ecc.
+        #     materials:
+        #       - DIAMOND
+        #       - DIAMOND_BLOCK
+        #
+        # - name: "oggetti_rari"
+        #   priority: 90
+        #   type: CAPITALISM
+        #   amount-type: PERCENTAGE
+        #   amount: 15                      # 15% di IVA su oggetti rari
+        #   rule:
+        #     type: and                     # Combinare più condizioni
+        #     rules:
+        #       - type: lore
+        #         mode: CONTAINS
+        #         values:
+        #           - "Raro"
+
+#=============================================================================
+# ECONOMIA PREDEFINITA
+#=============================================================================
+# Economia predefinita usata quando i giocatori non ne specificano una.
+# Deve corrispondere al campo 'name' di un'economia attivata sopra.
+
+default-economy:
+  auction: vault   # Predefinita per gli annunci d'asta regolari
+  rent: vault      # Predefinita per gli annunci di affitto (funzionalità futura)
+  bid: vault       # Predefinita per gli annunci d'asta (funzionalità futura)
+
+#=============================================================================
+# FORMATTAZIONE DEI PREZZI
+#=============================================================================
+
+# Formato decimale per la visualizzazione dei prezzi.
+# Usa i pattern di Java DecimalFormat.
+# Esempi:
+#   "#,###.#"   → "1.234,5"
+#   "#,###.##"  → "1.234,56"
+#   "#,###"     → "1.234" (nessun decimale)
+# La virgola (,) viene usata come separatore delle migliaia.
+price-decimal-format: '#,###.#'
+
+#=============================================================================
+# RIDUZIONI DI PREZZO (Visualizzazione Compatta)
+#=============================================================================
+# Abbrevia i numeri grandi per una visualizzazione più pulita.
+# Usato solo quando price-format è impostato a PRICE_WITH_REDUCTION.
+#
+# Il formato usa pattern stile printf:
+#   "#.#"    → Numero semplice con 1 decimale
+#   "%.1fK"  → Numero con 1 decimale seguito da "K"
+#   "%.2fM"  → Numero con 2 decimali seguito da "M"
+#
+# max-amount: I numeri FINO A questo valore usano questo formato.
+# display: Template di visualizzazione personalizzato opzionale. %amount% è il numero formattato.
+
+price-reductions:
+  # 0 - 999: Mostra così com'è con 1 decimale
+  - format: "#.#"
+    max-amount: 1000
+
+  # 1.000 - 999.999: Mostra in K (migliaia)
+  # Esempio: 1500 → "1.5K"
+  - format: "%.1fK"
+    max-amount: 1000000
+
+  # 1.000.000 - 999.999.999: Mostra in M (milioni)
+  # Esempio: 1500000 → "1.5M"
+  - format: "%.1fM"
+    max-amount: 1000000000
+
+  # 1.000.000.000 - 999.999.999.999: Mostra in B (miliardi)
+  # Esempio: 1500000000 → "1.5B"
+  - format: "%.1fB"
+    max-amount: 1000000000000
+
+  # 1 bilione+: Mostra in T (bilioni) con colore verde personalizzato
+  - format: "%.2fT"
+    max-amount: 1000000000000000
+    display: "<green>%amount%"
+
+  # Importi molto grandi: Mostra in Q (biliardi) con colore rosso personalizzato
+  - format: "%.2fQ"
+    max-amount: 100000000000000000
+    display: "<red>%amount%"

@@ -1,0 +1,174 @@
+################################################################################################################################
+#
+#   zAuctionHouse V4 - Inventario Transacciones Admin
+#
+#   Este inventario visualiza el historial de transacciones para un jugador.
+#   Las transacciones son registros de ventas completadas con detalles financieros.
+#
+#   ESTADO DE TRANSACCION:
+#   - PENDING: El dinero aun no ha sido reclamado por el vendedor
+#   - RETRIEVED: El dinero ha sido reclamado/depositado al vendedor
+#
+#   FUNCIONALIDADES:
+#   - Ver todas las transacciones completadas
+#   - Filtrar por estado de transaccion
+#   - Filtrar por rango de fechas
+#   - Ver informacion comprador/vendedor
+#
+#   ACCESO:
+#   - Desde el menu principal historial admin -> Boton Transacciones
+#
+#   Documentacion: https://docs.groupez.dev/zauctionhouse/introduction
+#   Discord: https://discord.groupez.dev/
+#
+################################################################################################################################
+
+#=============================================================================
+# CONFIGURACION DEL INVENTARIO
+#=============================================================================
+
+# Titulo del inventario con placeholder de paginacion.
+name: '#0c1719Transacciones admin (%page%/%max-page%)'
+
+# Tamano del inventario - 6 filas.
+size: 54
+
+#=============================================================================
+# PATTERNS
+#=============================================================================
+
+patterns:
+  # Bordes decorativos de cristal.
+  - 'zauctionhouse-decoration'
+  # Botones pagina anterior/siguiente.
+  - 'zauctionhouse-pagination'
+  # Boton atras para volver al historial admin.
+  - 'zauctionhouse-back'
+
+#=============================================================================
+# OBJETOS
+#=============================================================================
+
+items:
+
+  #---------------------------------------------------------------------------
+  # VISUALIZACION DE ENTRADAS DE TRANSACCIONES
+  #---------------------------------------------------------------------------
+  # Muestra todos los registros de transacciones para el jugador objetivo.
+
+  items:
+    # Tipo de boton - visualiza las entradas de transaccion.
+    type: ZAUCTIONHOUSE_ADMIN_TRANSACTIONS
+
+    # Slot para el indicador de carga.
+    loading-slot: 22
+
+    # Slots para mostrar las transacciones (4 filas x 9 columnas = 36 slots).
+    slots:
+      - 9-17    # Fila 2
+      - 18-26   # Fila 3
+      - 27-35   # Fila 4
+      - 36-44   # Fila 5
+
+    # Objeto mostrado durante la carga.
+    item:
+      material: BARRIER
+      name: "#ff0000Cargando..."
+
+    # Objeto mostrado cuando no hay transacciones.
+    else:
+      slots:
+        - 22
+      item:
+        material: BARRIER
+        name: '#ff0000&nNinguna Venta Encontrada'
+        lore:
+          - ''
+          - '&7Aun no has vendido ningun objeto.'
+
+  #---------------------------------------------------------------------------
+  # BOTON FILTRAR POR ESTADO
+  #---------------------------------------------------------------------------
+  # Alterna entre los filtros por estado de transaccion.
+
+  filter-status:
+    # Tipo de boton - gestiona el filtrado por estado.
+    type: ZAUCTIONHOUSE_ADMIN_TRANSACTIONS_FILTER_STATUS
+
+    slot: 47
+
+    # Formato para el estado actualmente seleccionado.
+    enable-text: ' #F27438➜ %status%'
+
+    # Formato para los estados no seleccionados.
+    disable-text: ' #76CDCD➜ %status%'
+
+    # Nombre mostrado para la opcion "todos los estados".
+    all-statuses-name: "Todos"
+
+    # Estados de transaccion disponibles para el filtrado.
+    statuses:
+      - PENDING    # Dinero aun no reclamado
+      - RETRIEVED  # Dinero reclamado
+
+    # Nombres mostrados para cada estado.
+    status-names:
+      PENDING: "Pendiente"
+      RETRIEVED: "Recuperado"
+
+    item:
+      material: HOPPER
+      name: '#2CCED2<bold>ғɪʟᴛʀᴀʀ ᴘᴏʀ ᴇsᴛᴀᴅᴏ'
+      lore:
+        - '#92ffffEstados disponibles:'
+        - '%ALL%'
+        - '%PENDING%'
+        - '%RETRIEVED%'
+        - ''
+        - '#8c8c8c• #2CCED2Clic #92ffffpara cambiar el filtro de estado'
+
+  #---------------------------------------------------------------------------
+  # BOTON FILTRAR POR FECHA
+  #---------------------------------------------------------------------------
+  # Alterna entre los filtros por rango de fechas.
+
+  filter-date:
+    # Tipo de boton - gestiona el filtrado por fecha.
+    type: ZAUCTIONHOUSE_ADMIN_TRANSACTIONS_FILTER_DATE
+
+    slot: 51
+
+    # Formato para el rango de fechas actualmente seleccionado.
+    enable-text: ' #F27438➜ %date%'
+
+    # Formato para los rangos de fechas no seleccionados.
+    disable-text: ' #76CDCD➜ %date%'
+
+    # Filtros de fecha disponibles.
+    filters:
+      - ALL         # Todo el tiempo
+      - TODAY       # Solo hoy
+      - THIS_WEEK   # Ultimos 7 dias
+      - THIS_MONTH  # Ultimos 30 dias
+      - THIS_YEAR   # Ultimos 365 dias
+
+    # Nombres mostrados para cada filtro de fecha.
+    filter-names:
+      ALL: "Todo"
+      TODAY: "Hoy"
+      THIS_WEEK: "Esta Semana"
+      THIS_MONTH: "Este Mes"
+      THIS_YEAR: "Este Ano"
+
+    item:
+      material: CLOCK
+      name: '#2CCED2<bold>ғɪʟᴛʀᴀʀ ᴘᴏʀ ғᴇᴄʜᴀ'
+      lore:
+        - '#92ffffFiltros disponibles:'
+        - '%ALL%'
+        - '%TODAY%'
+        - '%THIS_WEEK%'
+        - '%THIS_MONTH%'
+        - '%THIS_YEAR%'
+        - ''
+        - '#8c8c8c• #2CCED2Clic #92ffffpara cambiar el filtro de fecha'

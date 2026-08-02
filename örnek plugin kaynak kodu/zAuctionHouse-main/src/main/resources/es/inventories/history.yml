@@ -1,0 +1,136 @@
+################################################################################################################################
+#
+#   zAuctionHouse V4 - Inventario del Historial de Ventas
+#
+#   Este inventario muestra el historial de ventas del jugador - los objetos que ha vendido.
+#   Muestra las transacciones completadas con la informacion del comprador y los precios.
+#
+#   FUNCIONALIDADES:
+#   - Ver todos los objetos que has vendido
+#   - Ver quien compro cada objeto y cuando
+#   - Ordenar por fecha, precio o nombre del comprador
+#   - Los datos historicos se conservan indefinidamente (configurable)
+#
+#   ACCESO:
+#   - /ah history
+#   - Clic en el mensaje de notificacion al conectarse despues de ventas offline
+#
+#   Documentacion: https://docs.groupez.dev/zauctionhouse/introduction
+#   Discord: https://discord.groupez.dev/
+#
+################################################################################################################################
+
+#=============================================================================
+# CONFIGURACION DEL INVENTARIO
+#=============================================================================
+
+# Titulo del inventario con placeholder de paginacion.
+name: '#0c1719Historial de ventas (%page%/%max-page%)'
+
+# Tamano del inventario - 6 filas.
+size: 54
+
+#=============================================================================
+# PATRONES
+#=============================================================================
+
+patterns:
+  # Bordes decorativos de vidrio.
+  - 'zauctionhouse-decoration'
+  # Botones pagina anterior/siguiente.
+  - 'zauctionhouse-pagination'
+  # Boton volver para regresar a la casa de subastas.
+  - 'zauctionhouse-back'
+
+#=============================================================================
+# OBJETOS
+#=============================================================================
+
+items:
+
+  #---------------------------------------------------------------------------
+  # VISUALIZACION DEL HISTORIAL
+  #---------------------------------------------------------------------------
+  # Muestra todos los objetos vendidos con los detalles de las transacciones.
+  # Esta es una vista de solo lectura - los objetos no pueden ser retirados.
+
+  items:
+    # Tipo de boton - visualiza las ventas historicas.
+    type: ZAUCTIONHOUSE_HISTORY_ITEMS
+
+    # Slot para el indicador de carga durante la recuperacion del historial.
+    loading-slot: 22
+
+    # Slots para mostrar los objetos del historial (4 filas x 9 columnas = 36 slots).
+    slots:
+      - 9-17    # Fila 2
+      - 18-26   # Fila 3
+      - 27-35   # Fila 4
+      - 36-44   # Fila 5
+
+    # Objeto mostrado durante la carga del historial desde la base de datos.
+    item:
+      material: BARRIER
+      name: "#ff0000Cargando..."
+
+    # Objeto mostrado cuando no existen ventas.
+    else:
+      slots:
+        - 22
+      item:
+        material: BARRIER
+        name: '#ff0000&nNinguna venta encontrada'
+        lore:
+          - ''
+          - '&7Aun no has vendido objetos.'
+
+  #---------------------------------------------------------------------------
+  # BOTON DE ORDENAMIENTO
+  #---------------------------------------------------------------------------
+  # Cambia el orden de las entradas del historial.
+
+  sort:
+    # Tipo de boton - gestiona el ciclo de ordenamiento para el historial.
+    type: ZAUCTIONHOUSE_HISTORY_SORT
+
+    # Posicion del slot.
+    slot: 51
+
+    # Formato para la opcion de ordenamiento actualmente seleccionada.
+    enable-text: ' #F27438-> %sorting%'
+
+    # Formato para las opciones de ordenamiento no seleccionadas.
+    disable-text: ' #76CDCD-> %sorting%'
+
+    # Opciones de ordenamiento disponibles (ciclos en este orden).
+    sorts:
+      - DATE_DESC    # Mas reciente primero (predeterminado)
+      - DATE_ASC     # Mas antiguo primero
+      - PRICE_DESC   # Precio mas alto primero
+      - PRICE_ASC    # Precio mas bajo primero
+      - BUYER_ASC    # Nombre comprador A-Z
+      - BUYER_DESC   # Nombre comprador Z-A
+
+    # Nombres de visualizacion para cada opcion de ordenamiento.
+    sort-names:
+      DATE_DESC: "Mas reciente"
+      DATE_ASC: "Mas antiguo"
+      PRICE_DESC: "Precio mas alto"
+      PRICE_ASC: "Precio mas bajo"
+      BUYER_ASC: "Comprador A-Z"
+      BUYER_DESC: "Comprador Z-A"
+
+    item:
+      material: HOPPER
+      name: "#2CCED2<bold>ORDENAMIENTO"
+      lore:
+        - "#92ffffTipos de orden disponibles:"
+        # Placeholder para cada opcion de ordenamiento (formateados por enable/disable-text).
+        - "%DATE_DESC%"
+        - "%DATE_ASC%"
+        - "%PRICE_DESC%"
+        - "%PRICE_ASC%"
+        - "%BUYER_ASC%"
+        - "%BUYER_DESC%"
+        - ""
+        - "#8c8c8c* #2CCED2Clic #92ffffpara cambiar el tipo de orden"

@@ -1,0 +1,62 @@
+################################################################################################################################
+#
+#   zAuctionHouse V4 - Inventario Combinato
+#
+#   Questo inventario combina gli oggetti in vendita, scaduti e acquistati in
+#   un'unica lista paginata. Puoi configurare quali tipi includere.
+#
+#   FUNZIONALITÀ:
+#   - Combinare oggetti in vendita, scaduti e acquistati in un'unica vista
+#   - Ogni tipo usa la propria configurazione lore (da config.yml item-lore)
+#   - L'azione al clic si adatta al tipo di archiviazione dell'oggetto:
+#     - Oggetti in vendita: rimuove/annulla la vendita
+#     - Oggetti scaduti: recupera l'oggetto
+#     - Oggetti acquistati: recupera l'oggetto acquistato
+#
+#   CONFIGURAZIONE:
+#   - include-selling: true/false - includere gli oggetti in vendita
+#   - include-expired: true/false - includere gli oggetti scaduti
+#   - include-purchased: true/false - includere gli oggetti acquistati
+#
+#   Documentazione: https://docs.groupez.dev/zauctionhouse/introduction
+#   Discord: https://discord.groupez.dev/
+#
+################################################################################################################################
+
+#=============================================================================
+# IMPOSTAZIONI INVENTARIO
+#=============================================================================
+
+name: '#0c1719I Miei Oggetti (%page%/%max-page%)'
+
+size: 54
+
+#=============================================================================
+# PATTERNS
+#=============================================================================
+
+patterns:
+  - 'zauctionhouse-decoration'
+  - 'zauctionhouse-pagination'
+  - 'zauctionhouse-back'
+
+#=============================================================================
+# ITEMS
+#=============================================================================
+
+items:
+
+  items:
+    type: ZAUCTIONHOUSE_COMBINED_ITEMS
+    empty-slot: 22
+    include-selling: true
+    include-expired: true
+    include-purchased: true
+    slots:
+      - 9-17
+      - 18-26
+      - 27-35
+      - 36-44
+    item:
+      material: BARRIER
+      name: '#ff0000&nNessun oggetto trovato'

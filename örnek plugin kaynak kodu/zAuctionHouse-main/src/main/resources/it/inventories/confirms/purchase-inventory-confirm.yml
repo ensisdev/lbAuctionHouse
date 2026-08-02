@@ -1,0 +1,118 @@
+################################################################################################################################
+#
+#   zAuctionHouse V4 - Inventario di Conferma Acquisto in Lotto
+#
+#   Questo inventario conferma l'acquisto di più oggetti (vendite in lotto).
+#   Mostra tutti gli oggetti della vendita con un'anteprima prima dell'acquisto.
+#
+#   FUNZIONALITÀ:
+#   - Anteprima di tutti gli oggetti della vendita in lotto
+#   - Vedere il contenuto delle shulker (se applicabile)
+#   - Un solo clic per confermare l'acquisto di tutti gli oggetti
+#
+#   ACCESSO:
+#   - Si apre automaticamente cliccando su un oggetto in lotto da acquistare
+#   - Gli oggetti in lotto sono indicati da un'icona baule nella casa d'aste
+#
+#   Documentazione: https://docs.groupez.dev/zauctionhouse/introduction
+#   Discord: https://discord.groupez.dev/
+#
+################################################################################################################################
+
+#=============================================================================
+# IMPOSTAZIONI DELL'INVENTARIO
+#=============================================================================
+
+# Titolo dell'inventario - formato domanda con "oggetti" al plurale.
+name: "#0c1719Acquistare questi oggetti?"
+
+# Dimensione dell'inventario - 6 righe per mostrare tutti gli oggetti della vendita in lotto.
+size: 54
+
+#=============================================================================
+# PATTERN
+#=============================================================================
+
+patterns:
+  # Bordi decorativi in vetro.
+  - 'zauctionhouse-decoration'
+
+#=============================================================================
+# OGGETTI
+#=============================================================================
+
+items:
+
+  #---------------------------------------------------------------------------
+  # VISUALIZZAZIONE DEL CONTENUTO IN LOTTO
+  #---------------------------------------------------------------------------
+  # Mostra tutti gli oggetti inclusi nella vendita in lotto.
+  # Gli oggetti sono in sola visualizzazione (non possono essere presi individualmente).
+
+  item-content:
+    # Tipo di pulsante - mostra tutti gli oggetti della vendita.
+    type: ZAUCTIONHOUSE_ITEM_CONTENT
+
+    # Slot per visualizzare gli oggetti (4 righe × 9 colonne = 36 slot).
+    slots:
+      - 9-44
+
+  #---------------------------------------------------------------------------
+  # PULSANTE CONFERMA
+  #---------------------------------------------------------------------------
+  # Finalizza l'acquisto di tutti gli oggetti.
+
+  confirm:
+    # Nota: Usa il tipo REMOVE_LISTED perché gestisce la logica di conferma.
+    type: ZAUCTIONHOUSE_CONFIRM_PURCHASE
+
+    item:
+      material: GREEN_STAINED_GLASS_PANE
+      name: "#2CCED2<bold>ᴀᴄQᴜɪsᴛᴀ"
+      lore:
+        - "#92ffffAcquista questo oggetto."
+        - ""
+        - "#8c8c8c• #2CCED2Clicca #92ffffper acquistare"
+
+    # Zona in basso a sinistra (3 slot).
+    slots:
+      - 46-48
+
+  #---------------------------------------------------------------------------
+  # PULSANTE ANNULLA/INDIETRO
+  #---------------------------------------------------------------------------
+  # Annulla e torna alla casa d'aste.
+
+  deny:
+    type: BACK
+
+    item:
+      material: RED_STAINED_GLASS_PANE
+      name: "#2CCED2<bold>ɪɴᴅɪᴇᴛʀᴏ"
+      lore:
+        - "#92ffffTorna indietro."
+        - ""
+        - "#8c8c8c• #2CCED2Clicca #92ffffper tornare"
+
+    # Zona in basso a destra (3 slot).
+    slots:
+      - 50-52
+
+  #---------------------------------------------------------------------------
+  # PULSANTE CONTENUTO SHULKER
+  #---------------------------------------------------------------------------
+  # Apre il visualizzatore del contenuto shulker.
+
+  shulker:
+    type: ZAUCTIONHOUSE_SHULKER_OPEN
+
+    # Centro della riga inferiore.
+    slot: 49
+
+    item:
+      material: SHULKER_BOX
+      name: "#2CCED2<bold>ᴠᴇᴅɪ ɪʟ ᴄᴏɴᴛᴇɴᴜᴛᴏ sʜᴜʟᴋᴇʀ"
+      lore:
+        - "#92ffffVedi il contenuto delle scatole shulker."
+        - ""
+        - "#8c8c8c• #2CCED2Clicca #92ffffper vedere il contenuto"

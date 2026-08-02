@@ -1,0 +1,615 @@
+################################################################################################################################
+#
+#   zAuctionHouse V4 - Configuration des messages (Français)
+#
+#   Ce fichier contient tous les messages affichés aux joueurs par le plugin.
+#   Personnalisez ces messages pour correspondre à la langue et au style de votre serveur.
+#
+#   FORMATAGE:
+#   - Supporte le format MiniMessage: <red>, <bold>, <gradient:red:blue>, etc.
+#   - Supporte les couleurs hex: #RRGGBB ou #RGB
+#   - Supporte les codes legacy: &c, &l, etc. (non recommandé, utilisez MiniMessage)
+#   - Utilisez les raccourcis de couleurs définis dans config.yml: <primary>, <secondary>, <error>, <success>
+#
+#   PLACEHOLDERS:
+#   - Le style %placeholder% est utilisé pour les valeurs dynamiques
+#   - Les placeholders disponibles varient selon le message (documenté en ligne)
+#
+#   Documentation: https://docs.groupez.dev/zauctionhouse/introduction
+#   Discord: https://discord.groupez.dev/
+#
+################################################################################################################################
+
+#=============================================================================
+# MESSAGES GÉNÉRAUX
+#=============================================================================
+
+# Préfixe ajouté avant tous les messages du plugin.
+# Définissez une chaîne vide "" pour désactiver le préfixe.
+# Placeholders disponibles: aucun
+prefix: "<primary>zAuctionHouse <secondary>• "
+
+#=============================================================================
+# MESSAGES DE VERSION ET MISE À JOUR
+#=============================================================================
+
+# Affiché lorsqu'une nouvelle version du plugin est disponible (si version-checker est activé).
+# Placeholders disponibles:
+#   %version% - Version actuellement installée
+#   %latest%  - Dernière version disponible
+version-available: "<#ff0000>Une nouvelle version de zAuctionHouse est disponible ! <gray>(<white>actuelle: <#ff9900>%version% <gray>| <white>dernière: <#00ff00>%latest%<gray>)"
+
+#=============================================================================
+# MESSAGES DE COMMANDES
+#=============================================================================
+
+# Affiché lorsqu'une commande est mal utilisée.
+# Placeholders disponibles:
+#   %syntax% - Syntaxe correcte de la commande
+command-syntax-error: "<error>Vous devez exécuter la commande comme ceci<gray>: <success>%syntax%"
+
+# Affiché lorsque le joueur n'a pas la permission pour une commande.
+# Placeholders disponibles: aucun
+command-no-permission: "<error>Vous n'avez pas la permission d'exécuter cette commande."
+
+# Affiché lorsqu'une commande réservée aux joueurs est exécutée depuis la console.
+# Placeholders disponibles: aucun
+command-no-console: "<error>Seul un joueur peut exécuter cette commande."
+
+# Affiché lorsque les arguments de la commande ne correspondent à aucune sous-commande valide.
+# Placeholders disponibles: aucun
+command-no-arg: "<error>Impossible de trouver la commande avec ses arguments."
+
+# Affiché lorsqu'une commande est utilisée dans un contexte restreint (monde interdit, etc.).
+# Placeholders disponibles: aucun
+command-restricted: "<error>Vous ne pouvez pas utiliser cette commande ici."
+
+# Affiché lorsqu'un joueur exécute une commande trop rapidement (cooldown actif).
+# Placeholders disponibles: aucun
+command-cooldown: "<error>Veuillez patienter avant de réutiliser cette commande."
+
+# Format pour les entrées d'aide des commandes.
+# Placeholders disponibles:
+#   %syntax%      - Syntaxe de la commande
+#   %description% - Description de la commande
+command-syntax-help: "<white>%syntax% <dark_gray>» <gray>%description%"
+
+#=============================================================================
+# DESCRIPTIONS DES COMMANDES
+#=============================================================================
+# Descriptions affichées dans les menus d'aide et l'auto-complétion.
+# Elles doivent être courtes et descriptives.
+
+command-description-auction: "Ouvrir l'hôtel des ventes"
+command-description-auction-sell: "Mettre un item en vente"
+command-description-auction-rent: "Mettre un item en location"
+command-description-auction-bid: "Mettre un item aux enchères"
+command-description-auction-reload: "Recharger les fichiers de configuration"
+command-description-auction-admin: "Ouvrir les outils d'administration"
+command-description-auction-admin-generate: "Générer des items factices"
+command-description-auction-admin-open: "Ouvrir les items en vente actuels"
+command-description-auction-admin-forceopen: "Ouvrir n'importe quel inventaire pour un joueur"
+command-description-auction-admin-history: "Ouvrir l'historique d'un joueur"
+command-description-auction-admin-add: "Ajouter un item à l'hôtel des ventes"
+command-description-auction-admin-cache: "Gérer le cache des joueurs"
+command-description-auction-admin-cache-set: "Définir une valeur dans le cache"
+command-description-auction-admin-cache-clear: "Vider le cache d'un joueur"
+command-description-auction-admin-cache-show: "Afficher le cache d'un joueur"
+command-description-auction-claim: "Récupérer l'argent en attente des ventes"
+command-description-auction-page: "Ouvrir l'hôtel des ventes à une page spécifique"
+command-description-auction-migrate: "Migrer les données depuis un autre plugin"
+
+#=============================================================================
+# MESSAGES D'INVENTAIRE
+#=============================================================================
+
+# Affiché lorsqu'un fichier d'inventaire est introuvable.
+# Placeholders disponibles:
+#   %inventory-name% - Nom de l'inventaire manquant
+inventory-not-found: "<error>Impossible de trouver l'inventaire <white>%inventory-name%<error>."
+
+#=============================================================================
+# MESSAGES DE VENTE
+#=============================================================================
+
+# Affiché lorsqu'un joueur essaie de vendre rien (main vide).
+# Placeholders disponibles: aucun
+sell-error-air: "<error>Vous ne pouvez pas vendre du vide !"
+
+# Affiché lorsque l'item en main a changé pendant le processus de vente.
+# Placeholders disponibles: aucun
+sell-error-change: "<error>L'item dans votre main a changé, vente annulée."
+
+# Affiché lorsque le fournisseur d'économie spécifié n'existe pas.
+# Placeholders disponibles:
+#   %name% - Nom de l'économie spécifiée
+sell-error-economy: "<error>Impossible de trouver l'économie <white>%name%<error>."
+
+# Affiché lorsqu'aucune économie par défaut n'est configurée pour le type d'item.
+# Placeholders disponibles: aucun
+sell-error-default-economy: "<error>Aucune économie par défaut n'est configurée. Veuillez contacter un administrateur."
+
+# Affiché lors de la confirmation d'une vente sans items sélectionnés (inventaire de vente).
+# Placeholders disponibles: aucun
+sell-inventory-empty: "<error>Vous devez placer des items dans l'inventaire avant de confirmer."
+
+# Affiché lorsqu'un joueur annule l'inventaire de vente.
+# Placeholders disponibles: aucun
+sell-inventory-cancelled: "<error>Vous avez annulé la vente, vos items ont été retournés."
+
+# Affiché lorsque les items sélectionnés sont effacés de l'inventaire de vente.
+# Placeholders disponibles: aucun
+sell-items-cleared: "<success>Les items sélectionnés ont été effacés."
+
+# Affiché lorsqu'un item est ajouté à la liste de vente.
+# Placeholders disponibles: aucun
+sell-item-added: "<success>Item ajouté à la liste de vente."
+
+# Affiché lorsqu'un item est retiré de la liste de vente.
+# Placeholders disponibles: aucun
+sell-item-removed: "<success>Item retiré de la liste de vente."
+
+#=============================================================================
+# MESSAGES ADMIN
+#=============================================================================
+
+# Affiché lorsque les commandes admin nécessitent un joueur cible mais aucun n'a été spécifié.
+# Placeholders disponibles: aucun
+admin-target-required: "<error>Vous devez spécifier un joueur cible valide."
+
+# Affiché lorsque le joueur cible spécifié est introuvable.
+# Placeholders disponibles:
+#   %target% - Nom spécifié
+admin-target-not-found: "<error>Impossible de trouver le joueur <white>%target%<error>."
+
+# Affiché lors de l'ouverture des items d'un joueur en tant qu'admin.
+# Placeholders disponibles:
+#   %type%   - Type d'items (en vente, expirés, achetés)
+#   %target% - Nom du joueur cible
+admin-open-inventory: "<success>Ouverture des items %type% pour <white>%target%<success>."
+
+# Affiché lors de l'ouverture forcée d'un inventaire en tant qu'admin.
+# Placeholders disponibles:
+#   %inventory% - Nom de l'inventaire
+#   %target%    - Nom du joueur cible
+#   %page%      - Numéro de page
+admin-forceopen-inventory: "<success>Ouverture de l'inventaire <white>%inventory%<success> pour <white>%target%<success> à la page <white>%page%<success>."
+
+# Affiché lors de l'ouverture de l'historique d'un joueur en tant qu'admin.
+# Placeholders disponibles:
+#   %target% - Nom du joueur cible
+admin-open-history: "<success>Ouverture de l'historique pour <white>%target%<success>."
+
+# Affiché lorsqu'un admin retire des items d'un joueur.
+# Placeholders disponibles:
+#   %items%  - Description de l'item
+#   %target% - Nom du joueur cible
+admin-item-removed: "<success>Vous avez retiré <white>%items%<success> de <white>%target%<success>."
+
+# Affiché lorsqu'un admin ajoute des items à un joueur.
+# Placeholders disponibles:
+#   %items%  - Description de l'item
+#   %target% - Nom du joueur cible
+#   %type%   - Type de catégorie (en vente, expiré, acheté)
+admin-item-added: "<success>Vous avez ajouté <white>%items%<success> à <white>%target%<success> dans <white>%type%<success>."
+
+# Affiché lorsqu'un admin récupère avec succès un item depuis les logs.
+# Placeholders disponibles: aucun
+admin-item-retrieved: "<success>Item(s) récupéré(s) avec succès."
+
+# Affiché lors d'une tentative de récupération depuis une entrée de log sans item.
+# Placeholders disponibles: aucun
+admin-no-item-to-retrieve: "<error>Aucun item à récupérer depuis cette entrée de log."
+
+#=============================================================================
+# MESSAGES DE RECHARGEMENT
+#=============================================================================
+
+# Affiché lorsque la configuration du plugin est rechargée.
+# Placeholders disponibles: aucun
+reload-success: "<success>Vous venez de recharger le plugin !"
+
+#=============================================================================
+# MESSAGES DE RETRAIT D'ITEMS
+#=============================================================================
+# Affiché lorsque les joueurs récupèrent des items depuis différents inventaires.
+# Placeholders disponibles:
+#   %items% - Description des items retirés
+
+# Retrait des annonces actives
+item-remove-listed: "#e6fff3Vous venez de retirer %items% #e6fff3des items en vente."
+
+# Retrait des items expirés
+item-remove-expired: "#e6fff3Vous venez de retirer %items% #e6fff3des items expirés."
+
+# Retrait des items achetés
+item-remove-purchased: "#e6fff3Vous venez de retirer %items% #e6fff3des items achetés."
+
+# Retrait depuis l'inventaire de vos items
+item-remove-selling: "#e6fff3Vous venez de retirer %items% #e6fff3de vos items."
+
+#=============================================================================
+# MESSAGES DE TRANSACTION
+#=============================================================================
+
+# Affiché au vendeur lorsqu'il met un item en vente.
+# Placeholders disponibles:
+#   %items% - Description de l'item
+#   %price% - Prix de vente
+item-sold: "#e6fff3Vous venez de mettre en vente %items% #e6fff3pour #92bed8%price%#e6fff3."
+
+# Affiché au vendeur lorsque son item est acheté (si en ligne).
+# Placeholders disponibles:
+#   %buyer% - Nom de l'acheteur
+#   %items% - Description de l'item
+#   %price% - Prix de vente
+item-bought-seller: "#ffacd5%buyer% #e6fff3vient d'acheter %items% #e6fff3pour #92bed8%price%#e6fff3."
+
+# Affiché à l'acheteur après avoir acheté un item.
+# Placeholders disponibles:
+#   %items% - Description de l'item
+#   %price% - Prix d'achat
+item-bought-buyer: "#e6fff3Vous venez d'acheter %items% #e6fff3pour #92bed8%price%#e6fff3."
+
+#=============================================================================
+# MESSAGES D'ERREUR
+#=============================================================================
+
+# Affiché lorsque le joueur n'a pas assez d'argent pour acheter.
+# Placeholders disponibles: aucun
+not-enough-money: "<error>Vous n'avez pas assez d'argent pour acheter ceci."
+
+# Affiché lorsque l'inventaire du joueur est plein (si la vérification d'espace est activée).
+# Placeholders disponibles: aucun
+not-enough-space: "<error>Vous n'avez pas assez de place dans votre inventaire."
+
+# Affiché lorsque le prix de vente dépasse le maximum autorisé.
+# Placeholders disponibles:
+#   %max-price% - Prix maximum autorisé
+price-too-high: "<error>Vous ne pouvez pas vendre pour plus de <white>%max-price%<error>."
+
+# Affiché lorsque le prix de vente est inférieur au minimum requis.
+# Placeholders disponibles:
+#   %min-price% - Prix minimum requis
+price-too-low: "<error>Vous ne pouvez pas vendre pour moins de <white>%min-price%<error>."
+
+# Affiché lorsque le joueur a atteint sa limite d'annonces.
+# Placeholders disponibles:
+#   %max-items% - Nombre maximum d'items autorisés
+listed-items-limit: "<error>Vous ne pouvez pas vendre plus de <white>%max-items%<error> items<error>. &8(&7Avez-vous défini la permission zauctionhouse.<nombre dans config.yml> ?&8)"
+
+# Affiché lors d'une tentative de vente dans un monde interdit.
+# Placeholders disponibles: aucun
+world-banned: "<error>Vous ne pouvez pas vendre d'items dans ce monde."
+
+# Affiché lors d'une tentative de vente d'un item sur liste noire.
+# Placeholders disponibles: aucun
+item-blacklisted: "<error>Vous ne pouvez pas vendre des items sur liste noire."
+
+# Affiché lors d'une tentative de vente d'un item non présent sur la liste blanche (si activée).
+# Placeholders disponibles: aucun
+item-whitelisted: "<error>Vous ne pouvez pas vendre un item qui n'est pas sur la liste blanche."
+
+#=============================================================================
+# MESSAGES DE GÉNÉRATION ADMIN
+#=============================================================================
+# Messages pour la commande de génération d'items factices (test de performance).
+
+# Avertissement affiché avant de générer des items factices.
+# Placeholders disponibles:
+#   %amount% - Nombre d'items à générer
+admin-generate-warning:
+  - "<error>⚠ AVERTISSEMENT ⚠"
+  - "<error>Cette commande va générer <white>%amount%<error> items factices pour les tests de performance."
+  - "<error>Ces données sont <white>FACTICES<error> et devront être supprimées après les tests."
+  - "<error>Exécutez cette commande à nouveau dans <white>30 secondes<error> pour confirmer."
+
+# Affiché après confirmation de la génération.
+# Placeholders disponibles:
+#   %amount% - Nombre d'items en cours de génération
+admin-generate-confirmed: "<success>Génération confirmée ! Création de <white>%amount%<success> items..."
+
+# Mise à jour de la progression pendant la génération.
+# Placeholders disponibles:
+#   %current% - Progression actuelle
+#   %total%   - Total d'items à générer
+admin-generate-progress: "<gray>Progression: <white>%current%<gray>/<white>%total%<gray> items créés..."
+
+# Affiché lorsque la génération est terminée.
+# Placeholders disponibles:
+#   %amount% - Nombre d'items générés
+#   %time%   - Temps pris en millisecondes
+admin-generate-complete: "<success>Génération réussie de <white>%amount%<success> items en <white>%time%ms<success>."
+
+# Affiché lorsqu'aucun matériau valide n'est trouvé pour la génération.
+# Placeholders disponibles: aucun
+admin-generate-no-materials: "<error>Aucun matériau valide trouvé dans les catégories. Assurez-vous d'avoir des catégories autres que 'misc' configurées."
+
+# Affiché lorsqu'un montant invalide est spécifié.
+# Placeholders disponibles: aucun
+admin-generate-invalid-amount: "<error>Montant invalide. Veuillez spécifier un nombre entre <white>1<error> et <white>100000<error>."
+
+# Affiché lors du début de génération de faux joueurs.
+# Placeholders disponibles:
+#   %total% - Nombre total de joueurs à générer
+admin-generate-players-start: "<gray>Enregistrement de <white>%total%<gray> joueurs uniques..."
+
+# Mise à jour de la progression pendant la génération des joueurs.
+# Placeholders disponibles:
+#   %current% - Progression actuelle
+#   %total%   - Total de joueurs à générer
+admin-generate-players-progress: "<gray>Joueurs enregistrés: <white>%current%<gray>/<white>%total%<gray>..."
+
+# Affiché lorsque la génération de joueurs est terminée.
+# Placeholders disponibles:
+#   %amount% - Nombre de joueurs générés
+admin-generate-players-complete: "<success>Enregistrement réussi de <white>%amount%<success> joueurs uniques."
+
+# Affiché lors du début de génération de faux items.
+# Placeholders disponibles:
+#   %total% - Nombre total d'items à générer
+admin-generate-items-start: "<gray>Création de <white>%total%<gray> items d'enchères..."
+
+#=============================================================================
+# MESSAGES DE CACHE ADMIN
+#=============================================================================
+# Messages pour les commandes de gestion du cache.
+
+# En-tête pour l'affichage du cache.
+# Placeholders disponibles:
+#   %player% - Nom du joueur
+admin-cache-show-header: "<primary>Cache pour <white>%player%<primary>:"
+
+# Format pour chaque entrée de cache.
+# Placeholders disponibles:
+#   %key%   - Nom de la clé de cache
+#   %value% - Valeur du cache
+admin-cache-show-entry: "<gray>  %key% <dark_gray>» <white>%value%"
+
+# Affiché lorsque le cache est vide.
+# Placeholders disponibles: aucun
+admin-cache-show-empty: "<gray>  Aucune entrée de cache trouvée."
+
+# Affiché lors de la suppression d'une clé de cache spécifique.
+# Placeholders disponibles:
+#   %key%    - Nom de la clé de cache
+#   %player% - Nom du joueur
+admin-cache-cleared: "<success>Clé de cache <white>%key%<success> supprimée pour <white>%player%<success>."
+
+# Affiché lors de la suppression de tout le cache d'un joueur.
+# Placeholders disponibles:
+#   %player% - Nom du joueur
+admin-cache-cleared-all: "<success>Tout le cache supprimé pour <white>%player%<success>."
+
+# Affiché lors de la suppression d'une clé de cache pour tous les joueurs.
+# Placeholders disponibles:
+#   %key%   - Nom de la clé de cache
+#   %count% - Nombre de joueurs affectés
+admin-cache-cleared-all-players: "<success>Clé de cache <white>%key%<success> supprimée pour <white>%count%<success> joueurs."
+
+# Affiché lors de la suppression de tout le cache pour tous les joueurs.
+# Placeholders disponibles:
+#   %count% - Nombre de joueurs affectés
+admin-cache-cleared-all-players-all: "<success>Tout le cache supprimé pour <white>%count%<success> joueurs."
+
+# Affiché lors de la définition d'une valeur de cache.
+# Placeholders disponibles:
+#   %key%    - Nom de la clé de cache
+#   %value%  - Nouvelle valeur
+#   %player% - Nom du joueur
+admin-cache-set: "<success>Défini <white>%key%<success> à <white>%value%<success> pour <white>%player%<success>."
+
+# Affiché lors de la définition d'une valeur de cache pour tous les joueurs.
+# Placeholders disponibles:
+#   %key%   - Nom de la clé de cache
+#   %value% - Nouvelle valeur
+#   %count% - Nombre de joueurs affectés
+admin-cache-set-all-players: "<success>Défini <white>%key%<success> à <white>%value%<success> pour <white>%count%<success> joueurs."
+
+# Affiché lorsqu'une clé de cache invalide est spécifiée.
+# Placeholders disponibles:
+#   %key% - Nom de clé invalide
+admin-cache-invalid-key: "<error>Clé de cache invalide <white>%key%<error>. Utilisez l'auto-complétion pour les clés valides."
+
+# Affiché lorsqu'une valeur invalide est spécifiée pour une clé de cache.
+# Placeholders disponibles:
+#   %value% - Valeur invalide
+#   %key%   - Nom de la clé de cache
+admin-cache-invalid-value: "<error>Valeur invalide <white>%value%<error> pour la clé <white>%key%<error>."
+
+# Affiché lors d'une tentative de définition d'une clé de cache en lecture seule.
+# Placeholders disponibles:
+#   %key% - Nom de la clé de cache
+admin-cache-key-not-settable: "<error>La clé de cache <white>%key%<error> ne peut pas être définie par commande."
+
+# Affiché lors du ciblage d'un joueur hors ligne pour les opérations de cache.
+# Placeholders disponibles:
+#   %player% - Nom du joueur
+admin-cache-player-not-online: "<error>Le joueur <white>%player%<error> n'est pas en ligne."
+
+#=============================================================================
+# MESSAGES DE RÉCLAMATION
+#=============================================================================
+# Messages pour le système de réclamation d'argent en attente.
+
+# Affiché lorsque le joueur n'a pas d'argent en attente à réclamer.
+# Placeholders disponibles: aucun
+claim-no-pending: "<error>Vous n'avez pas d'argent en attente à réclamer."
+
+# Affiché lorsque l'argent est réclamé avec succès.
+# Placeholders disponibles: aucun
+claim-success: "<success>Vous avez réclamé votre argent en attente avec succès !"
+
+# Affiché pour chaque économie lors de la réclamation (si plusieurs économies ont de l'argent en attente).
+# Placeholders disponibles:
+#   %amount%  - Montant réclamé
+#   %economy% - Nom de l'économie
+claim-economy-success: "<success>Vous avez reçu <white>%amount%<success> de <white>%economy%<success>."
+
+# Notification affichée lorsque le joueur a de l'argent en attente (à la connexion).
+# Placeholders disponibles:
+#   %amount% - Montant total en attente
+claim-pending-notify: "#e6fff3Vous avez de l'argent en attente ! Utilisez <white>/ah claim<#e6fff3> pour recevoir <white>%amount%<#e6fff3>."
+
+#=============================================================================
+# NOTIFICATION DE VENTES
+#=============================================================================
+# Messages affichés lorsqu'un joueur se connecte et a vendu des items pendant son absence.
+# C'est un message cliquable qui ouvre l'historique des ventes.
+
+# Placeholders disponibles:
+#   %count% - Nombre d'items vendus
+#   %total% - Gains totaux des ventes
+sales-notification:
+  - "<click:run_command:/ah history>#e6fff3Pendant votre absence, <white>%count%<#e6fff3> de vos items ont été vendus pour un total de <white>%total%<#e6fff3> !"
+  - "<click:run_command:/ah history>#8c8c8c• #2CCED2Cliquez ici<#92ffff> pour voir votre historique de ventes</click>"
+
+#=============================================================================
+# MESSAGES DE TAXES
+#=============================================================================
+# Messages relatifs au système de taxation (si activé dans economies.yml).
+
+# Affiché au vendeur lorsque la taxe de mise en vente est appliquée.
+# Placeholders disponibles:
+#   %tax%        - Montant de la taxe
+#   %percentage% - Pourcentage de la taxe
+tax-sell-applied: "<gray>Une taxe de <white>%tax%<gray> (%percentage%%) a été appliquée à cette vente."
+
+# Affiché lorsque la taxe d'achat est déduite des gains du vendeur.
+# Placeholders disponibles:
+#   %tax%        - Montant de la taxe
+#   %percentage% - Pourcentage de la taxe
+tax-purchase-applied: "<gray>Une taxe de <white>%tax%<gray> (%percentage%%) a été appliquée à cet achat."
+
+# Affiché à l'acheteur lorsque la TVA est appliquée (l'acheteur paie plus).
+# Placeholders disponibles:
+#   %tax%        - Montant de la taxe
+#   %percentage% - Pourcentage de la taxe
+tax-capitalism-info: "<gray>Le prix inclut <white>%tax%<gray> de TVA (%percentage%%)."
+
+# Affiché lorsque le joueur est exempté de taxes.
+# Placeholders disponibles: aucun
+tax-exempt: "<green>Vous êtes exempté de taxes."
+
+# Affiché lorsque le joueur a un taux de taxe réduit.
+# Placeholders disponibles:
+#   %percentage% - Pourcentage de taxe réduit
+tax-reduced: "<green>Vous bénéficiez d'un taux de taxe réduit (%percentage%%)."
+
+# Affiché lorsque le joueur ne peut pas payer la taxe.
+# Placeholders disponibles:
+#   %tax% - Montant de la taxe requise
+tax-insufficient-funds: "<error>Vous n'avez pas assez d'argent pour payer la taxe de <white>%tax%<error>."
+
+#=============================================================================
+# MESSAGES DE MIGRATION
+#=============================================================================
+# Messages pour le système de migration de données (import depuis d'autres plugins).
+# Utilisation: /ah admin migrate <source> confirm
+# Sources supportées: zauctionhousev3
+
+# Affiché lorsque la migration n'est pas configurée.
+# Placeholders disponibles:
+#   %source% - Nom de la source de migration
+migration-not-configured: "<error>La migration pour <white>%source%<error> n'est pas configurée. Veuillez configurer la section <white>migration<error> dans config.yml."
+
+# Affiché lorsqu'une source de migration inconnue est spécifiée.
+# Placeholders disponibles:
+#   %source% - Nom de source invalide
+migration-invalid-source: "<error>Source de migration inconnue: <white>%source%"
+
+# Affiché pour lister les sources de migration disponibles.
+# Placeholders disponibles:
+#   %sources% - Liste des sources valides séparées par des virgules
+migration-available-sources: "<gray>Sources disponibles: %sources%"
+
+# Informations sur la migration avant confirmation.
+# Placeholders disponibles:
+#   %source%  - Nom de la source de migration
+#   %details% - Détails de la configuration de migration
+migration-info:
+  - "<primary>Migration depuis <white>%source%"
+  - "<gray>Détails: <white>%details%"
+
+# Demande de confirmation de migration.
+# Placeholders disponibles:
+#   %source% - Nom de la source de migration
+migration-confirm:
+  - "<gray>Exécutez <white>/ah admin migrate %source% confirm<gray> pour démarrer la migration."
+  - "<error>⚠ AVERTISSEMENT: Cela importera des données dans V4. Assurez-vous de sauvegarder vos données d'abord !"
+
+# Affiché lorsque la migration démarre.
+# Placeholders disponibles:
+#   %source% - Nom de la source de migration
+migration-started: "<success>Migration depuis <white>%source%<success> démarrée... Cela peut prendre un moment."
+
+# Mises à jour de progression pendant la migration.
+# Placeholders disponibles:
+#   %progress% - Message de progression actuel
+migration-progress: "<gray>[Migration] %progress%"
+
+# Affiché lorsque la migration se termine avec succès.
+# Placeholders disponibles:
+#   %source%       - Nom de la source de migration
+#   %players%      - Nombre de joueurs migrés
+#   %items%        - Nombre d'items migrés
+#   %transactions% - Nombre de transactions migrées
+#   %errors%       - Nombre d'erreurs rencontrées
+#   %duration%     - Temps pris en millisecondes
+migration-success:
+  - "<success>Migration depuis <white>%source%<success> terminée avec succès !"
+  - "<gray>  Joueurs: <white>%players%"
+  - "<gray>  Items: <white>%items%"
+  - "<gray>  Transactions: <white>%transactions%"
+  - "<gray>  Erreurs: <white>%errors%"
+  - "<gray>  Durée: <white>%duration%ms"
+
+# Affiché lorsque la migration échoue.
+# Placeholders disponibles:
+#   %error% - Message d'erreur
+migration-failed: "<error>La migration a échoué: <white>%error%"
+
+#=============================================================================
+# MESSAGES DE RECHERCHE
+#=============================================================================
+
+search-start: "<#8a8a8a>Veuillez taper votre recherche dans le chat."
+search-cleared: "<#8a8a8a>Recherche effacée."
+search-no-results: "<#8a8a8a>Aucun objet trouvé pour <#ffffff>%query%<#8a8a8a>."
+search-searching: "<#8a8a8a>Recherche de <#ffffff>%query%<#8a8a8a>..."
+command-description-auction-search: "Rechercher des objets dans l'hôtel des ventes"
+
+broadcast-sell: "#e6fff3<white>%seller% <#e6fff3>vient de mettre en vente %items% <#e6fff3>pour <#92bed8>%price%<#e6fff3>."
+broadcast-purchase: "#e6fff3<white>%buyer% <#e6fff3>vient d'acheter %items% <#e6fff3>pour <#92bed8>%price%<#e6fff3>."
+
+command-description-auction-option: "Gérer vos options de l'hôtel des ventes"
+option-broadcast-sell-enabled: "<success>Les diffusions de vente ont été <white>activées<success>."
+option-broadcast-sell-disabled: "<success>Les diffusions de vente ont été <white>désactivées<success>."
+option-broadcast-purchase-enabled: "<success>Les diffusions d'achat ont été <white>activées<success>."
+option-broadcast-purchase-disabled: "<success>Les diffusions d'achat ont été <white>désactivées<success>."
+option-list-header: "<primary>Vos options :"
+option-list-entry: "<gray>  %option% <dark_gray>> <white>%value%"
+
+command-description-auction-admin-option: "Gérer les options des joueurs"
+command-description-auction-admin-option-set: "Définir une option pour un joueur"
+command-description-auction-admin-option-list: "Lister les options d'un joueur"
+command-description-auction-admin-option-reset: "Réinitialiser les options d'un joueur"
+admin-option-set: "<success>Option <white>%option%<success> définie sur <white>%value%<success> pour <white>%player%<success>."
+admin-option-reset: "<success>Toutes les options de <white>%player%<success> ont été réinitialisées par défaut."
+admin-option-list-header: "<primary>Options pour <white>%player%<primary> :"
+
+remove-all-items: "#e6fff3Vous avez recupere <white>%amount%<#e6fff3> item(s)."
+
+#=============================================================================
+# ADMIN LOGS MESSAGES
+#=============================================================================
+
+command-description-auction-admin-logs: "Gerer les logs de l'hotel des ventes"
+command-description-auction-admin-logs-purge: "Supprimer les logs plus anciens que X jours"
+command-description-auction-admin-logs-player: "Supprimer tous les logs d'un joueur"
+command-description-auction-admin-logs-clear-migrated: "Supprimer les logs migres depuis la V3"
+
+admin-logs-purge-success: "<success>Supprime <white>%amount%<success> logs datant de plus de <white>%days%<success> jours."
+admin-logs-player-success: "<success>Supprime <white>%amount%<success> logs pour le joueur <white>%player%<success>."
+admin-logs-clear-migrated-success: "<success>Supprime <white>%amount%<success> logs migres depuis la V3."
+admin-logs-invalid-days: "<error>Veuillez specifier un nombre de jours valide (superieur a 0)."

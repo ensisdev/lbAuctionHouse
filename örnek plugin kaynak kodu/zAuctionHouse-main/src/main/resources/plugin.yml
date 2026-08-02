@@ -1,0 +1,19 @@
+name: zAuctionHouse
+version: ${version}
+main: fr.maxlego08.zauctionhouse.ZAuctionPlugin
+api-version: '1.20'
+authors: [ Maxlego08 ]
+description: Buy, resell, rent, bid your items!
+website: https://groupez.dev/
+folia-supported: true
+depend:
+  - zMenu
+  - PlaceholderAPI
+softdepend:
+  - ItemsAdder
+  - Nexo
+  - Oraxen
+  - LuckPerms
+  - AxShulkers
+libraries:
+  - org.mariadb.jdbc:mariadb-java-client:3.5.6

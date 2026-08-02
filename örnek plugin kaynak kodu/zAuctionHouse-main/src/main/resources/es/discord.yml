@@ -1,0 +1,309 @@
+################################################################################################################################
+#
+#   zAuctionHouse V4 - Configuracion de Webhooks de Discord
+#
+#   Este archivo configura las notificaciones mediante webhooks de Discord para eventos de subasta.
+#   Envia notificaciones a tu servidor de Discord cuando se listan o compran objetos.
+#
+#   COMO CONFIGURAR:
+#   1. En Discord, ve a Ajustes del servidor -> Integraciones -> Webhooks
+#   2. Crea un nuevo webhook y copia la URL del webhook
+#   3. Pega la URL en el campo 'url' abajo
+#   4. Activa el webhook y personaliza el embed
+#
+#   FORMATO DE LA URL DEL WEBHOOK:
+#   https://discord.com/api/webhooks/WEBHOOK_ID/WEBHOOK_TOKEN
+#
+#   Documentacion: https://docs.groupez.dev/zauctionhouse/introduction
+#   Discord: https://discord.groupez.dev/
+#
+################################################################################################################################
+
+#=============================================================================
+# CONFIGURACION GLOBAL
+#=============================================================================
+
+# Activar o desactivar todas las notificaciones de webhooks de Discord.
+# Cuando esta desactivado, ningun webhook sera enviado independientemente de la configuracion individual.
+enabled: false
+
+# Nombre del servidor usado en los mensajes de webhook.
+# Se muestra en los pies de pagina y mensajes para identificar que servidor envio la notificacion.
+# Util para configuraciones multi-servidor que comparten un canal de Discord.
+server-name: "Mi Servidor"
+
+#=============================================================================
+# CONFIGURACION DE IMAGEN DE OBJETO
+#=============================================================================
+
+# Patron de URL para obtener imagenes de objetos.
+# Usado para mostrar iconos de objetos en los embeds del webhook.
+# La funcionalidad de color dominante puede extraer colores de estas imagenes.
+#
+# Por defecto usa una API publica de imagenes de objetos de Minecraft.
+# Puedes alojar tus propias imagenes o usar una API diferente.
+item-image-url: "https://img.groupez.dev/minecraft/%item_material%.png"
+
+# Activa la extraccion del color dominante de las imagenes de objetos.
+# Cuando esta activado, el plugin obtiene la imagen del objeto y extrae su color principal.
+# Este color puede usarse en los embeds mediante el placeholder %item_dominant_color%.
+# ADVERTENCIA: Esto agrega solicitudes HTTP que pueden aumentar la latencia.
+# Recomendado: Desactivar a menos que quieras especificamente colores de embed dinamicos.
+extract-dominant-color: false
+
+# Color por defecto para los embeds cuando:
+# - La extraccion de color dominante esta desactivada
+# - La extraccion de color falla (error de red, imagen invalida)
+# Usa formato hex: "#RRGGBB"
+# El color de marca por defecto de Discord es #5865F2 (Blurple)
+default-color: "#5865F2"
+
+#=============================================================================
+# IMAGENES PERSONALIZADAS POR OBJETO
+#=============================================================================
+# Reemplaza la imagen (%item_image_url%) para objetos especificos.
+# Perfecto para objetos custom (ItemsAdder, Oraxen, Nexo, MMOItems, ...) cuya
+# imagen basada en el material de arriba no representa el objeto real.
+#
+# Cada entrada asocia una 'rule' (como reconocer el objeto) con una 'image' (URL).
+# Las reglas usan el MISMO formato que categories.yml / rules.yml. Gana la PRIMERA
+# regla que coincide, asi que pon las reglas mas especificas primero.
+# Los objetos que no coinciden con ninguna regla usan el patron 'item-image-url' de arriba.
+#
+# TIPOS DE REGLAS COMUNES:
+#   type: material           ->  materials: [DIAMOND_SWORD, NETHERITE_SWORD]
+#   type: name               ->  mode: CONTAINS|EQUALS   values: ["Excalibur"]
+#   type: lore               ->  mode: CONTAINS|EQUALS   values: ["Legendario"]
+#   type: custom-model-data  ->  values: [10001]   (o ranges: [{min: 10000, max: 10999}])
+#   type: oraxen             ->  items: [ruby_sword]
+#   type: itemsadder         ->  items: ["mynamespace:ruby_sword"]
+#   type: nexo               ->  items: [ruby_sword]
+#   type: mmoitems           ->  items: ["SWORD:EXCALIBUR"]
+#
+# Deja la lista vacia ([]) para desactivar esta funcionalidad.
+custom-images: []
+#  - rule:
+#      type: oraxen
+#      items:
+#        - ruby_sword
+#    image: "https://example.com/images/ruby_sword.png"
+#  - rule:
+#      type: material
+#      materials:
+#        - DIAMOND_SWORD
+#    image: "https://example.com/images/diamond_sword.png"
+#  - rule:
+#      type: custom-model-data
+#      values:
+#        - 10001
+#    image: "https://example.com/images/legendary.png"
+
+#=============================================================================
+# CONFIGURACIONES DE WEBHOOKS
+#=============================================================================
+
+webhooks:
+
+  #---------------------------------------------------------------------------
+  # WEBHOOK DE VENTA
+  #---------------------------------------------------------------------------
+  # Enviado cuando un jugador lista un nuevo objeto en la casa de subastas.
+
+  sell:
+    # Activar o desactivar este webhook especifico.
+    enabled: false
+
+    # URL del webhook de Discord para notificaciones de venta.
+    # Obtenlo de Discord: Ajustes del servidor -> Integraciones -> Webhooks
+    # IMPORTANTE: Manten esta URL privada! Cualquiera con esta URL puede publicar en tu canal.
+    url: "https://discord.com/api/webhooks/TU_WEBHOOK_ID/TU_WEBHOOK_TOKEN"
+
+    # Nombre de usuario personalizado para el bot del webhook.
+    # Esto sobrescribe el nombre por defecto configurado en los ajustes del webhook de Discord.
+    # Deja vacio para usar el predeterminado de Discord.
+    username: "zAuctionHouse"
+
+    # URL de avatar personalizado para el bot del webhook.
+    # Debe ser una URL de imagen valida (PNG, JPG, GIF).
+    # Deja vacio para usar el predeterminado de Discord.
+    avatar-url: ""
+
+    # Contenido del mensaje que aparece ENCIMA del embed.
+    # Esto es texto plano, no parte del embed.
+    # Soporta menciones de Discord: <@USER_ID>, <@&ROLE_ID>, @everyone, @here
+    # Deja vacio para no tener mensaje de contenido.
+    content: ""
+
+    # Configuracion del embed (la caja de mensaje enriquecido)
+    embed:
+      # Titulo del embed - mostrado arriba en negrita.
+      # Soporta placeholders.
+      title: "Nuevo objeto en venta!"
+
+      # Descripcion del embed - contenido de texto principal.
+      # Soporta placeholders y markdown de Discord.
+      # Usa ** para negrita, * para cursiva, ` para codigo.
+      description: "**%seller_name%** ha puesto un objeto en venta"
+
+      # Color de la barra lateral del embed en formato hex.
+      # Usa "#RRGGBB" o el placeholder %item_dominant_color% para colores dinamicos.
+      color: "#00FF00"
+
+      # Campos del embed - datos estructurados mostrados en columnas.
+      # Cada campo tiene:
+      #   name: Titulo del campo (mostrado en negrita)
+      #   value: Contenido del campo
+      #   inline: true = lado a lado, false = ancho completo
+      # Maximo 25 campos, nombres max 256 caracteres, valores max 1024 caracteres.
+      fields:
+        - name: "Objeto"
+          value: "%item_display%"
+          inline: true
+        - name: "Precio"
+          value: "%formatted_price%"
+          inline: true
+        - name: "Cantidad"
+          value: "%item_amount%"
+          inline: true
+        - name: "Economia"
+          value: "%economy_display_name%"
+          inline: true
+
+      # Configuracion del pie de pagina (texto pequeno abajo)
+      footer:
+        # Texto del pie de pagina (max 2048 caracteres)
+        text: "Servidor: %server_name%"
+        # Icono pequeno junto al texto del pie de pagina (debe ser una URL de imagen valida)
+        icon-url: ""
+
+      # Configuracion del autor (mostrado encima del titulo con icono)
+      author:
+        # Nombre del autor (max 256 caracteres)
+        name: "%seller_name%"
+        # URL al hacer clic en el nombre del autor (deja vacio para desactivar)
+        url: ""
+        # Icono del autor (tipicamente la cabeza del jugador)
+        # mc-heads.net proporciona avatares de jugadores de Minecraft por UUID
+        icon-url: "https://mc-heads.net/avatar/%seller_uuid%"
+
+      # Miniatura - imagen pequena a la derecha del embed
+      thumbnail:
+        # URL de la imagen (icono del objeto usando el patron definido arriba)
+        url: "%item_image_url%"
+
+      # Imagen - imagen grande abajo del embed
+      image:
+        # Deja vacio para desactivar
+        url: ""
+
+      # Agregar una marca de tiempo al embed (muestra la hora actual en la zona horaria del usuario)
+      timestamp: true
+
+  #---------------------------------------------------------------------------
+  # WEBHOOK DE COMPRA
+  #---------------------------------------------------------------------------
+  # Enviado cuando un jugador compra un objeto de la casa de subastas.
+
+  purchase:
+    # Activar o desactivar este webhook especifico.
+    enabled: false
+
+    # URL del webhook de Discord para notificaciones de compra.
+    # Puede ser la misma o diferente del webhook de venta.
+    url: "https://discord.com/api/webhooks/TU_WEBHOOK_ID/TU_WEBHOOK_TOKEN"
+
+    # Nombre de usuario personalizado para el bot del webhook.
+    username: "zAuctionHouse"
+
+    # URL de avatar personalizado para el bot del webhook.
+    avatar-url: ""
+
+    # Contenido del mensaje encima del embed.
+    content: ""
+
+    # Configuracion del embed
+    embed:
+      title: "Objeto comprado!"
+      description: "**%buyer_name%** ha comprado un objeto de **%seller_name%**"
+
+      # Color dorado para las compras
+      color: "#FFD700"
+
+      fields:
+        - name: "Objeto"
+          value: "%item_display%"
+          inline: true
+        - name: "Precio"
+          value: "%formatted_price%"
+          inline: true
+        - name: "Comprador"
+          value: "%buyer_name%"
+          inline: true
+        - name: "Vendedor"
+          value: "%seller_name%"
+          inline: true
+
+      footer:
+        text: "Servidor: %server_name%"
+        icon-url: ""
+
+      # El autor muestra al comprador para las notificaciones de compra
+      author:
+        name: "%buyer_name%"
+        url: ""
+        icon-url: "https://mc-heads.net/avatar/%buyer_uuid%"
+
+      thumbnail:
+        url: "%item_image_url%"
+
+      image:
+        url: ""
+
+      timestamp: true
+
+#=============================================================================
+# PLACEHOLDERS DISPONIBLES
+#=============================================================================
+# Usa estos placeholders en cualquier campo de texto arriba.
+# Los placeholders son reemplazados con los valores reales al enviar el webhook.
+#
+# PLACEHOLDERS DE OBJETO:
+#   %item_id%              - ID interno del objeto
+#   %item_material%        - Nombre del material (minusculas, ej: "diamond_sword")
+#   %item_display%         - Nombre de visualizacion del objeto con formato
+#   %item_amount%          - Tamano del stack
+#   %item_lore%            - Lore del objeto (puede ser largo, usar con precaucion)
+#   %item_enchantments%    - Lista de encantamientos
+#   %item_custom_model_data% - Valor CustomModelData (para resource packs)
+#   %item_dominant_color%  - Color dominante extraido (requiere extract-dominant-color: true)
+#   %item_image_url%       - URL completa a la imagen del objeto (usa el override 'custom-images' si el objeto coincide con una regla)
+#
+# PLACEHOLDERS DE JUGADOR:
+#   %seller_name%          - Nombre de usuario del vendedor
+#   %seller_uuid%          - UUID del vendedor (para URLs de avatar)
+#   %buyer_name%           - Nombre de usuario del comprador (solo webhook de compra)
+#   %buyer_uuid%           - UUID del comprador (solo webhook de compra)
+#
+# PLACEHOLDERS DE PRECIO:
+#   %price%                - Numero de precio sin formato
+#   %formatted_price%      - Precio con formato de economia (ej: "1.000$")
+#   %economy_name%         - Nombre interno de la economia
+#   %economy_display_name% - Nombre de visualizacion de la economia
+#
+# PLACEHOLDERS DE TIEMPO:
+#   %created_at%           - Cuando se creo el listado
+#   %expires_at%           - Cuando expira el listado (marca de tiempo dinamica de Discord, mostrada en la zona horaria de cada usuario)
+#   %remaining_time%       - Tiempo antes de la expiracion
+#   %timestamp%            - Marca de tiempo actual
+#
+# PLACEHOLDERS DE SERVIDOR:
+#   %server_name%          - Nombre del servidor (de la config arriba)
+#
+# PLACEHOLDERS DE CATEGORIA:
+#   %category_names%       - Lista separada por comas de las categorias coincidentes
+#   %category_count%       - Numero de categorias coincidentes
+#
+# CONSEJOS:
+# - Usa %item_dominant_color% para el color del embed para hacer cada objeto unico
+# - Manten los valores de los campos del embed cortos para evitar los limites de caracteres de Discord
+# - Prueba la configuracion de tu webhook primero con un canal privado

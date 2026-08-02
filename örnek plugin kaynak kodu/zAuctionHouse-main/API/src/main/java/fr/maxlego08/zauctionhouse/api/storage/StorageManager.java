@@ -1,0 +1,207 @@
+package fr.maxlego08.zauctionhouse.api.storage;
+
+import fr.maxlego08.sarah.DatabaseConnection;
+import fr.maxlego08.zauctionhouse.api.economy.AuctionEconomy;
+import fr.maxlego08.zauctionhouse.api.item.Item;
+import fr.maxlego08.zauctionhouse.api.item.StorageType;
+import fr.maxlego08.zauctionhouse.api.item.items.AuctionItem;
+import fr.maxlego08.zauctionhouse.api.log.LogType;
+import fr.maxlego08.zauctionhouse.api.storage.dto.ItemDTO;
+import fr.maxlego08.zauctionhouse.api.storage.dto.LogDTO;
+import fr.maxlego08.zauctionhouse.api.transaction.TransactionStatus;
+import org.bukkit.entity.Player;
+import org.bukkit.inventory.ItemStack;
+
+import java.math.BigDecimal;
+import java.util.Collection;
+import java.util.Date;
+import java.util.List;
+import java.util.Map;
+import java.util.UUID;
+import java.util.concurrent.CompletableFuture;
+
+/**
+ * Coordinates persistence concerns for the auction house such as loading listings, creating new
+ * records, and logging transactions. Implementations abstract the underlying data source
+ * (SQL, flat files, etc.) while providing asynchronous operations for expensive tasks.
+ */
+public interface StorageManager {
+
+    /**
+     * Initializes the storage layer, establishing connections or creating schema as needed.
+     *
+     * @return {@code true} if initialization succeeded and the plugin may continue loading
+     */
+    boolean onEnable();
+
+    /**
+     * Gracefully shuts down the storage layer, closing connections and flushing pending writes.
+     */
+    void onDisable();
+
+    /**
+     * Loads all stored items into memory caches to make them available for listings and lookups.
+     */
+    void loadItems();
+
+    /**
+     * Inserts or updates the player entry to ensure ownership and statistics are tracked.
+     *
+     * @param player player to synchronize with storage
+     */
+    void upsertPlayer(Player player);
+
+    /**
+     * Creates and persists a new auction item record.
+     *
+     * @param seller         player listing the item
+     * @param price          price of the listing
+     * @param expiredAt      expiration timestamp in milliseconds
+     * @param itemStacks     item stacks being sold
+     * @param auctionEconomy economy to use for the listing
+     * @return future containing the created {@link AuctionItem}
+     */
+    CompletableFuture<AuctionItem> createAuctionItem(Player seller, BigDecimal price, long expiredAt, List<ItemStack> itemStacks, AuctionEconomy auctionEconomy);
+
+    /**
+     * Creates and persists a new auction item record using UUID and name directly.
+     * This is useful for generating test data without requiring online players.
+     *
+     * @param sellerUniqueId seller's UUID
+     * @param sellerName     seller's name
+     * @param price          price of the listing
+     * @param expiredAt      expiration timestamp in milliseconds
+     * @param itemStacks     item stacks being sold
+     * @param auctionEconomy economy to use for the listing
+     * @return future containing the created {@link AuctionItem}
+     */
+    CompletableFuture<AuctionItem> createAuctionItem(UUID sellerUniqueId, String sellerName, BigDecimal price, long expiredAt, List<ItemStack> itemStacks, AuctionEconomy auctionEconomy);
+
+    /**
+     * Inserts or updates the player entry using UUID and name directly.
+     * This is useful for registering fake players for test data.
+     *
+     * @param uniqueId player's UUID
+     * @param name     player's name
+     */
+    void upsertPlayer(UUID uniqueId, String name);
+
+    /**
+     * Provides access to a specific repository module backed by the storage manager.
+     *
+     * @param module repository class to retrieve
+     * @param <T>    repository type
+     * @return repository instance
+     */
+    <T extends Repository> T with(Class<T> module);
+
+    /**
+     * Gets the underlying database connection used by the storage manager.
+     *
+     * @return the database connection
+     */
+    DatabaseConnection getDatabaseConnection();
+
+    /**
+     * Updates the stored representation of the given item in the specified storage bucket.
+     *
+     * @param item        item to update
+     * @param storageType storage bucket where the item currently resides
+     * @return future completing when the update is persisted
+     */
+    CompletableFuture<Void> updateItem(Item item, StorageType storageType);
+
+    /**
+     * Batch updates multiple items grouped by storage type.
+     * Executes a single SQL query per storage type for efficiency.
+     *
+     * @param itemsByStorageType map of storage type to list of items to update
+     * @return future completing when all updates are persisted
+     */
+    CompletableFuture<Void> updateItems(Map<StorageType, List<Item>> itemsByStorageType);
+
+    /**
+     * Records an audit log entry describing an action performed on an item.
+     *
+     * @param logType        type of log entry to create
+     * @param itemId         identifier of the affected item
+     * @param player         actor performing the action
+     * @param targetUniqueId secondary player involved, if any
+     * @param itemstack      Base64-encoded itemstack data
+     * @param price          price related to the action
+     * @param economyName    economy used for the transaction
+     * @param additionalData extra serialized data for the log entry
+     * @param readedAt       if not null, marks the log as already read (e.g., when seller was online during sale)
+     */
+    void log(LogType logType, int itemId, Player player, UUID targetUniqueId, String itemstack, BigDecimal price, String economyName, String additionalData, Date readedAt);
+
+    /**
+     * Creates a transaction record for economy operations.
+     *
+     * @param playerUniqueId player's UUID
+     * @param economyName    economy used for the transaction
+     * @param before         balance before the transaction
+     * @param after          balance after the transaction
+     * @param value          amount changed
+     */
+    void createTransaction(Item item, UUID playerUniqueId, String economyName, BigDecimal before, BigDecimal after, BigDecimal value, TransactionStatus status);
+
+    /**
+     * Retrieves a single item from storage by its identifier.
+     *
+     * @param id item identifier
+     * @return future containing the item when found or {@code null} otherwise
+     */
+    CompletableFuture<Item> selectItem(int id);
+
+    /**
+     * Finds a player's UUID by their username.
+     *
+     * @param playerName the player's username
+     * @return future containing the player's UUID, or {@code null} if not found
+     */
+    CompletableFuture<UUID> findUniqueId(String playerName);
+
+    /**
+     * Gets a player's username by their UUID.
+     *
+     * @param uuid the player's UUID
+     * @return the player's username, or {@code null} if not found
+     */
+    String getPlayerName(UUID uuid);
+
+    /**
+     * Retrieves the sales history for a player.
+     *
+     * @param playerUniqueId the player's UUID
+     * @param expireAfterMs  only return logs created after this duration in ms (0 = no filter)
+     * @return list of log entries for the player's sales
+     */
+    List<LogDTO> selectSalesHistory(UUID playerUniqueId, long expireAfterMs);
+
+    /**
+     * Retrieves multiple items by their IDs.
+     *
+     * @param integers list of item IDs to retrieve
+     * @return list of items found
+     */
+    List<Item> selectItems(List<Integer> integers);
+
+    /**
+     * Retrieves player usernames for a list of UUIDs.
+     *
+     * @param uuids list of UUID strings
+     * @return map of UUID to username
+     */
+    Map<UUID, String> selectPlayers(List<String> uuids);
+
+    /**
+     * Marks unread purchase logs as read for a specific item and seller.
+     * Used by the cluster addon when the seller receives a real-time notification
+     * on another server, to prevent a duplicate "while you were away" notification.
+     *
+     * @param itemId         the item ID
+     * @param sellerUniqueId the seller's UUID
+     */
+    void markPurchaseLogAsRead(int itemId, UUID sellerUniqueId);
+}

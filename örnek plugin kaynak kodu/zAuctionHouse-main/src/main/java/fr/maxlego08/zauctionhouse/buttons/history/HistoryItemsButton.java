@@ -1,0 +1,126 @@
+package fr.maxlego08.zauctionhouse.buttons.history;
+
+import fr.maxlego08.menu.api.engine.InventoryEngine;
+import fr.maxlego08.menu.api.utils.LoreType;
+import fr.maxlego08.menu.api.utils.Placeholders;
+import fr.maxlego08.zauctionhouse.api.AuctionPlugin;
+import fr.maxlego08.zauctionhouse.api.button.LoadingButton;
+import fr.maxlego08.zauctionhouse.api.cache.PlayerCacheKey;
+import fr.maxlego08.zauctionhouse.api.history.HistorySortType;
+import fr.maxlego08.zauctionhouse.api.history.ItemLog;
+import fr.maxlego08.zauctionhouse.api.item.items.AuctionItem;
+import org.bukkit.Material;
+import org.bukkit.entity.Player;
+import org.bukkit.inventory.ItemStack;
+import org.bukkit.inventory.meta.ItemMeta;
+import org.bukkit.plugin.Plugin;
+import org.jspecify.annotations.NonNull;
+
+import java.text.SimpleDateFormat;
+import java.util.List;
+
+/**
+ * Button that displays the player's sales history with pagination.
+ */
+public class HistoryItemsButton extends LoadingButton {
+
+    public HistoryItemsButton(Plugin plugin, int loadingSlot) {
+        super((AuctionPlugin) plugin, loadingSlot);
+    }
+
+    @Override
+    public void onRender(Player player, InventoryEngine inventoryEngine) {
+        var manager = this.plugin.getAuctionManager();
+        var cache = manager.getCache(player);
+        if (!cache.has(PlayerCacheKey.HISTORY_DATA)) {
+
+            if (this.loadingSlot != -1) {
+                inventoryEngine.addItem(this.loadingSlot, getCustomItemStack(player, false, new Placeholders()));
+            }
+            Boolean isLoading = cache.get(PlayerCacheKey.HISTORY_LOADING, false);
+
+            if (!isLoading) {
+
+                cache.set(PlayerCacheKey.HISTORY_LOADING, true);
+                manager.getHistoryService().getSalesHistory(player.getUniqueId()).thenAccept(history -> {
+                    // Check if player is still online before modifying cache
+                    if (!player.isOnline()) {
+                        return;
+                    }
+                    cache.set(PlayerCacheKey.HISTORY_DATA, history);
+                    cache.set(PlayerCacheKey.HISTORY_LOADING, false);
+                    this.plugin.getScheduler().runAtEntity(player, task -> {
+                        if (player.isOnline()) {
+                            this.plugin.getAuctionManager().getHistoryService().openHistoryInventory(player);
+                        }
+                    });
+                }).exceptionally(throwable -> {
+                    cache.set(PlayerCacheKey.HISTORY_LOADING, false);
+                    this.plugin.getLogger().severe("Failed to load history: " + throwable.getMessage());
+                    return null;
+                });
+            }
+            return;
+        }
+
+        List<ItemLog> history = cache.get(PlayerCacheKey.HISTORY_DATA);
+        displayHistory(player, inventoryEngine, history);
+    }
+
+    private void displayHistory(Player player, InventoryEngine inventoryEngine, List<ItemLog> history) {
+
+        if (history == null || history.isEmpty()) {
+            inventoryEngine.buildButton(this.getElseButton(), new Placeholders());
+            return;
+        }
+
+        var configuration = this.plugin.getConfiguration();
+        var dateFormat = configuration.getDateFormat();
+        var loreConfig = configuration.getItemLore().historyLore();
+
+        // Apply sorting
+        var cache = this.plugin.getAuctionManager().getCache(player);
+        HistorySortType sortType = cache.get(PlayerCacheKey.HISTORY_SORT, HistorySortType.DATE_DESC);
+        List<ItemLog> sortedHistory = history.stream().sorted(sortType.getComparator()).toList();
+
+        paginate(sortedHistory, inventoryEngine, (slot, log) -> {
+            ItemStack displayItem = createDisplayItem(log, dateFormat, loreConfig);
+            inventoryEngine.addItem(slot, displayItem);
+        });
+    }
+
+    @Override
+    public int getPaginationSize(@NonNull Player player) {
+        var cache = this.plugin.getAuctionManager().getCache(player);
+        List<ItemLog> history = cache.get(PlayerCacheKey.HISTORY_DATA);
+        return history != null ? history.size() : 0;
+    }
+
+    private ItemStack createDisplayItem(ItemLog itemLog, SimpleDateFormat dateFormat, List<String> loreConfig) {
+
+        ItemStack itemStack;
+
+        if (itemLog.item() instanceof AuctionItem auctionItem) {
+            itemStack = auctionItem.getItemStack();
+        } else {
+            itemStack = new ItemStack(Material.PAPER);
+        }
+
+        itemStack = itemStack.clone();
+        ItemMeta itemMeta = itemStack.getItemMeta();
+        if (itemMeta == null) return itemStack;
+
+        var placeholders = new Placeholders();
+        placeholders.register("buyer", itemLog.item().getBuyerName());
+        placeholders.register("seller", itemLog.item().getSellerName());
+        placeholders.register("price", itemLog.item().getFormattedPrice());
+        placeholders.register("date", dateFormat.format(itemLog.log().created_at()));
+
+        var meta = this.plugin.getInventoriesLoader().getInventoryManager().getMeta();
+        meta.updateLore(itemMeta, loreConfig.stream().map(placeholders::parse).toList(), LoreType.APPEND);
+
+        itemStack.setItemMeta(itemMeta);
+
+        return itemStack;
+    }
+}

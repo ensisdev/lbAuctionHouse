@@ -1,0 +1,73 @@
+################################################################################################################################
+#
+#   zAuctionHouse V4 - Inventario Objetos Caducados Admin
+#
+#   Este inventario permite a los administradores ver y gestionar los objetos caducados de un jugador.
+#   Los administradores pueden recuperar objetos en nombre de jugadores que podrían haber perdido acceso.
+#
+#   ACCIONES ADMIN:
+#   - Ver todos los objetos caducados del jugador objetivo
+#   - Recuperar objetos para devolver al jugador
+#   - Util para recuperar objetos despues de reclamaciones de jugadores
+#
+#   ACCESO:
+#   - Desde el menu principal historial admin -> Boton Objetos Caducados
+#   - /ah admin open expired <jugador>
+#
+#   Documentacion: https://docs.groupez.dev/zauctionhouse/introduction
+#   Discord: https://discord.groupez.dev/
+#
+################################################################################################################################
+
+#=============================================================================
+# CONFIGURACION DEL INVENTARIO
+#=============================================================================
+
+# Titulo del inventario con placeholder de paginacion.
+name: '#0c1719Objetos caducados admin (%page%/%max-page%)'
+
+# Tamano del inventario - 6 filas.
+size: 54
+
+#=============================================================================
+# PATTERNS
+#=============================================================================
+
+patterns:
+  # Bordes decorativos de cristal.
+  - 'zauctionhouse-decoration'
+  # Botones pagina anterior/siguiente.
+  - 'zauctionhouse-pagination'
+  # Boton atras para volver al historial admin.
+  - 'zauctionhouse-back'
+
+#=============================================================================
+# OBJETOS
+#=============================================================================
+
+items:
+
+  #---------------------------------------------------------------------------
+  # VISUALIZACION DE OBJETOS CADUCADOS
+  #---------------------------------------------------------------------------
+  # Muestra todos los objetos caducados del jugador objetivo.
+  # Al hacer clic en un objeto lo recupera (accion admin).
+
+  items:
+    # Tipo de boton - visualiza objetos caducados admin con funcionalidad de recuperacion.
+    type: ZAUCTIONHOUSE_ADMIN_EXPIRED_ITEMS
+
+    # Slots para mostrar los objetos caducados (4 filas x 9 columnas = 36 slots).
+    slots:
+      - 9-17    # Fila 2
+      - 18-26   # Fila 3
+      - 27-35   # Fila 4
+      - 36-44   # Fila 5
+
+    # Fallback cuando no hay objetos caducados.
+    else:
+      slots:
+        - 22
+      item:
+        material: BARRIER
+        name: '#ff0000&nNingun Objeto Encontrado'

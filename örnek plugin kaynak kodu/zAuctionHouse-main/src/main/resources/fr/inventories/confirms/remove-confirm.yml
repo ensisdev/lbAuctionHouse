@@ -1,0 +1,132 @@
+################################################################################################################################
+#
+#   zAuctionHouse V4 - Inventaire de Confirmation de Retrait
+#
+#   Cet inventaire demande aux vendeurs de confirmer le retrait de leur item de la vente.
+#   L'item sera retourné dans la section des items expirés du joueur.
+#
+#   FONCTIONNALITÉS:
+#   - Prévisualiser l'item avant de le retirer
+#   - Voir le contenu des shulkers (si applicable)
+#   - Confirmer ou annuler le retrait
+#
+#   ACCÈS:
+#   - S'ouvre automatiquement quand un vendeur clique sur son propre item en vente
+#   - Affiché uniquement si open-confirm-inventory est true dans config.yml
+#
+#   Documentation: https://docs.groupez.dev/zauctionhouse/introduction
+#   Discord: https://discord.groupez.dev/
+#
+################################################################################################################################
+
+#=============================================================================
+# PARAMÈTRES DE L'INVENTAIRE
+#=============================================================================
+
+# Titre de l'inventaire - format question pour plus de clarté.
+name: "#0c1719Retirer cet item ?"
+
+# Taille de l'inventaire - 3 rangées (27 slots) pour un dialogue de confirmation compact.
+size: 27
+
+#=============================================================================
+# ITEMS
+#=============================================================================
+
+items:
+
+  #---------------------------------------------------------------------------
+  # BOUTON CONFIRMER LE RETRAIT
+  #---------------------------------------------------------------------------
+  # Retire l'item de la vente et le déplace vers les items expirés.
+
+  remove:
+    # Type de bouton - gère le retrait de l'annonce.
+    type: ZAUCTIONHOUSE_CONFIRM_REMOVE_LISTED
+
+    item:
+      # Vitre verte pour l'action de confirmation.
+      material: GREEN_STAINED_GLASS_PANE
+      name: "#2CCED2<bold>ʀᴇᴛɪʀᴇʀ"
+      lore:
+        - "#92ffffRetirer cet item."
+        - ""
+        - "#8c8c8c• #2CCED2Cliquez #92ffffpour retirer"
+
+    # Côté gauche de l'inventaire (grille 3×3).
+    slots:
+      - 0-2     # Rangée en haut à gauche
+      - 9-11    # Rangée du milieu à gauche
+      - 18-20   # Rangée en bas à gauche
+
+  #---------------------------------------------------------------------------
+  # BOUTON ANNULER/RETOUR
+  #---------------------------------------------------------------------------
+  # Annule le retrait et retourne à l'hôtel des ventes.
+
+  deny:
+    # Type de bouton - retourne à l'inventaire précédent.
+    type: BACK
+
+    item:
+      # Vitre rouge pour l'action d'annulation.
+      material: RED_STAINED_GLASS_PANE
+      name: "#2CCED2<bold>ʀᴇᴛᴏᴜʀ"
+      lore:
+        - "#92ffffRetourner en arrière."
+        - ""
+        - "#8c8c8c• #2CCED2Cliquez #92ffffpour revenir"
+
+    # Côté droit de l'inventaire (grille 3×3).
+    slots:
+      - 6-8     # Rangée en haut à droite
+      - 15-17   # Rangée du milieu à droite
+      - 24-26   # Rangée en bas à droite
+
+  #---------------------------------------------------------------------------
+  # DÉCORATION
+  #---------------------------------------------------------------------------
+  # Remplit la colonne centrale avec des vitres.
+
+  decoration:
+    item:
+      material: LIGHT_BLUE_STAINED_GLASS_PANE
+      name: "#2CCED2"
+
+    # Colonne centrale et slots environnants.
+    slots:
+      - 3-5     # Centre en haut
+      - 12      # Milieu-gauche du centre
+      - 14      # Milieu-droit du centre
+      - 21-23   # Centre en bas
+
+  #---------------------------------------------------------------------------
+  # PRÉVISUALISATION DE L'ITEM
+  #---------------------------------------------------------------------------
+  # Affiche l'item à retirer au centre.
+
+  show:
+    # Type de bouton - affiche l'item de l'enchère.
+    type: ZAUCTIONHOUSE_SHOW
+
+    # Slot central.
+    slot: 13
+
+  #---------------------------------------------------------------------------
+  # BOUTON CONTENU SHULKER
+  #---------------------------------------------------------------------------
+  # Ouvre la visionneuse de contenu shulker (affiché uniquement pour les items shulker).
+
+  shulker:
+    # Type de bouton - ouvre la prévisualisation du contenu shulker.
+    type: ZAUCTIONHOUSE_SHULKER_OPEN
+
+    slot: 4
+
+    item:
+      material: SHULKER_BOX
+      name: "#2CCED2<bold>ᴠᴏɪʀ ʟᴇ ᴄᴏɴᴛᴇɴᴜ sʜᴜʟᴋᴇʀ"
+      lore:
+        - "#92ffffVoir le contenu des boîtes shulker."
+        - ""
+        - "#8c8c8c• #2CCED2Cliquez #92ffffpour voir le contenu"

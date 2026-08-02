@@ -1,0 +1,114 @@
+################################################################################################################################
+#
+#   zAuctionHouse V4 - Language Configuration
+#
+#   This file controls the language used for all plugin messages, inventories, and configurations.
+#   It is loaded FIRST before any other configuration file.
+#
+#   Documentation: https://docs.groupez.dev/zauctionhouse/introduction
+#   Discord: https://discord.groupez.dev/
+#   GitHub: https://github.com/GroupeZ-dev/zAuctionHouse
+#
+################################################################################################################################
+
+#=============================================================================
+# LANGUAGE SELECTION
+#=============================================================================
+
+# Language for the plugin messages and inventories.
+#
+# The plugin can automatically detect the language based on your server's country.
+# For example:
+#   - Servers in Chile (CL), Mexico (MX), Argentina (AR), Spain (ES) -> Spanish
+#   - Servers in France (FR), Belgium (BE), Canada (CA), Switzerland (CH) -> French
+#   - Servers in Italy (IT), San Marino (SM), Vatican (VA) -> Italian
+#   - All other countries -> English
+#
+# Available options:
+#   - auto : Automatic detection based on server country/locale (recommended)
+#   - en   : English (default)
+#   - fr   : French (Francais)
+#   - es   : Spanish (Espanol)
+#   - it   : Italian (Italiano)
+#   - th   : Thailand (ภาษาไทย)
+#
+language: auto
+
+#=============================================================================
+# HOW TO CHANGE LANGUAGE
+#=============================================================================
+#
+# To change the plugin language, follow these steps:
+#
+# 1. STOP your server completely (do not use /reload)
+#
+# 2. DELETE all configuration files in plugins/zAuctionHouse/ EXCEPT:
+#    - language.yml (this file)
+#    - storage.db (your database, if using SQLite)
+#    - Any files you have customized and want to keep
+#
+#    Files to delete:
+#    - config.yml
+#    - messages.yml
+#    - economies.yml
+#    - rules.yml
+#    - categories.yml
+#    - discord.yml
+#    - inventories/ (entire folder)
+#    - patterns/ (entire folder)
+#
+# 3. EDIT this file and change 'language' to your desired language code
+#    Example: language: fr
+#
+# 4. START your server
+#    The plugin will regenerate all files in your selected language.
+#
+#=============================================================================
+# DEFAULT CONFIGURATIONS
+#=============================================================================
+#
+# You can find the default configuration files for each language on GitHub:
+# https://github.com/GroupeZ-dev/zAuctionHouse
+#
+# Default configurations:
+#   - English: src/main/resources/
+#   - French:  src/main/resources/fr/
+#   - Spanish: src/main/resources/es/
+#   - Italian: src/main/resources/it/
+#   - Thailand: src/main/resources/th/
+#
+# If you need to reset a specific file to its default, you can:
+# 1. Delete the file from your server
+# 2. Restart the server or use /ah reload
+# 3. The file will be regenerated with default values in your language
+#
+# Or download the file directly from GitHub and place it in your plugin folder.
+#
+#=============================================================================
+# SUPPORTED COUNTRIES (Auto-detection)
+#=============================================================================
+#
+# Spanish (es):
+#   Spain, Mexico, Argentina, Chile, Colombia, Peru, Venezuela, Ecuador,
+#   Guatemala, Cuba, Bolivia, Dominican Republic, Honduras, Paraguay,
+#   El Salvador, Nicaragua, Costa Rica, Panama, Uruguay, Puerto Rico,
+#   Equatorial Guinea
+#
+# French (fr):
+#   France, Belgium, Switzerland, Canada, Luxembourg, Monaco, Senegal,
+#   Ivory Coast, Mali, Burkina Faso, Niger, Togo, Benin, Guinea,
+#   Democratic Republic of the Congo, Republic of the Congo, Gabon,
+#   Cameroon, Madagascar, Haiti, Rwanda, Burundi, Djibouti, Comoros,
+#   Mauritius, Seychelles, Reunion, Guadeloupe, Martinique, French Guiana,
+#   French Polynesia, New Caledonia
+#
+# Italian (it):
+#   Italy, San Marino, Vatican City
+#
+# Thailand (th):
+#   Thailand
+#
+# English (en):
+#   All other countries (default fallback)
+#
+################################################################################################################################

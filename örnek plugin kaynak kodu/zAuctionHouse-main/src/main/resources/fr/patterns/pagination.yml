@@ -1,0 +1,105 @@
+################################################################################################################################
+#
+#   zAuctionHouse V4 - Pattern de Pagination
+#
+#   Ce pattern fournit les boutons page précédente/suivante pour les inventaires paginés.
+#   Utilisé dans tout inventaire qui affiche plusieurs pages d'items.
+#
+#   FONCTIONNEMENT:
+#   - Le bouton PRÉCÉDENT apparaît quand il y a une page précédente
+#   - Le bouton SUIVANT apparaît quand il y a une page suivante
+#   - Quand il n'y a plus de pages, le bouton est remplacé par une vitre
+#
+#   UTILISATION:
+#   Incluez ce pattern dans les fichiers d'inventaire paginés:
+#     patterns:
+#       - 'zauctionhouse-pagination'
+#
+#   Documentation: https://docs.groupez.dev/zauctionhouse/introduction
+#   Discord: https://discord.groupez.dev/
+#
+################################################################################################################################
+
+# Nom du pattern - référencé dans les autres fichiers d'inventaire.
+name: "zauctionhouse-pagination"
+
+# Taille de l'inventaire (doit correspondre aux inventaires utilisant ce pattern).
+# Conçu pour les inventaires à 6 rangées (54 slots).
+size: 54
+
+# Items des boutons de pagination.
+items:
+
+  #---------------------------------------------------------------------------
+  # BOUTON PAGE PRÉCÉDENTE
+  #---------------------------------------------------------------------------
+  previous:
+    # Type de bouton - PREVIOUS est un type intégré de zMenu.
+    # Gère automatiquement la navigation et la visibilité.
+    type: PREVIOUS
+
+    # Les items permanents ne peuvent pas être déplacés par les joueurs.
+    is-permanent: true
+
+    # Position du slot - côté gauche de la rangée du bas.
+    # Le slot 48 est le 4ème depuis la gauche dans la rangée du bas.
+    slot: 48
+
+    # Item affiché quand IL Y A une page précédente (page > 1)
+    item:
+      # Tête de joueur avec texture personnalisée.
+      # 'url' accepte les données de texture encodées en Base64.
+      # Ceci crée une tête avec flèche pointant vers la gauche.
+      # Obtenez des textures sur: minecraft-heads.com, freshcoal.com
+      url: "eyJ0ZXh0dXJlcyI6eyJTS0lOIjp7InVybCI6Imh0dHA6Ly90ZXh0dXJlcy5taW5lY3JhZnQubmV0L3RleHR1cmUvNjllYTFkODYyNDdmNGFmMzUxZWQxODY2YmNhNmEzMDQwYTA2YzY4MTc3Yzc4ZTQyMzE2YTEwOThlNjBmYjdkMyJ9fX0="
+
+      # Nom d'affichage avec formatage MiniMessage.
+      # <bold> rend le texte en gras.
+      name: "#2CCED2<bold>ᴘᴀɢᴇ ᴘʀᴇᴄᴇᴅᴇɴᴛᴇ"
+
+      # Lignes de lore - informations supplémentaires affichées sous le nom.
+      lore:
+        - "#92ffffAller à la page précédente."
+        - ""
+        - "#8c8c8c• #2CCED2Cliquez #92ffffpour ouvrir"
+
+    # Item de repli affiché quand il N'Y A PAS de page précédente (page = 1)
+    # 'else' fournit un item alternatif quand la condition du bouton n'est pas remplie.
+    else:
+      item:
+        # Simple vitre pour maintenir la cohérence de la mise en page.
+        material: LIGHT_BLUE_STAINED_GLASS_PANE
+        name: "<white>"
+
+  #---------------------------------------------------------------------------
+  # BOUTON PAGE SUIVANTE
+  #---------------------------------------------------------------------------
+  next:
+    # Type de bouton - NEXT est un type intégré de zMenu.
+    # Gère automatiquement la navigation et la visibilité.
+    type: NEXT
+
+    # Les items permanents ne peuvent pas être déplacés par les joueurs.
+    is-permanent: true
+
+    # Position du slot - côté droit de la rangée du bas.
+    # Le slot 50 est le 6ème depuis la gauche dans la rangée du bas.
+    slot: 50
+
+    # Item affiché quand IL Y A une page suivante
+    item:
+      # Texture de tête avec flèche pointant vers la droite.
+      url: "eyJ0ZXh0dXJlcyI6eyJTS0lOIjp7InVybCI6Imh0dHA6Ly90ZXh0dXJlcy5taW5lY3JhZnQubmV0L3RleHR1cmUvODI3MWE0NzEwNDQ5NWUzNTdjM2U4ZTgwZjUxMWE5ZjEwMmIwNzAwY2E5Yjg4ZTg4Yjc5NWQzM2ZmMjAxMDVlYiJ9fX0="
+
+      name: "#2CCED2<bold>ᴘᴀɢᴇ sᴜɪᴠᴀɴᴛᴇ"
+
+      lore:
+        - "#92ffffAller à la page suivante."
+        - ""
+        - "#8c8c8c• #2CCED2Cliquez #92ffffpour ouvrir"
+
+    # Item de repli affiché quand il N'Y A PAS de page suivante (dernière page)
+    else:
+      item:
+        material: LIGHT_BLUE_STAINED_GLASS_PANE
+        name: "<white>"

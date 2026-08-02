@@ -1,0 +1,117 @@
+################################################################################################################################
+#
+#   zAuctionHouse V4 - Inventario de Confirmacion de Compra en Lote
+#
+#   Este inventario confirma la compra de multiples objetos (ventas en lote).
+#   Muestra todos los objetos de la venta con una vista previa antes de la compra.
+#
+#   FUNCIONALIDADES:
+#   - Vista previa de todos los objetos de la venta en lote
+#   - Ver el contenido de las shulker (si aplica)
+#   - Un solo clic para confirmar la compra de todos los objetos
+#
+#   ACCESO:
+#   - Se abre automaticamente al hacer clic en un objeto en lote para comprar
+#   - Los objetos en lote se indican con un icono de cofre en la casa de subastas
+#
+#   Documentacion: https://docs.groupez.dev/zauctionhouse/introduction
+#   Discord: https://discord.groupez.dev/
+#
+################################################################################################################################
+
+#=============================================================================
+# CONFIGURACION DEL INVENTARIO
+#=============================================================================
+
+# Titulo del inventario - formato pregunta con "objetos" en plural.
+name: "#0c1719Comprar estos objetos?"
+
+# Tamano del inventario - 6 filas para mostrar todos los objetos de la venta en lote.
+size: 54
+
+#=============================================================================
+# PATTERNS
+#=============================================================================
+
+patterns:
+  # Bordes decorativos de cristal.
+  - 'zauctionhouse-decoration'
+
+#=============================================================================
+# OBJETOS
+#=============================================================================
+
+items:
+
+  #---------------------------------------------------------------------------
+  # VISUALIZACION DEL CONTENIDO EN LOTE
+  #---------------------------------------------------------------------------
+  # Muestra todos los objetos incluidos en la venta en lote.
+  # Los objetos son solo para visualizacion (no se pueden tomar individualmente).
+
+  item-content:
+    # Tipo de boton - muestra todos los objetos de la venta.
+    type: ZAUCTIONHOUSE_ITEM_CONTENT
+
+    # Slots para mostrar los objetos (4 filas x 9 columnas = 36 slots).
+    slots:
+      - 9-44
+
+  #---------------------------------------------------------------------------
+  # BOTON CONFIRMAR
+  #---------------------------------------------------------------------------
+  # Finaliza la compra de todos los objetos.
+
+  confirm:
+    type: ZAUCTIONHOUSE_CONFIRM_PURCHASE
+
+    item:
+      material: GREEN_STAINED_GLASS_PANE
+      name: "#2CCED2<bold>ᴄᴏᴍᴘʀᴀʀ"
+      lore:
+        - "#92ffffComprar este objeto."
+        - ""
+        - "#8c8c8c• #2CCED2Clic #92ffffpara comprar"
+
+    # Zona inferior izquierda (3 slots).
+    slots:
+      - 46-48
+
+  #---------------------------------------------------------------------------
+  # BOTON CANCELAR/ATRAS
+  #---------------------------------------------------------------------------
+  # Cancela y vuelve a la casa de subastas.
+
+  deny:
+    type: BACK
+
+    item:
+      material: RED_STAINED_GLASS_PANE
+      name: "#2CCED2<bold>ᴀᴛʀᴀs"
+      lore:
+        - "#92ffffVolver atras."
+        - ""
+        - "#8c8c8c• #2CCED2Clic #92ffffpara volver"
+
+    # Zona inferior derecha (3 slots).
+    slots:
+      - 50-52
+
+  #---------------------------------------------------------------------------
+  # BOTON CONTENIDO SHULKER
+  #---------------------------------------------------------------------------
+  # Abre el visualizador del contenido shulker.
+
+  shulker:
+    type: ZAUCTIONHOUSE_SHULKER_OPEN
+
+    # Centro de la fila inferior.
+    slot: 49
+
+    item:
+      material: SHULKER_BOX
+      name: "#2CCED2<bold>ᴠᴇʀ ᴄᴏɴᴛᴇɴɪᴅᴏ sʜᴜʟᴋᴇʀ"
+      lore:
+        - "#92ffffVer el contenido de las cajas shulker."
+        - ""
+        - "#8c8c8c• #2CCED2Clic #92ffffpara ver el contenido"

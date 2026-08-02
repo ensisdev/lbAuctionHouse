@@ -1,0 +1,240 @@
+################################################################################################################################
+#
+#   zAuctionHouse V4 - Inventario de Categorias
+#
+#   Este inventario muestra el menu de seleccion de categorias.
+#   Los jugadores pueden elegir una categoria para filtrar objetos.
+#
+#   LAS CATEGORIAS SE DEFINEN EN:
+#   - categories.yml - Define que objetos pertenecen a cada categoria
+#   - Este archivo - Define los botones GUI para cada categoria
+#
+#   AGREGAR NUEVAS CATEGORIAS:
+#   1. Agrega la definicion de la categoria en categories.yml (con las reglas)
+#   2. Agrega un boton aqui con type: ZAUCTIONHOUSE_CATEGORY y category: <nombre>
+#   3. Usa el placeholder %zauctionhouse_category_count_<nombre>% para los contadores
+#
+#   Documentacion: https://docs.groupez.dev/zauctionhouse/introduction
+#   Discord: https://discord.groupez.dev/
+#
+################################################################################################################################
+
+#=============================================================================
+# CONFIGURACION DEL INVENTARIO
+#=============================================================================
+
+# Titulo del inventario - texto estatico para el menu de categorias.
+name: "#0c1719Categorias"
+
+# Tamano del inventario - 6 filas (54 slots).
+size: 54
+
+#=============================================================================
+# PATRONES
+#=============================================================================
+
+patterns:
+  # Bordes decorativos de vidrio.
+  - 'zauctionhouse-decoration'
+  # Boton volver para regresar a la casa de subastas.
+  - 'zauctionhouse-back'
+
+#=============================================================================
+# BOTONES DE CATEGORIAS
+#=============================================================================
+# Cada boton abre la casa de subastas filtrada por esa categoria.
+# Los tipos de botones usan ZAUCTIONHOUSE_CATEGORY con un campo 'category'.
+# El valor 'category' debe corresponder a una clave de categories.yml.
+
+items:
+
+  #---------------------------------------------------------------------------
+  # CATEGORIA TODOS LOS OBJETOS
+  #---------------------------------------------------------------------------
+  # Muestra todos los objetos independientemente del tipo (sin filtro).
+  # Esta es la vista predeterminada al abrir la casa de subastas por primera vez.
+
+  all-items:
+    # Tipo de boton para la seleccion de categoria.
+    type: ZAUCTIONHOUSE_CATEGORY
+
+    # Identificador de categoria - 'all' es una categoria especial que muestra todo.
+    category: all
+
+    # Posicion del slot - centro de la fila superior (fuera de la decoracion).
+    slot: 4
+
+    item:
+      material: CHEST
+      name: "#2CCED2<bold>TODOS LOS OBJETOS"
+      lore:
+        - "#92ffffVer todos los anuncios"
+        - ""
+        # %zauctionhouse_category_count_all% muestra el total de objetos.
+        - "#92ffffTotal objetos#8c8c8c: #2CCED2%zauctionhouse_category_count_all%"
+        - ""
+        - "#8c8c8c* #2CCED2Clic #92ffffpara navegar"
+
+  #---------------------------------------------------------------------------
+  # CATEGORIA BLOQUES
+  #---------------------------------------------------------------------------
+  # Muestra solo bloques colocables.
+
+  blocks:
+    type: ZAUCTIONHOUSE_CATEGORY
+    # Debe corresponder a la clave en categories.yml
+    category: blocks
+    slot: 19
+
+    item:
+      # Material representativo para esta categoria.
+      material: GRASS_BLOCK
+      name: "#7a7a7a<bold>BLOQUES"
+      lore:
+        - "#92ffffTodos los bloques de construccion"
+        - ""
+        # Contador dinamico de objetos para esta categoria.
+        - "#92ffffObjetos#8c8c8c: #2CCED2%zauctionhouse_category_count_blocks%"
+        - ""
+        - "#8c8c8c* #2CCED2Clic #92ffffpara navegar"
+
+  #---------------------------------------------------------------------------
+  # CATEGORIA ARMAS
+  #---------------------------------------------------------------------------
+  # Muestra espadas, arcos, ballestas y otras armas.
+
+  weapons:
+    type: ZAUCTIONHOUSE_CATEGORY
+    category: weapons
+    slot: 20
+
+    item:
+      material: DIAMOND_SWORD
+      name: "#ff5555<bold>ARMAS"
+      lore:
+        - "#92ffffEquipamiento de combate"
+        - "#92ffffEspadas, arcos, ballestas..."
+        - ""
+        - "#92ffffObjetos#8c8c8c: #2CCED2%zauctionhouse_category_count_weapons%"
+        - ""
+        - "#8c8c8c* #2CCED2Clic #92ffffpara navegar"
+
+  #---------------------------------------------------------------------------
+  # CATEGORIA ARMADURAS
+  #---------------------------------------------------------------------------
+  # Muestra cascos, petos, pantalones, botas y escudos.
+
+  armor:
+    type: ZAUCTIONHOUSE_CATEGORY
+    category: armor
+    slot: 21
+
+    item:
+      material: DIAMOND_CHESTPLATE
+      name: "#55ffff<bold>ARMADURAS"
+      lore:
+        - "#92ffffEquipamiento protector"
+        - ""
+        - "#92ffffObjetos#8c8c8c: #2CCED2%zauctionhouse_category_count_armor%"
+        - ""
+        - "#8c8c8c* #2CCED2Clic #92ffffpara navegar"
+
+  #---------------------------------------------------------------------------
+  # CATEGORIA HERRAMIENTAS
+  #---------------------------------------------------------------------------
+  # Muestra picos, hachas, palas, azadas y otras herramientas.
+
+  tools:
+    type: ZAUCTIONHOUSE_CATEGORY
+    category: tools
+    slot: 22
+
+    item:
+      material: DIAMOND_PICKAXE
+      name: "#ffff55<bold>HERRAMIENTAS"
+      lore:
+        - "#92ffffHerramientas de mineria y agricultura"
+        - ""
+        - "#92ffffObjetos#8c8c8c: #2CCED2%zauctionhouse_category_count_tools%"
+        - ""
+        - "#8c8c8c* #2CCED2Clic #92ffffpara navegar"
+
+  #---------------------------------------------------------------------------
+  # CATEGORIA CONSUMIBLES
+  #---------------------------------------------------------------------------
+  # Muestra pociones, comida y otros objetos consumibles.
+
+  consumables:
+    type: ZAUCTIONHOUSE_CATEGORY
+    category: consumables
+    slot: 23
+
+    item:
+      material: GOLDEN_APPLE
+      name: "#55ff55<bold>CONSUMIBLES"
+      lore:
+        - "#92ffffComida y pociones"
+        - ""
+        - "#92ffffObjetos#8c8c8c: #2CCED2%zauctionhouse_category_count_consumables%"
+        - ""
+        - "#8c8c8c* #2CCED2Clic #92ffffpara navegar"
+
+  #---------------------------------------------------------------------------
+  # CATEGORIA RECURSOS
+  #---------------------------------------------------------------------------
+  # Muestra minerales, lingotes y materiales de crafteo.
+
+  resources:
+    type: ZAUCTIONHOUSE_CATEGORY
+    category: resources
+    slot: 24
+
+    item:
+      material: DIAMOND
+      name: "#ffaa00<bold>RECURSOS"
+      lore:
+        - "#92ffffMinerales y materiales"
+        - ""
+        - "#92ffffObjetos#8c8c8c: #2CCED2%zauctionhouse_category_count_resources%"
+        - ""
+        - "#8c8c8c* #2CCED2Clic #92ffffpara navegar"
+
+  #---------------------------------------------------------------------------
+  # CATEGORIA LIBROS ENCANTADOS
+  #---------------------------------------------------------------------------
+  # Muestra solo los libros encantados.
+
+  enchanted-books:
+    type: ZAUCTIONHOUSE_CATEGORY
+    category: enchanted-books
+    slot: 25
+
+    item:
+      material: ENCHANTED_BOOK
+      name: "#ff55ff<bold>LIBROS ENCANTADOS"
+      lore:
+        - "#92ffffLibros con encantamientos"
+        - ""
+        - "#92ffffObjetos#8c8c8c: #2CCED2%zauctionhouse_category_count_enchanted-books%"
+        - ""
+        - "#8c8c8c* #2CCED2Clic #92ffffpara navegar"
+
+  #---------------------------------------------------------------------------
+  # CATEGORIA VARIOS
+  #---------------------------------------------------------------------------
+  # Muestra los objetos que no entran en las otras categorias.
+
+  misc:
+    type: ZAUCTIONHOUSE_CATEGORY
+    category: misc
+    slot: 31
+
+    item:
+      material: CHEST
+      name: "#555555<bold>VARIOS"
+      lore:
+        - "#92ffffOtros objetos"
+        - ""
+        - "#92ffffObjetos#8c8c8c: #2CCED2%zauctionhouse_category_count_misc%"
+        - ""
+        - "#8c8c8c* #2CCED2Clic #92ffffpara navegar"

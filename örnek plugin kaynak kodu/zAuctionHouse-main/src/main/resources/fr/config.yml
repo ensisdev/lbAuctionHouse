@@ -1,0 +1,1203 @@
+################################################################################################################################
+#
+# ███████╗░█████╗░██╗░░░██╗░█████╗░████████╗██╗░█████╗░███╗░░██╗██╗░░██╗░█████╗░██╗░░░██╗░██████╗███████╗██╗░░░██╗░░██╗██╗
+# ╚════██║██╔══██╗██║░░░██║██╔══██╗╚══██╔══╝██║██╔══██╗████╗░██║██║░░██║██╔══██╗██║░░░██║██╔════╝██╔════╝██║░░░██║░██╔╝██║
+# ░░███╔═╝███████║██║░░░██║██║░░╚═╝░░░██║░░░██║██║░░██║██╔██╗██║███████║██║░░██║██║░░░██║╚█████╗░█████╗░░╚██╗░██╔╝██╔╝░██║
+# ██╔══╝░░██╔══██║██║░░░██║██║░░██╗░░░██║░░░██║██║░░██║██║╚████║██╔══██║██║░░██║██║░░░██║░╚═══██╗██╔══╝░░░╚████╔╝░███████║
+# ███████╗██║░░██║╚██████╔╝╚█████╔╝░░░██║░░░██║╚█████╔╝██║░╚███║██║░░██║╚█████╔╝╚██████╔╝██████╔╝███████╗░░╚██╔╝░░╚════██║
+# ╚══════╝╚═╝░░╚═╝░╚═════╝░░╚════╝░░░░╚═╝░░░╚═╝░╚════╝░╚═╝░░╚══╝╚═╝░░╚═╝░╚════╝░░╚═════╝░╚═════╝░╚══════╝░░░╚═╝░░░░░░░░╚═╝
+#
+#   Sponsor: https://minestrator.com/a/GROUPEZ
+#   Documentation: https://docs.groupez.dev/zauctionhouse/introduction
+#   Discord: https://discord.groupez.dev/
+#
+################################################################################################################################
+
+#=============================================================================
+# PARAMÈTRES DE DÉBOGAGE ET SURVEILLANCE
+#=============================================================================
+
+# Active les logs détaillés et messages d'erreur dans la console.
+# Utilisez ceci lors du dépannage ou quand le support demande des infos de débogage.
+# Quand activé, le plugin affiche des informations détaillées sur les opérations.
+# Recommandé: Garder désactivé en production, activer uniquement pour les investigations.
+enable-debug: false
+
+# Active la surveillance et les logs de performance.
+# Quand activé, le plugin enregistre les temps d'exécution des opérations lourdes:
+# - Tri et filtrage des items
+# - Correspondance et comptage des catégories
+# - Chargement et requêtes de base de données
+# - Opérations de cache et reconstructions
+# Utile pour diagnostiquer les problèmes de performance avec de grands hôtels des ventes (1000+ items).
+# Recommandé: Activer temporairement lors de lags ou chargements d'inventaire lents.
+enable-performance-debug: false
+
+# Active la vérification automatique de version par rapport à la dernière release.
+# Quand activé, le plugin notifie la console/admins si une nouvelle version est disponible.
+# Ceci ne met PAS à jour automatiquement le plugin, affiche uniquement une notification.
+# Recommandé: Garder activé pour être informé des mises à jour importantes et corrections de bugs.
+enable-version-checker: true
+
+# Configuration du filtre de débogage de performance.
+# Permet de se concentrer sur des opérations spécifiques en filtrant lesquelles sont enregistrées.
+# Pertinent uniquement quand 'enable-performance-debug' est à true.
+performance-debug:
+  filter:
+    # Options du mode de filtre:
+    # - DISABLED: Enregistrer toutes les opérations (par défaut, pas de filtrage)
+    # - WHITELIST: Enregistrer uniquement les opérations listées dans 'operations'
+    # - BLACKLIST: Enregistrer toutes les opérations SAUF celles listées dans 'operations'
+    mode: DISABLED
+
+    # Liste des noms d'opérations à filtrer.
+    # Supporte le suffixe joker (*) pour la correspondance par préfixe.
+    # Exemple: "loadItems.*" correspond à loadItems.loadPlayers, loadItems.loadItemsFromDB, etc.
+    #
+    # Noms d'opérations disponibles:
+    # Opérations de chargement:
+    #   - loadItems.loadPlayers        : Temps pour charger les données joueurs
+    #   - loadItems.loadItemsFromDB    : Temps pour charger les items de la BDD
+    #   - loadItems.loadAuctionItemsFromDB : Temps pour charger les items d'enchères
+    #   - loadItems.processItems       : Temps pour traiter les items chargés
+    #   - loadItems.total              : Temps total de chargement
+    #   - loadItems.rebuildSortedItemsCache : Temps pour reconstruire le cache trié
+    #
+    # Opérations de cache:
+    #   - SortedItemsCache.rebuild     : Temps pour reconstruire le cache d'items triés
+    #   - getItemsListedForSale        : Temps pour récupérer les items en vente
+    #   - resolveItems[SALE]           : Temps pour résoudre les items de vente
+    #   - getItemIds[SALE]             : Temps pour obtenir les IDs d'items en vente
+    #
+    # Opérations de catégorie:
+    #   - applyCategories              : Temps pour appliquer les filtres de catégorie
+    #   - computeCategoryCount[categoryId] : Temps pour compter les items par catégorie
+    #
+    # Opérations d'item:
+    #   - item.BuildItemStack          : Temps pour construire les ItemStacks pour l'affichage
+    #   - item.CreatePlaceholders      : Temps pour créer les placeholders d'item
+    #
+    # Opérations d'inventaire:
+    #   - openInventory.<nom fichier>  : Temps pour ouvrir un inventaire spécifique
+    operations:
+      - "loadItems.*"
+      - "SortedItemsCache.*"
+
+#=============================================================================
+# PARAMÈTRES GÉNÉRAUX
+#=============================================================================
+
+# Format de date utilisé dans le plugin pour afficher les horodatages.
+# Utilise les motifs Java SimpleDateFormat.
+# Motifs courants:
+#   dd    - Jour du mois (01-31)
+#   MM    - Mois (01-12)
+#   yyyy  - Année (4 chiffres)
+#   HH    - Heure format 24h (00-23)
+#   hh    - Heure format 12h (01-12)
+#   mm    - Minutes (00-59)
+#   ss    - Secondes (00-59)
+# Exemples:
+#   "dd/MM/yyyy HH:mm:ss" → "25/12/2024 14:30:45"
+#   "MM-dd-yyyy hh:mm a"  → "12-25-2024 02:30 PM"
+date-format: dd/MM/yyyy HH:mm:ss
+
+# Fuseau horaire utilisé pour l'affichage des dates.
+# Utilise les identifiants Java TimeZone. Définir à "auto" pour utiliser le fuseau horaire par défaut du serveur.
+# Exemples:
+#   "auto"              → Utilise le fuseau horaire par défaut du serveur
+#   "UTC"               → Temps Universel Coordonné
+#   "Europe/Paris"      → Heure d'Europe Centrale (UTC+1/UTC+2)
+#   "America/New_York"  → Heure de l'Est (UTC-5/UTC-4)
+#   "Asia/Tokyo"        → Heure Standard du Japon (UTC+9)
+# Liste complète: https://docs.oracle.com/javase/8/docs/api/java/util/TimeZone.html
+timezone: auto
+
+#=============================================================================
+# CONFIGURATION DE BASE DE DONNÉES
+#=============================================================================
+
+# Type de stockage pour les données d'enchères.
+# Options disponibles:
+# - SQLITE  : Base de données locale en fichier (par défaut, aucune configuration requise)
+#             Idéal pour: Serveur unique, hôtels des ventes petits à moyens
+# - MYSQL   : Serveur de base de données MySQL
+#             Idéal pour: Configurations multi-serveurs, grands hôtels des ventes
+# - MARIADB : Serveur de base de données MariaDB (compatible MySQL)
+#             Idéal pour: Configurations multi-serveurs, grands hôtels des ventes
+# Note: Pour la synchronisation multi-serveur, utilisez MySQL/MariaDB avec l'addon Redis.
+storage-type: SQLITE
+
+# Identifiant du nom de serveur pour les configurations multi-serveurs.
+# Ce nom est stocké avec chaque annonce pour identifier de quel serveur elle provient.
+# Utile pour suivre l'origine des ventes avec une BDD partagée entre plusieurs serveurs.
+# Recommandé: Utilisez un nom unique et descriptif (ex: "skyblock", "survival", "creative").
+server-name: skyblock
+
+# Paramètres de connexion pour MySQL/MariaDB.
+# Utilisé uniquement quand 'storage-type' est MYSQL ou MARIADB.
+database-configuration:
+  # Préfixe appliqué à toutes les tables créées par le plugin.
+  # Utile pour partager une BDD avec d'autres plugins et éviter les conflits de noms.
+  # ATTENTION: Ne changez pas après que le plugin ait stocké des données, sinon elles seront perdues.
+  # Tables créées par défaut: {prefix}items, {prefix}auction_items, {prefix}players, etc.
+  table-prefix: zauctionhousev4_
+
+  # Adresse IP ou nom d'hôte du serveur de base de données.
+  # Utilisez 'localhost' ou '127.0.0.1' si la BDD est sur la même machine.
+  # Pour les BDD distantes, utilisez l'adresse IP ou le nom de domaine du serveur.
+  host: 192.168.10.10
+
+  # Numéro de port du serveur de base de données.
+  # Port par défaut MySQL/MariaDB: 3306
+  # Ne changez que si votre BDD utilise un port non standard.
+  port: 3306
+
+  # Nom d'utilisateur pour l'authentification.
+  # Cet utilisateur doit avoir les permissions: SELECT, INSERT, UPDATE, DELETE, CREATE TABLE
+  user: homestead
+
+  # Mot de passe de l'utilisateur.
+  # Gardez-le sécurisé et ne partagez pas votre fichier de configuration publiquement.
+  password: secret
+
+  # Nom de la base de données où les données seront stockées.
+  # La base de données doit exister avant le démarrage du plugin.
+  # Le plugin créera automatiquement les tables requises.
+  database: zauctionhouse
+
+  # Active le débogage des requêtes SQL.
+  # Quand activé, toutes les requêtes SQL sont enregistrées dans la console.
+  # ATTENTION: Ceci génère beaucoup de sortie. Activez uniquement pour le dépannage de BDD.
+  # Recommandé: Garder désactivé en production.
+  debug: false
+
+#=============================================================================
+# RACCOURCIS DE COULEURS POUR LES MESSAGES
+#=============================================================================
+
+# Clés de couleurs personnalisées utilisables dans les messages du plugin.
+# Ces raccourcis simplifient la personnalisation en définissant des codes couleur réutilisables.
+# Utilisation: Écrivez <primary> dans n'importe quel message et il sera remplacé par la couleur hex.
+# Supporte le format MiniMessage et les couleurs hex (#RRGGBB).
+#
+# Exemple d'utilisation dans les messages:
+#   "<primary>Bienvenue <secondary>dans l'hôtel des ventes!"
+#   Devient: "#24d65d Bienvenue #656665 dans l'hôtel des ventes!"
+message-colors:
+  # Couleur primaire - Utilisée pour le texte important, titres, surlignages
+  - key: <primary>
+    color: '#24d65d'
+  # Couleur secondaire - Utilisée pour le texte moins important, descriptions
+  - key: <secondary>
+    color: '#656665'
+  # Couleur d'erreur - Utilisée pour les messages d'erreur, avertissements
+  - key: <error>
+    color: '#ff0000'
+  # Couleur de succès - Utilisée pour les messages de succès, confirmations
+  - key: <success>
+    color: '#00ff00'
+
+#=============================================================================
+# CONFIGURATION DES COMMANDES
+#=============================================================================
+
+# Configuration des commandes pour les alias et arguments.
+# IMPORTANT: Redémarrage du serveur requis après modification de cette section!
+# Les changements de commandes ne sont pas appliqués avec /ah admin reload.
+
+commands:
+  # Commande principale: /zauctionhouse (ouvre l'hôtel des ventes)
+  main-command:
+    # Noms de commandes alternatifs fonctionnant identiquement à /zauctionhouse
+    # Les joueurs peuvent utiliser n'importe lequel pour ouvrir l'hôtel des ventes.
+    aliases:
+      - ah           # Court et commun
+      - hdv          # Abréviation française (Hôtel des Ventes)
+      - auction      # Nom anglais complet
+      - zauction     # Version préfixée du plugin
+
+  # Commande de vente: /zauctionhouse sell <prix> [quantité] [économie]
+  # Utilisée par les joueurs pour mettre des items en vente.
+  sell:
+    # Quand activé, exécuter /ah sell sans arguments ouvre un GUI
+    # où le joueur peut sélectionner des items, ajuster le prix et choisir l'économie.
+    # Quand désactivé, /ah sell requiert un argument de prix.
+    # Recommandé: Activer pour une meilleure expérience utilisateur, désactiver pour les power users.
+    enable-sell-inventory: false
+
+    # Noms alternatifs pour la sous-commande sell.
+    # Exemple: /ah s 1000 (met en vente l'item en main pour 1000)
+    aliases:
+      - sell
+      - s
+      - vendre       # Français
+
+    # Configuration des arguments de commande
+    arguments:
+      # Argument prix (requis quand l'inventaire de vente est désactivé)
+      - name: price
+        display-name: prix
+        required: true
+        # Suggestions d'auto-complétion pour le prix
+        # Apparaissent quand le joueur appuie sur Tab pendant la saisie.
+        auto-completion:
+          - 1000
+          - 10000
+          - 25000
+
+      # Argument quantité (optionnel) - Combien d'items vendre du stack
+      - name: amount
+        display-name: quantité
+        required: false
+        # %max-stack-size% est remplacé par la taille max du stack de l'item
+        auto-completion:
+          - '1'
+          - '%max-stack-size%'
+
+      # Argument économie (optionnel) - Quelle monnaie utiliser
+      - name: economy
+        display-name: économie
+        required: false
+        # Listez vos noms d'économies activées ici pour l'auto-complétion
+        auto-completion:
+          - vault
+
+  # Commande claim: /zauctionhouse claim
+  # Utilisée pour réclamer l'argent en attente des ventes (quand auto-claim est désactivé).
+  claim:
+    aliases:
+      - claim
+      - c
+      - recuperer    # Français
+
+  # Commande recherche: /zauctionhouse search <requête>
+  # Recherche des objets dans l'hôtel des ventes par texte.
+  search:
+    aliases:
+      - search
+      - s
+      - rechercher
+    arguments:
+      - name: query
+        display-name: recherche
+        required: true
+        auto-completion: []
+
+  # Commande page: /zauctionhouse page <numéro>
+  # Ouvre l'hôtel des ventes directement à une page spécifique.
+  page:
+    aliases:
+      - page
+      - p
+    arguments:
+      - name: page
+        display-name: page
+        required: true
+        auto-completion:
+          - '1'
+          - '2'
+          - '3'
+          - '5'
+          - '10'
+
+  # Commandes d'inventaire personnalisées
+  # Ces commandes fournissent un accès rapide à des sections spécifiques.
+  # Chaque entrée crée une nouvelle sous-commande sous /zauctionhouse.
+  inventories:
+    # Commande: /ah selling - Ouvre les items actuellement en vente du joueur
+    - enable: true
+      # Permission requise pour utiliser cette commande (laisser vide = pas de permission)
+      permission: "zauctionhouse.selling"
+      # Description affichée dans l'aide et l'auto-complétion
+      description: "Ouvrir les items en vente"
+      aliases:
+        - 'selling'
+        - 'envente'
+      # Identifiant interne de l'inventaire (voir dossier inventories/)
+      inventory: SELLING_ITEMS
+      # Décommenter pour activer l'argument page: /ah selling <page>
+      # enable-page: true
+      # page-name: "page"
+
+    # Commande: /ah expired - Ouvre les items expirés du joueur
+    - enable: true
+      permission: "zauctionhouse.expired"
+      description: "Ouvrir les items expirés"
+      aliases:
+        - 'expired'
+        - 'expires'
+      inventory: EXPIRED_ITEMS
+
+    # Commande: /ah purchased - Ouvre les items achetés par le joueur
+    - enable: true
+      permission: "zauctionhouse.purchased"
+      description: "Ouvrir les items achetés"
+      aliases:
+        - 'purchased'
+        - 'achetes'
+      inventory: PURCHASED_ITEMS
+
+    # Commande: /ah history - Ouvre l'historique des ventes du joueur
+    - enable: true
+      permission: "zauctionhouse.history"
+      description: "Ouvrir l'historique"
+      aliases:
+        - 'history'
+        - 'historique'
+      inventory: HISTORY
+
+  # Configuration du cooldown des commandes
+  # Empêche les joueurs de spammer les commandes en imposant un délai entre les exécutions.
+  # NOTE : Ces valeurs SONT rechargées avec /ah admin reload.
+  cooldown:
+
+    # Cooldown par défaut en millisecondes appliqué à toutes les commandes.
+    # Mettez à 0 pour désactiver complètement le cooldown.
+    # ATTENTION : Il est fortement recommandé de garder un cooldown (ex: 100ms) pour éviter le spam de commandes.
+    default-cooldown: 100
+
+    # Permission permettant à un joueur de contourner le cooldown des commandes.
+    bypass-permission: "zauctionhouse.cooldown.command.bypass"
+
+    # Cooldowns personnalisés par commande (en millisecondes).
+    # Utilisez le premier alias de la commande comme clé.
+    # Les commandes non listées ici utiliseront la valeur default-cooldown.
+    # Exemples :
+    #   sell: 500      # 500ms de cooldown pour /ah sell
+    #   claim: 1000    # 1 seconde de cooldown pour /ah claim
+    #   page: 50       # 50ms de cooldown pour /ah page
+    per-command: {}
+
+#=============================================================================
+# RACCOURCIS DE PRIX
+#=============================================================================
+
+# Raccourcis de multiplication pour les commandes de vente.
+# Permet aux joueurs d'utiliser une notation abrégée pour les grands nombres.
+# Exemple: /ah sell 1K = /ah sell 1000
+# Exemple: /ah sell 2.5M = /ah sell 2500000
+number-sell-multiplication:
+  # Activer ou désactiver cette fonctionnalité
+  enable: true
+
+  # Définitions de format (insensible à la casse)
+  # Les joueurs tapent le suffixe 'format', et le prix est multiplié par 'multiplication'.
+  formats:
+    - format: K          # Millier (1 000)
+      multiplication: 1000
+    - format: M          # Million (1 000 000)
+      multiplication: 1000000
+    - format: B          # Milliard (1 000 000 000)
+      multiplication: 1000000000
+    - format: T          # Billion
+      multiplication: 1000000000000
+    - format: Q          # Billiard
+      multiplication: 1000000000000000
+    - format: QQ         # Trillion
+      multiplication: 1000000000000000000
+    - format: S          # Trilliard
+      multiplication: 1000000000000000000000
+    - format: SS         # Quadrillion
+      multiplication: 1000000000000000000000000
+    - format: O          # Quadrilliard
+      multiplication: 1000000000000000000000000000
+    - format: N          # Quintillion
+      multiplication: 1000000000000000000000000000000
+    - format: D          # Quintilliard
+      multiplication: 1000000000000000000000000000000000
+    - format: UN         # Sextillion
+      multiplication: 1000000000000000000000000000000000000
+    - format: DD         # Sextilliard
+      multiplication: 1000000000000000000000000000000000000000
+    - format: TR         # Septillion
+      multiplication: 1000000000000000000000000000000000000000000
+
+#=============================================================================
+# PARAMÈTRES D'EXPIRATION
+#=============================================================================
+
+# Temps d'expiration pour les différents états d'items.
+# Tous les temps sont en SECONDES.
+# Valeurs courantes:
+#   3600    = 1 heure
+#   86400   = 1 jour
+#   172800  = 2 jours
+#   259200  = 3 jours
+#   604800  = 1 semaine
+#   2592000 = 30 jours
+
+expiration:
+  # Durée des annonces avant expiration.
+  auction:
+    # Temps d'expiration par défaut en secondes (172800 = 2 jours)
+    # Après ce temps, les items non vendus vont dans la section "items expirés".
+    default-expiration: 172800
+
+    # Temps d'expiration basés sur les permissions.
+    # Les joueurs avec des permissions spécifiques peuvent avoir des durées différentes.
+    permission:
+      # Activer ou désactiver l'expiration basée sur les permissions
+      enable: false
+      # Liste des permissions (vérifiées dans l'ordre, première correspondance utilisée)
+      # IMPORTANT: Ordonner de la plus basse à la plus haute priorité
+      permissions:
+        - permission: zauctionhouse.expiration.vip
+          expiration: 3600       # 1 heure
+        - permission: zauctionhouse.expiration.elite
+          expiration: 7200       # 2 heures
+        - permission: zauctionhouse.expiration.legend
+          expiration: 259200     # 3 jours
+
+  # Durée des annonces d'enchères (fonctionnalité future).
+  bid:
+    default-expiration: 172800
+    permission:
+      enable: false
+      permissions:
+        - permission: zauctionhouse.expiration.vip
+          expiration: 3600
+        - permission: zauctionhouse.expiration.elite
+          expiration: 7200
+        - permission: zauctionhouse.expiration.legend
+          expiration: 259200
+
+  # Durée des annonces de location (fonctionnalité future).
+  rent:
+    default-expiration: 172800
+    permission:
+      enable: false
+      permissions:
+        - permission: zauctionhouse.expiration.vip
+          expiration: 3600
+        - permission: zauctionhouse.expiration.elite
+          expiration: 7200
+        - permission: zauctionhouse.expiration.legend
+          expiration: 259200
+
+  # Durée de conservation des items expirés avant suppression définitive.
+  # Après ce temps, les items expirés non récupérés sont définitivement perdus.
+  # Recommandé: Au moins 1 semaine pour donner aux joueurs le temps de récupérer leurs items.
+  expire:
+    default-expiration: 604800   # 1 semaine
+    permission:
+      enable: false
+
+  # Durée de conservation des items achetés avant suppression définitive.
+  # Après ce temps, les items achetés non récupérés sont définitivement perdus.
+  # Recommandé: Au moins 1 semaine pour donner aux joueurs le temps de récupérer leurs items.
+  purchase:
+    default-expiration: 604800   # 1 semaine
+    permission:
+      enable: false
+
+#=============================================================================
+# LIMITES D'ANNONCES
+#=============================================================================
+
+# Nombre maximum d'items qu'un joueur peut avoir en vente simultanément.
+# Les joueurs ont besoin de permissions spécifiques pour augmenter leur limite.
+
+permissions:
+  # Limites pour les annonces d'enchères régulières
+  auction:
+    - permission: zauctionhouse.max.5
+      limit: 5
+    - permission: zauctionhouse.max.10
+      limit: 10
+    - permission: zauctionhouse.max.15
+      limit: 15
+
+  # Limites pour les annonces de location (fonctionnalité future)
+  rent:
+    - permission: zauctionhouse.max.5
+      limit: 5
+    - permission: zauctionhouse.max.10
+      limit: 10
+    - permission: zauctionhouse.max.15
+      limit: 15
+
+  # Limites pour les annonces d'enchères (fonctionnalité future)
+  bid:
+    - permission: zauctionhouse.max.5
+      limit: 5
+    - permission: zauctionhouse.max.10
+      limit: 10
+    - permission: zauctionhouse.max.15
+      limit: 15
+
+#=============================================================================
+# RESTRICTIONS DE MONDE
+#=============================================================================
+
+# Mondes où les joueurs ne peuvent pas créer de nouvelles annonces.
+# Les joueurs peuvent toujours VOIR et ACHETER des items, mais pas VENDRE.
+# Utile pour restreindre les ventes dans les mondes d'événements, minijeux, etc.
+# Utilisez les noms exacts des dossiers de monde (sensible à la casse sous Linux).
+
+banned-worlds:
+  # Mondes où les annonces d'enchères sont bloquées
+  auction:
+    - "world_the_end"
+  # Mondes où les annonces de location sont bloquées
+  rent:
+    - "world_the_end"
+  # Mondes où les annonces d'enchères sont bloquées
+  bid:
+    - "world_the_end"
+
+#=============================================================================
+# LORE D'AFFICHAGE DES ITEMS
+#=============================================================================
+
+# Lignes de lore personnalisées ajoutées aux items affichés dans l'hôtel des ventes.
+# Ces lignes sont AJOUTÉES au lore original de l'item.
+# Utilisez le formatage MiniMessage et les couleurs hex (#RRGGBB).
+#
+# Placeholders disponibles:
+#   %seller%         - Nom du joueur qui a mis en vente l'item
+#   %buyer%          - Nom du joueur qui a acheté l'item
+#   %price%          - Prix formaté de l'item
+#   %time-remaining% - Temps restant avant expiration
+#   %date%           - Date de la transaction
+#   %status%         - Message de statut dynamique (acheter/récupérer)
+#   %items%          - Nom d'affichage de l'item
+#   %type%           - Type d'entrée de log (pour les logs admin)
+#   %player%         - Joueur impliqué dans l'action
+#   %target%         - Joueur cible (pour les opérations admin)
+
+item-lore:
+  # Force la quantité affichée des items à 1 dans l'inventaire d'enchères.
+  # La quantité réelle est conservée en interne et donnée à l'acheteur lors de l'achat.
+  # Utile pour garder un affichage propre et uniforme.
+  force-amount-one: false
+
+  # Lore pour les items affichés dans la liste d'enchères principale (ventes unitaires)
+  listed-auction-item:
+    - ""
+    - "<white>⌂ #92ffffVendeur#8c8c8c: #2CCED2%seller%"
+    - "<white>☆ #92ffffPrix#8c8c8c: #2CCED2%price%"
+    - "<white>⌚ #92ffffExpire#8c8c8c: #969696%time-remaining%"
+    - ""
+    - "%status%"
+
+  # Lore pour les ventes en lot (plusieurs items dans une annonce, ex: boîtes shulker)
+  multiple-listed-auction-item:
+    - ""
+    - "<white>⌂ #92ffffVendeur#8c8c8c: #2CCED2%seller%"
+    - "<white>☆ #92ffffPrix#8c8c8c: #2CCED2%price%"
+    - "<white>⌚ #92ffffExpire#8c8c8c: #969696%time-remaining%"
+    - ""
+    - "#8c8c8c• #2CCED2ᴄʟɪᴄ ɢᴀᴜᴄʜᴇ #92ffffᴘᴏᴜʀ ᴠᴏɪʀ ʟᴇ ᴄᴏɴᴛᴇɴᴜ"
+    - "%status%"
+
+  # Lore pour les items dans l'inventaire des items expirés
+  expired-item:
+    - ""
+    - "<white>⌚ #92ffffExpire#8c8c8c: #969696%time-remaining%"
+    - ""
+    - "#8c8c8c• #2CCED2Cliquez pour récupérer cet item"
+
+  # Lore pour les items dans l'inventaire des items achetés
+  purchased-item:
+    - ""
+    - "<white>⌚ #92ffffExpire#8c8c8c: #969696%time-remaining%"
+    - ""
+    - "#8c8c8c• #2CCED2Cliquez pour récupérer cet item"
+
+  # Lore pour les items dans l'inventaire "vos items" (en vente)
+  selling-item:
+    - ""
+    - "<white>⌚ #92ffffExpire#8c8c8c: #969696%time-remaining%"
+    - ""
+    - "#8c8c8c• #2CCED2Cliquez pour récupérer cet item"
+
+  # Lore pour les items en cours d'achat par un autre joueur
+  # Ceci empêche le vendeur de récupérer l'item pendant une transaction.
+  being-purchased-item:
+    - ""
+    - "<white>⌚ #92ffffExpire#8c8c8c: #969696%time-remaining%"
+    - ""
+    - "#8c8c8c• #ff3535Votre item est en cours d'achat, vous ne pouvez pas le récupérer."
+
+  # Lore pour les items dans l'historique des ventes
+  history-item:
+    - ""
+    - "<white>⌂ #92ffffAcheteur#8c8c8c: #2CCED2%buyer%"
+    - "<white>☆ #92ffffPrix#8c8c8c: #2CCED2%price%"
+    - "<white>⌚ #92ffffDate#8c8c8c: #969696%date%"
+
+  # Lore pour les items dans la vue des logs admin (item unique)
+  admin-log-item:
+    - ""
+    - "<white>⚡ #92ffffType#8c8c8c: #2CCED2%type%"
+    - "<white>⌂ #92ffffJoueur#8c8c8c: #2CCED2%player%"
+    - "<white>⌂ #92ffffCible#8c8c8c: #2CCED2%target%"
+    - "<white>☆ #92ffffPrix#8c8c8c: #2CCED2%price%"
+    - "<white>⌚ #92ffffDate#8c8c8c: #969696%date%"
+    - ""
+    - "#8c8c8c• #2CCED2ᴄʟɪᴄ ɢᴀᴜᴄʜᴇ #92ffffᴘᴏᴜʀ ʀᴇᴄᴜᴘᴇʀᴇʀ ʟ'ɪᴛᴇᴍ"
+
+  # Lore pour les items dans la vue des logs admin (items multiples)
+  admin-log-multiple-item:
+    - ""
+    - "<white>⚡ #92ffffType#8c8c8c: #2CCED2%type%"
+    - "<white>⌂ #92ffffJoueur#8c8c8c: #2CCED2%player%"
+    - "<white>⌂ #92ffffCible#8c8c8c: #2CCED2%target%"
+    - "<white>☆ #92ffffPrix#8c8c8c: #2CCED2%price%"
+    - "<white>⌚ #92ffffDate#8c8c8c: #969696%date%"
+    - ""
+    - "#8c8c8c• #2CCED2ᴄʟɪᴄ ɢᴀᴜᴄʜᴇ #92ffffᴘᴏᴜʀ ʀᴇᴄᴜᴘᴇʀᴇʀ ʟ'ɪᴛᴇᴍ"
+    - "#8c8c8c• #2CCED2ᴄʟɪᴄ ᴅʀᴏɪᴛ #92ffffᴘᴏᴜʀ ᴠᴏɪʀ ᴛᴏᴜs ʟᴇs ɪᴛᴇᴍs"
+
+  # Lore pour les items dans l'inventaire de vente (instructions de retrait)
+  sell-inventory-remove-item:
+    - ''
+    - '#8c8c8c• #2CCED2ᴄʟɪᴄ ɢᴀᴜᴄʜᴇ #92ffffᴘᴏᴜʀ ʀᴇᴛɪʀᴇʀ ᴄᴇᴛ ɪᴛᴇᴍ'
+
+  # Messages de statut dynamiques basés sur la relation du spectateur avec l'item
+  status:
+    # Affiché au vendeur voyant son propre item (clic pour retirer de la vente)
+    seller: "#8c8c8c• #2CCED2ᴄʟɪqᴜᴇᴢ #92ffffᴘᴏᴜʀ ʀᴇᴄᴜᴘᴇʀᴇʀ ᴄᴇᴛ ɪᴛᴇᴍ"
+    # Affiché aux acheteurs potentiels (clic pour acheter)
+    buyer: "#8c8c8c• #2CCED2ᴄʟɪqᴜᴇᴢ #92ffffᴘᴏᴜʀ ᴀᴄʜᴇᴛᴇʀ ᴄᴇᴛ ɪᴛᴇᴍ"
+    # Affiché au vendeur pour l'action clic droit
+    right-seller: "#8c8c8c• #2CCED2ᴄʟɪᴄ ᴅʀᴏɪᴛ #92ffffᴘᴏᴜʀ ʀᴇᴄᴜᴘᴇʀᴇʀ ᴄᴇᴛ ɪᴛᴇᴍ"
+    # Affiché à l'acheteur pour l'action clic droit
+    right-buyer: "#8c8c8c• #2CCED2ᴄʟɪᴄ ᴅʀᴏɪᴛ #92ffffᴘᴏᴜʀ ᴀᴄʜᴇᴛᴇʀ ᴄᴇᴛ ɪᴛᴇᴍ"
+
+  # Noms lisibles pour les types d'entrées de log
+  log-type-names:
+    SALE: "Item mis en vente"
+    PURCHASE: "Item acheté"
+    REMOVE_LISTED: "Retiré de la vente"
+    REMOVE_SELLING: "Item en vente récupéré"
+    REMOVE_EXPIRED: "Item expiré récupéré"
+    REMOVE_PURCHASED: "Achat récupéré"
+
+#=============================================================================
+# ITEMS SPÉCIAUX
+#=============================================================================
+
+# Items d'affichage spéciaux utilisés dans l'interface de l'hôtel des ventes.
+# Remplacent l'aperçu réel de l'item pour les cas spéciaux.
+
+special-items:
+  # Item d'affichage pour les ventes en lot (plusieurs items dans une annonce)
+  # Cette icône de coffre indique que cliquer affichera le contenu.
+  auction-item:
+    material: CHEST
+    name: "#00ff00Vente en lot"
+
+#=============================================================================
+# FORMATAGE D'AFFICHAGE DES ITEMS
+#=============================================================================
+
+# Configuration pour l'affichage des items dans les messages et le lore.
+# Utilisé pour afficher les noms d'items dans les messages de chat et notifications.
+
+item-display:
+  # Format pour les items utilisant les clés de traduction Minecraft
+  # Utilisé quand l'item a une clé de traduction (la plupart des items vanilla)
+  # Placeholders: %amount%, %item-translation-key%
+  lang: "#8ee6e3x%amount% &7<lang:%item-translation-key%>"
+
+  # Format pour les items avec des noms d'affichage personnalisés
+  # Utilisé quand l'item a un nom personnalisé défini par des plugins ou enclumes
+  # Placeholders: %amount%, %item-name%
+  item-name: "#8ee6e3x%amount% &7%item-name%"
+
+  # Séparateur utilisé entre les deux derniers items d'une liste
+  # Exemple: "Diamant, Or et Émeraude"
+  and: " &fet "
+
+  # Séparateur utilisé entre les items d'une liste (sauf les deux derniers)
+  # Exemple: "Diamant, Or, Fer"
+  between: "&f, "
+
+  # Quand activé, les items similaires sont fusionnés dans l'affichage
+  # Exemple: "3x Diamant" au lieu de "Diamant, Diamant, Diamant"
+  merge-similar-items: true
+
+#=============================================================================
+# FORMAT DE TEMPS
+#=============================================================================
+
+# Labels d'unités de temps et formats d'affichage pour les comptes à rebours et durées.
+# Utilisé dans tout le plugin pour les minuteries d'expiration, temps restant, etc.
+
+time:
+  # Labels d'unités de temps (formes singulier et pluriel)
+  second: seconde
+  seconds: secondes
+
+  minute: minute
+  minutes: minutes
+
+  hour: heure
+  hours: heures
+
+  day: jour
+  days: jours
+
+  # Chaînes de format de temps utilisant des placeholders style printf
+  # %02d = Nombre complété à 2 chiffres (ex: 01, 05, 12)
+  # %second%, %minute%, %hour%, %day% = Unité dynamique selon la quantité
+  #
+  # Format pour les durées >= 1 jour
+  # Exemple de sortie: "02ᴊ 05ʜ 30ᴍ"
+  time-day: '%02dᴊ %02dʜ %02dᴍ'
+
+  # Format pour les durées >= 1 heure mais < 1 jour
+  # Exemple de sortie: "05ʜ 30ᴍ 45s"
+  time-hour: '%02dʜ %02dᴍ %02ds'
+
+  # Format pour les durées >= 1 minute mais < 1 heure
+  # Exemple de sortie: "30ᴍ 45s"
+  time-minute: '%02dᴍ %02ds'
+
+  # Format pour les durées < 1 minute
+  # Exemple de sortie: "45s"
+  time-second: '%02ds'
+
+#=============================================================================
+# COMPORTEMENT DES ACTIONS
+#=============================================================================
+
+# Configuration du comportement des différentes actions dans le plugin.
+# Contrôle ce qui se passe après les achats, retraits et autres opérations.
+
+action:
+  # Quand activé, l'inventaire d'enchères se rafraîchit automatiquement lors d'ajouts/suppressions d'items.
+  # Désactiver si vous rencontrez des problèmes de performance avec des mises à jour fréquentes.
+  update-inventory-on-action: true
+
+  # Quand activé, le filtre de catégorie est réinitialisé à chaque ouverture de l'hôtel des ventes.
+  # Quand désactivé, la catégorie précédemment sélectionnée persiste entre les ouvertures.
+  reset-category-on-open: true
+
+  # Quand activé, le filtre de recherche est réinitialisé à chaque ouverture de l'hôtel des ventes.
+  # Quand désactivé, la recherche précédemment saisie persiste entre les ouvertures.
+  reset-search-on-open: true
+
+  # Comportement lors du retrait d'un item des annonces actives (le vendeur annule sa vente)
+  remove-listed-item:
+    # Si true, l'item est immédiatement donné à l'inventaire du joueur
+    # Si false, l'item va dans sa section "items expirés" pour récupération ultérieure
+    give-item: false
+
+    # Si true, rouvre l'inventaire d'enchères après le retrait de l'item
+    open-inventory: true
+
+    # Si true, affiche un GUI de confirmation avant de retirer l'item
+    # Recommandé: Activer pour éviter les retraits accidentels
+    open-confirm-inventory: true
+
+  # Comportement lors de la récupération d'items expirés
+  remove-expired-item:
+    # Si true, rouvre l'inventaire des items expirés après récupération
+    open-inventory: true
+
+    # Si true, le joueur doit avoir de la place dans son inventaire pour récupérer l'item
+    # Si false et pas de place disponible, l'item sera lâché au sol
+    player-inventory-must-have-free-space: true
+
+  # Comportement lors de l'achat d'items
+  purchased-item:
+    # Si true, les items achetés sont immédiatement donnés à l'inventaire de l'acheteur
+    # Si false, les items vont dans leur section "items achetés" pour récupération ultérieure
+    give-item: false
+
+    # Si give-item est true, ceci vérifie si le joueur a assez de place dans son inventaire
+    # Si false et pas de place disponible, l'achat est bloqué
+    player-inventory-must-have-free-space: true
+
+    # Si true, rouvre l'inventaire d'enchères après l'achat
+    open-inventory: true
+
+    # Retour visuel quand le joueur n'a pas assez d'argent
+    money-item:
+      # Activer ou désactiver le retour visuel
+      enable: true
+      # Durée en ticks pour afficher l'item d'erreur (20 ticks = 1 seconde)
+      duration: 60
+      # Item affiché à la place de l'achat quand les fonds sont insuffisants
+      item:
+        material: BARRIER
+        name: "#ff3535✘ Vous n'avez pas assez d'argent pour acheter ceci !"
+
+    # Si true, envoie un message de chat quand le joueur ne peut pas payer
+    money-message: true
+
+    # Son joué quand le joueur ne peut pas payer
+    money-sound:
+      enable: true
+      # Catégorie du son (affecte les curseurs de volume)
+      category: MASTER
+      # Identifiant de son Minecraft
+      sound: minecraft:entity.villager.no
+      # Niveau de volume (0.0 à 1.0)
+      volume: 1
+      # Tonalité (0.5 à 2.0, 1.0 est normal)
+      pitch: 1
+
+  # Comportement lors de la récupération d'items depuis l'inventaire "vos items" (en vente)
+  selling-item:
+    # Si true, rouvre l'inventaire des items en vente après récupération
+    open-inventory: true
+
+    # Si true, le joueur doit avoir de la place dans son inventaire pour récupérer l'item
+    # Si false et pas de place disponible, l'item sera lâché au sol
+    player-inventory-must-have-free-space: true
+
+#=============================================================================
+# CONFIGURATION DE L'AUTO-RÉCLAMATION
+#=============================================================================
+
+# Réclamation automatique d'argent pour les ventes hors ligne.
+# Quand un item d'un joueur se vend pendant son absence, l'argent est stocké comme "en attente".
+# Cette configuration contrôle comment cet argent en attente est géré.
+
+auto-claim:
+  # Si true, l'argent en attente est automatiquement déposé quand le joueur se connecte
+  # Si false, les joueurs doivent exécuter manuellement /ah claim pour recevoir leur argent
+  enable: true
+
+  # Délai en ticks avant l'auto-réclamation à la connexion (20 ticks = 1 seconde)
+  # Ceci laisse le temps au joueur de charger complètement avant les transactions.
+  # Mettre à 0 pour une réclamation immédiate (non recommandé).
+  delay-ticks: 20
+
+  # Si true, envoie un message au joueur quand son argent est auto-réclamé
+  notify-player: true
+
+  # Si l'auto-réclamation est désactivée, cette option notifie le joueur de l'argent en attente
+  # Utile pour rappeler aux joueurs de réclamer leurs gains
+  notify-pending: true
+
+  # Délai avant d'envoyer la notification d'argent en attente
+  notify-delay-ticks: 40
+
+  # Chaîne de raison passée au plugin d'économie pour la transaction
+  # Peut apparaître dans les logs d'économie ou l'historique des transactions
+  deposit-reason: "Argent d'enchères réclamé"
+
+#=============================================================================
+# CONFIGURATION DE L'HISTORIQUE
+#=============================================================================
+
+# Contrôle l'historique des ventes affiché aux joueurs via /ah history.
+# Utile pour limiter la charge de la base de données sur les serveurs avec beaucoup de transactions.
+
+history:
+  # Nombre maximum d'entrées d'historique affichées par joueur.
+  # Mettre à 0 pour illimité (non recommandé pour les gros serveurs).
+  max-entries: 500
+
+  # Nombre de jours après lesquels les entrées d'historique ne sont plus affichées.
+  # Mettre à 0 pour conserver tout l'historique indéfiniment.
+  # Exemple : 90 = n'afficher que les ventes des 3 derniers mois.
+  expire-after-days: 0
+
+#=============================================================================
+# NOTIFICATION DE VENTES
+#=============================================================================
+
+# Notifications envoyées aux joueurs concernant les items vendus pendant leur absence.
+# Informe les vendeurs de leurs ventes réussies quand ils se reconnectent.
+
+sales-notification:
+  # Si true, les joueurs reçoivent un résumé des ventes hors ligne à la connexion
+  enable: true
+
+  # Délai en ticks avant d'envoyer la notification (20 ticks = 1 seconde)
+  # Des valeurs plus élevées permettent aux autres messages de connexion d'apparaître d'abord.
+  delay-ticks: 60
+
+#=============================================================================
+# CONFIGURATION DES DIFFUSIONS
+#=============================================================================
+
+# Diffuser des messages à tous les joueurs en ligne lorsque des objets sont mis en vente ou achetés.
+# Les joueurs peuvent se désinscrire individuellement via /ah option.
+
+broadcast:
+  sell:
+    # Si vrai, un message est envoyé à tous les joueurs en ligne lorsqu'un objet est mis en vente
+    enable: false
+
+    # Si vrai, le vendeur ne verra pas le message de diffusion
+    exclude-seller: true
+
+  purchase:
+    # Si vrai, un message est envoyé à tous les joueurs en ligne lorsqu'un objet est acheté
+    enable: false
+
+    # Si vrai, l'acheteur ne verra pas le message de diffusion
+    exclude-buyer: true
+
+  # Messages personnalisés par catégorie (format MiniMessage).
+  # Si un objet appartient à une catégorie listée ici, le message personnalisé
+  # est utilisé à la place du message par défaut dans messages.yml.
+  # La clé de catégorie doit correspondre à un ID défini dans categories.yml.
+  # Placeholders disponibles : %seller%, %buyer%, %items%, %price%, %category%
+  #
+  # Exemple :
+  #   category-messages:
+  #     sell:
+  #       weapons: "<red><bold>ARME</bold></red> <white>%seller% <yellow>a mis en vente %items% <yellow>pour <gold>%price%<yellow> !"
+  #       armor: "<blue><bold>ARMURE</bold></blue> <white>%seller% <yellow>a mis en vente %items% <yellow>pour <gold>%price%<yellow> !"
+  #       enchanted-books: "<light_purple><bold>ENCHANT</bold></light_purple> <white>%seller% <yellow>a mis en vente %items% <yellow>pour <gold>%price%<yellow> !"
+  #     purchase:
+  #       weapons: "<red><bold>ARME</bold></red> <white>%buyer% <yellow>a acheté %items% <yellow>de <white>%seller% <yellow>pour <gold>%price%<yellow> !"
+  #       armor: "<blue><bold>ARMURE</bold></blue> <white>%buyer% <yellow>a acheté %items% <yellow>de <white>%seller% <yellow>pour <gold>%price%<yellow> !"
+  #       enchanted-books: "<light_purple><bold>ENCHANT</bold></light_purple> <white>%buyer% <yellow>a acheté %items% <yellow>de <white>%seller% <yellow>pour <gold>%price%<yellow> !"
+  category-messages:
+    sell: {}
+    purchase: {}
+
+#=============================================================================
+# CONFIGURATION DES PERFORMANCES
+#=============================================================================
+
+# Paramètres de performance avancés pour les hôtels des ventes volumineux.
+# Ces paramètres contrôlent le cache, le traitement parallèle et les timeouts.
+# La plupart des serveurs n'auront pas besoin de modifier ces valeurs par défaut.
+
+performance:
+  # Configuration du cache pour les listes d'items triés.
+  # Le cache pré-trie les items pour fournir un accès O(1) pour la pagination.
+  cache:
+    # Nombre minimum d'items avant d'utiliser le tri parallèle (Arrays.parallelSort).
+    # Le tri parallèle améliore les performances pour les grands ensembles de données mais a un surcoût pour les petits.
+    # Recommandé: 10000 pour la plupart des serveurs. Réduire si vous avez beaucoup de cœurs CPU disponibles.
+    parallel-sort-threshold: 10000
+
+    # Nombre minimum d'items avant de traiter les catégories en parallèle.
+    # Les catégories sont traitées simultanément quand ce seuil est dépassé.
+    # Recommandé: 5000 pour la plupart des serveurs.
+    parallel-category-threshold: 5000
+
+    # Nombre de threads à utiliser pour le traitement parallèle.
+    # Définir à -1 pour la détection automatique (utilise les processeurs disponibles - 1, minimum 2).
+    # Définir un nombre spécifique pour remplacer la détection automatique.
+    parallelism: -1
+
+  # Configuration des timeouts pour les opérations cluster (configurations multi-serveurs).
+  # Ces timeouts empêchent les opérations de rester bloquées indéfiniment.
+  # Toutes les valeurs sont en millisecondes.
+  cluster-timeout:
+    # Timeout pour vérifier la disponibilité d'un item sur les serveurs.
+    check-availability-ms: 5000
+
+    # Timeout pour acquérir un verrou sur un item.
+    lock-item-ms: 5000
+
+    # Timeout pour libérer un verrou sur un item.
+    unlock-item-ms: 3000
+
+    # Timeout pour notifier les autres serveurs des changements de statut.
+    notify-status-change-ms: 3000
+
+    # Timeout pour notifier les autres serveurs des achats/suppressions d'items.
+    notify-item-action-ms: 5000
+
+#=============================================================================
+# CONFIGURATION DU TRI
+#=============================================================================
+
+# Options de tri des items pour l'affichage de l'hôtel des ventes.
+# Contrôle comment les items sont ordonnés lors de la visualisation des annonces.
+
+sort-items:
+  # Type de tri par défaut appliqué quand un joueur ouvre l'hôtel des ventes pour la première fois
+  # Options: ASCENDING_PRICE, ASCENDING_DATE, DECREASING_DATE, DECREASING_PRICE
+  default-sort: DECREASING_DATE
+
+  # Noms d'affichage pour chaque type de tri dans le GUI
+  translations:
+    ASCENDING_PRICE: "ᴘʀɪx ᴄʀᴏɪssᴀɴᴛ"     # Moins cher d'abord
+    ASCENDING_DATE: "ᴅᴀᴛᴇ ᴄʀᴏɪssᴀɴᴛᴇ"     # Plus ancien d'abord
+    DECREASING_DATE: "ᴅᴀᴛᴇ ᴅᴇᴄʀᴏɪssᴀɴᴛᴇ"   # Plus récent d'abord
+    DECREASING_PRICE: "ᴘʀɪx ᴅᴇᴄʀᴏɪssᴀɴᴛ"  # Plus cher d'abord
+
+#=============================================================================
+# CONFIGURATION DES FILTRES DE RECHERCHE
+#=============================================================================
+
+# Configure les opérateurs de filtres de recherche utilisés dans le système de recherche.
+# Chaque type de filtre correspond à un opérateur que les joueurs tapent dans la barre de recherche.
+#
+# Exemple : "seller = Notch", "name ~ Diamond", "material ~= sword"
+#
+# ATTENTION : Les opérateurs doivent être uniques. Évitez les opérateurs qui sont des préfixes d'autres
+# (ex: "=" et "==" fonctionnent car les opérateurs plus longs sont vérifiés en premier).
+
+search-filters:
+  # Contient (sensible à la casse) : champ ~ valeur
+  CONTAINS: "~"
+  # Correspondance exacte (sensible à la casse) : champ = valeur
+  EQUALS: "="
+  # Contient (insensible à la casse) : champ ~= valeur
+  CONTAINS_IGNORE_CASE: "~="
+  # Correspondance exacte (insensible à la casse) : champ == valeur
+  EQUALS_IGNORE_CASE: "=="
+
+################################################################################################################################
+# MIGRATION DEPUIS D'AUTRES PLUGINS
+################################################################################################################################
+# Cette section permet de migrer des données depuis d'autres plugins d'enchères vers zAuctionHouse V4.
+#
+# COMMENT MIGRER:
+# 1. Configurez la section source appropriée ci-dessous avec les paramètres de BDD de votre ancien plugin
+# 2. Arrêtez votre serveur et sauvegardez toutes les données (CRITIQUE!)
+# 3. Démarrez le serveur avec zAuctionHouse V4
+# 4. Exécutez: /ah admin migrate <source> confirm
+#
+# SOURCES SUPPORTÉES:
+#   - zauctionhousev3 (alias: zah, zahv3, v3)
+#
+# ATTENTION: Sauvegardez toujours vos données avant de migrer! La migration ne peut pas être annulée.
+
+migration:
+
+  #============================================================
+  # Migration zAuctionHouse V3
+  #============================================================
+  # Migre les données de zAuctionHouse V3 vers V4.
+  # Commande: /ah admin migrate zauctionhousev3 confirm
+  zauctionhouse-v3:
+    # Type de stockage source de V3
+    # Options: MYSQL, MARIADB, SQLITE, ou JSON
+    source-type: SQLITE
+
+    # Préfixe de table utilisé dans votre installation V3
+    # Vérifiez votre config.yml V3 si incertain (par défaut était "zauctionhouse_")
+    table-prefix: "zauctionhouse_"
+
+    # === Configuration SQLite ===
+    # Chemin vers le fichier de base de données SQLite V3 (relatif à la racine du serveur)
+    sqlite-path: "plugins/zAuctionHousev3/database.db"
+
+    # === Configuration MySQL/MariaDB ===
+    # Nécessaire uniquement si source-type est MYSQL ou MARIADB
+    host: "localhost"
+    port: 3306
+    database: "zauctionhouse"
+    user: "root"
+    password: ""
+
+    # === Configuration JSON ===
+    # Chemin vers le dossier de données V3 contenant les fichiers de stockage JSON
+    json-folder: "plugins/zAuctionHouseV3"
+
+  #============================================================
+  # Futures Sources de Migration
+  #============================================================
+  # Des sources de migration supplémentaires seront ajoutées dans les futures mises à jour.
+  # Exemples:
+  # axauctions:
+  #   source-type: SQLITE
+  #   sqlite-path: "plugins/AxAuctions/data.db"
+
+################################################################################################################################
+# CONFIGURATION ADMIN GENERATE
+################################################################################################################################
+# Configuration pour la commande /ah admin generate.
+# Cette commande crée des objets fictifs pour les tests de performance.
+#
+# UTILISATION: /ah admin generate <quantité>
+#
+# ATTENTION: Les objets générés sont pour les TESTS UNIQUEMENT. Supprimez-les après les tests.
+
+admin-generate:
+
+  #============================================================
+  # Configuration du Temps d'Expiration
+  #============================================================
+  # Contrôle le temps d'expiration des objets générés.
+
+  expiration:
+    # Mode: FIXED ou RANDOM
+    # FIXED: Tous les objets utilisent la valeur 'fixed'
+    # RANDOM: Les objets obtiennent une valeur aléatoire entre 'min' et 'max'
+    mode: RANDOM
+
+    # Temps d'expiration fixe en secondes (utilisé quand mode est FIXED)
+    fixed: 172800  # 2 jours
+
+    # Temps d'expiration minimum en secondes (utilisé quand mode est RANDOM)
+    min: 3600      # 1 heure
+
+    # Temps d'expiration maximum en secondes (utilisé quand mode est RANDOM)
+    max: 604800    # 7 jours
+
+  #============================================================
+  # Configuration du Prix
+  #============================================================
+  # Contrôle le prix des objets générés.
+
+  price:
+    # Mode: FIXED ou RANDOM
+    mode: RANDOM
+
+    # Prix fixe (utilisé quand mode est FIXED)
+    fixed: 1000
+
+    # Prix minimum (utilisé quand mode est RANDOM)
+    min: 10
+
+    # Prix maximum (utilisé quand mode est RANDOM)
+    max: 1000000
+
+  #============================================================
+  # Configuration de la Quantité d'Objets
+  #============================================================
+  # Contrôle la taille du stack des objets générés.
+
+  item-amount:
+    # Mode: FIXED ou RANDOM
+    mode: RANDOM
+
+    # Quantité fixe (utilisé quand mode est FIXED)
+    # Sera plafonnée à la taille max du stack de l'objet
+    fixed: 1
+
+    # Quantité minimum (utilisé quand mode est RANDOM)
+    min: 1
+
+    # Quantité maximum (utilisé quand mode est RANDOM)
+    # Utilisez -1 pour utiliser la taille max du stack de l'objet comme maximum
+    max: -1
+
+  #============================================================
+  # Configuration des Objets en Lot
+  #============================================================
+  # Les objets en lot sont des annonces avec plusieurs objets (comme les boîtes shulker).
+  # Ils apparaissent avec une icône spéciale dans la maison d'enchères.
+
+  bulk-items:
+    # Pourcentage d'objets générés qui seront des objets en lot (0-100)
+    percentage: 15
+
+    # Nombre minimum d'objets dans un lot
+    min-items: 2
+
+    # Nombre maximum d'objets dans un lot
+    max-items: 27
+
+  #============================================================
+  # Configuration des Économies
+  #============================================================
+  # Quelles économies utiliser pour les objets générés.
+
+  economies:
+    # Liste des noms d'économies à utiliser (doit correspondre aux noms dans economies.yml)
+    # Les objets seront assignés aléatoirement à l'une de ces économies.
+    # Si vide, utilise l'économie par défaut.
+    list:
+      - vault
+
+    # Si true, distribue les objets uniformément entre les économies.
+    # Si false, choisit aléatoirement une économie pour chaque objet.
+    even-distribution: false

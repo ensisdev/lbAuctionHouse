@@ -1,0 +1,192 @@
+################################################################################################################################
+#
+#   zAuctionHouse V4 - Inventario Registros Admin
+#
+#   Este inventario visualiza todos los registros de acciones para un jugador.
+#   Los registros registran cada accion de subasta: publicacion, compra y eliminacion de objetos.
+#
+#   TIPOS DE REGISTRO:
+#   - SALE: Objeto puesto en venta
+#   - PURCHASE: Objeto comprado
+#   - REMOVE_LISTED: Objeto eliminado de las publicaciones activas
+#   - REMOVE_SELLING: Objeto recuperado del inventario en venta
+#   - REMOVE_EXPIRED: Objeto recuperado del inventario caducados
+#   - REMOVE_PURCHASED: Objeto recuperado del inventario comprados
+#
+#   FUNCIONALIDADES:
+#   - Filtrar por tipo de registro
+#   - Filtrar por rango de fechas
+#   - Recuperar objetos de las entradas de registro (recuperacion admin)
+#
+#   ACCESO:
+#   - Desde el menu principal historial admin -> Boton Registros
+#
+#   Documentacion: https://docs.groupez.dev/zauctionhouse/introduction
+#   Discord: https://discord.groupez.dev/
+#
+################################################################################################################################
+
+#=============================================================================
+# CONFIGURACION DEL INVENTARIO
+#=============================================================================
+
+# Titulo del inventario con placeholder de paginacion.
+name: '#0c1719Registros admin (%page%/%max-page%)'
+
+# Tamano del inventario - 6 filas.
+size: 54
+
+#=============================================================================
+# PATTERNS
+#=============================================================================
+
+patterns:
+  # Bordes decorativos de cristal.
+  - 'zauctionhouse-decoration'
+  # Botones pagina anterior/siguiente.
+  - 'zauctionhouse-pagination'
+  # Boton atras para volver al historial admin.
+  - 'zauctionhouse-back'
+
+#=============================================================================
+# OBJETOS
+#=============================================================================
+
+items:
+
+  #---------------------------------------------------------------------------
+  # VISUALIZACION DE ENTRADAS DE REGISTRO
+  #---------------------------------------------------------------------------
+  # Muestra todas las entradas de registro para el jugador objetivo.
+  # Cada entrada muestra el tipo de accion, el objeto y la marca de tiempo.
+
+  items:
+    # Tipo de boton - visualiza las entradas de registro.
+    type: ZAUCTIONHOUSE_ADMIN_LOGS
+
+    # Slot para el indicador de carga.
+    loading-slot: 22
+
+    # Slots para mostrar las entradas de registro (4 filas x 9 columnas = 36 slots).
+    slots:
+      - 9-17    # Fila 2
+      - 18-26   # Fila 3
+      - 27-35   # Fila 4
+      - 36-44   # Fila 5
+
+    # Objeto mostrado durante la carga.
+    item:
+      material: BARRIER
+      name: "#ff0000Cargando..."
+
+    # Objeto mostrado cuando no hay registros.
+    else:
+      slots:
+        - 22
+      item:
+        material: BARRIER
+        name: '#ff0000&nNinguna Venta Encontrada'
+        lore:
+          - ''
+          - '&7Aun no has vendido ningun objeto.'
+
+  #---------------------------------------------------------------------------
+  # BOTON FILTRAR POR TIPO
+  #---------------------------------------------------------------------------
+  # Alterna entre los filtros por tipo de registro.
+
+  filter-type:
+    # Tipo de boton - gestiona el filtrado por tipo.
+    type: ZAUCTIONHOUSE_ADMIN_LOGS_FILTER_TYPE
+
+    # Posicion del slot.
+    slot: 47
+
+    # Formato para el tipo actualmente seleccionado.
+    enable-text: ' #F27438➜ %type%'
+
+    # Formato para los tipos no seleccionados.
+    disable-text: ' #76CDCD➜ %type%'
+
+    # Nombre mostrado para la opcion "todos los tipos".
+    all-types-name: "Todos"
+
+    # Tipos de registro disponibles para el filtrado.
+    types:
+      - SALE              # Objetos puestos en venta
+      - PURCHASE          # Objetos comprados
+      - REMOVE_LISTED     # Objetos eliminados de las publicaciones activas
+      - REMOVE_SELLING    # Objetos recuperados del inventario en venta
+      - REMOVE_EXPIRED    # Objetos recuperados del inventario caducados
+      - REMOVE_PURCHASED  # Objetos recuperados del inventario comprados
+
+    # Nombres mostrados para cada tipo.
+    type-names:
+      SALE: "Venta"
+      PURCHASE: "Compra"
+      REMOVE_LISTED: "Eliminar Publicacion"
+      REMOVE_SELLING: "Eliminar en Venta"
+      REMOVE_EXPIRED: "Eliminar Caducado"
+      REMOVE_PURCHASED: "Eliminar Comprado"
+
+    item:
+      material: HOPPER
+      name: '#2CCED2<bold>ғɪʟᴛʀᴀʀ ᴘᴏʀ ᴛɪᴘᴏ'
+      lore:
+        - '#92ffffTipos disponibles:'
+        # Placeholder para cada tipo (formateado por enable/disable-text).
+        - '%ALL%'
+        - '%SALE%'
+        - '%PURCHASE%'
+        - '%REMOVE_LISTED%'
+        - '%REMOVE_SELLING%'
+        - '%REMOVE_EXPIRED%'
+        - '%REMOVE_PURCHASED%'
+        - ''
+        - '#8c8c8c• #2CCED2Clic #92ffffpara cambiar el filtro de tipo'
+
+  #---------------------------------------------------------------------------
+  # BOTON FILTRAR POR FECHA
+  #---------------------------------------------------------------------------
+  # Alterna entre los filtros por rango de fechas.
+
+  filter-date:
+    # Tipo de boton - gestiona el filtrado por fecha.
+    type: ZAUCTIONHOUSE_ADMIN_LOGS_FILTER_DATE
+
+    slot: 51
+
+    # Formato para el rango de fechas actualmente seleccionado.
+    enable-text: ' #F27438➜ %date%'
+
+    # Formato para los rangos de fechas no seleccionados.
+    disable-text: ' #76CDCD➜ %date%'
+
+    # Filtros de fecha disponibles.
+    filters:
+      - ALL         # Todo el tiempo
+      - TODAY       # Solo hoy
+      - THIS_WEEK   # Ultimos 7 dias
+      - THIS_MONTH  # Ultimos 30 dias
+      - THIS_YEAR   # Ultimos 365 dias
+
+    # Nombres mostrados para cada filtro de fecha.
+    filter-names:
+      ALL: "Todo"
+      TODAY: "Hoy"
+      THIS_WEEK: "Esta Semana"
+      THIS_MONTH: "Este Mes"
+      THIS_YEAR: "Este Ano"
+
+    item:
+      material: CLOCK
+      name: '#2CCED2<bold>ғɪʟᴛʀᴀʀ ᴘᴏʀ ғᴇᴄʜᴀ'
+      lore:
+        - '#92ffffFiltros disponibles:'
+        - '%ALL%'
+        - '%TODAY%'
+        - '%THIS_WEEK%'
+        - '%THIS_MONTH%'
+        - '%THIS_YEAR%'
+        - ''
+        - '#8c8c8c• #2CCED2Clic #92ffffpara cambiar el filtro de fecha'

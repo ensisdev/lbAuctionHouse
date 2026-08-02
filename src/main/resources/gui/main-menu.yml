@@ -1,0 +1,78 @@
+# Auction Main Menu GUI Layout
+# All items, names, lore, slots are fully customizable
+
+title: "&8İhale"
+rows: 6
+
+border:
+  material: BLACK_STAINED_GLASS_PANE
+  name: " "
+  slots: "0-8, 45-53"
+
+navigation:
+  previous-page:
+    slot: 45
+    material: ARROW
+    name: "&a« Önceki Sayfa"
+    lore: []
+    left-click: "previous_page"
+    right-click: ""
+  next-page:
+    slot: 53
+    material: ARROW
+    name: "&aSonraki Sayfa »"
+    lore: []
+    left-click: "next_page"
+    right-click: ""
+  close:
+    slot: 49
+    material: BARRIER
+    name: "&cKapat"
+    lore: ["&7İhaleı kapat"]
+    left-click: "close"
+    right-click: ""
+  my-listings:
+    slot: 46
+    material: BOOK
+    name: "&eİlanlarım"
+    lore: ["&7Aktif ilanlarını görüntüle"]
+    left-click: "my_listings"
+    right-click: ""
+  collection-box:
+    slot: 52
+    material: CHEST
+    name: "&6Kolim"
+    lore: ["&7Bekleyen ödüllerin"]
+    left-click: "collection_box"
+    right-click: ""
+
+search:
+  slot: 48
+  material: OAK_SIGN
+  name: "&bEşya Ara"
+  lore: ["&7Tıkla — isimle ara", "&7Sağ tık — temizle"]
+
+sorting:
+  slot: 50
+  material: HOPPER
+  name: "&dSırala"
+  options:
+    - "&7Fiyat ↑"
+    - "&7Fiyat ↓"
+    - "&7Süre ↑"
+    - "&7Süre ↓"
+    - "&7En Yeni"
+
+content-slots: "9-44"
+
+# İlan item'larının lore'u. %seller% %price% %time_left% değişkenleri doldurulur.
+# İlk satırlar tıklama yönergeleridir (& renk kodu desteklenir).
+lore-format:
+  - "&8[🛒] &eSol Tıkla &7| Satın Al"
+  - "&8[👁] &eSağ Tıkla &7| Önizle"
+  - ""
+  - "&7Satıcı: &f%seller%"
+  - "&7Fiyat: &6%price%"
+  - "&7Kalan: &e%time_left%"
+  - ""
+  - "&7Adet: &f%amount%"

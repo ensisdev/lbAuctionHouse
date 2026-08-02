@@ -1,0 +1,74 @@
+################################################################################################################################
+#
+#   zAuctionHouse V4 - Inventaire des items en vente admin
+#
+#   Cet inventaire permet aux admins de voir et gérer les ventes actives d'un joueur.
+#   Les admins peuvent retirer des items de la vente au nom des joueurs.
+#
+#   ACTIONS ADMIN:
+#   - Voir tous les items actuellement en vente par le joueur cible
+#   - Retirer des items de la vente (annule la mise en vente)
+#   - Utile pour retirer des annonces inappropriées ou des arnaques
+#
+#   ACCÈS:
+#   - Depuis le menu principal historique admin → Bouton Items en Vente
+#   - /ah admin open selling <joueur>
+#
+#   Documentation: https://docs.groupez.dev/zauctionhouse/introduction
+#   Discord: https://discord.groupez.dev/
+#
+################################################################################################################################
+
+#=============================================================================
+# PARAMÈTRES DE L'INVENTAIRE
+#=============================================================================
+
+# Titre de l'inventaire avec placeholders de pagination.
+# Note: Le titre dit "en vente" mais le type utilise "selling" pour la cohérence.
+name: '#0c1719Items en vente admin (%page%/%max-page%)'
+
+# Taille de l'inventaire - 6 lignes.
+size: 54
+
+#=============================================================================
+# PATTERNS
+#=============================================================================
+
+patterns:
+  # Bordures décoratives en vitres.
+  - 'zauctionhouse-decoration'
+  # Boutons page précédente/suivante.
+  - 'zauctionhouse-pagination'
+  # Bouton retour vers le menu principal admin.
+  - 'zauctionhouse-back'
+
+#=============================================================================
+# ITEMS
+#=============================================================================
+
+items:
+
+  #---------------------------------------------------------------------------
+  # AFFICHAGE DES ITEMS EN VENTE
+  #---------------------------------------------------------------------------
+  # Affiche tous les items actuellement en vente par le joueur cible.
+  # Cliquer sur un item le retire de la vente (action admin).
+
+  items:
+    # Type de bouton - affiche les items en vente admin avec fonctionnalité de suppression.
+    type: ZAUCTIONHOUSE_ADMIN_SELLING_ITEMS
+
+    # Slots pour afficher les items en vente (4 lignes × 9 colonnes = 36 slots).
+    slots:
+      - 9-17    # Ligne 2
+      - 18-26   # Ligne 3
+      - 27-35   # Ligne 4
+      - 36-44   # Ligne 5
+
+    # Fallback quand aucun item n'est en vente.
+    else:
+      slots:
+        - 22
+      item:
+        material: BARRIER
+        name: '#ff0000&nAucun Item Trouvé'

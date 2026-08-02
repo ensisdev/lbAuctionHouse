@@ -1,0 +1,116 @@
+################################################################################################################################
+#
+#   zAuctionHouse V4 - Inventaire de Confirmation de Retrait en Lot
+#
+#   Cet inventaire confirme le retrait de plusieurs items de la vente (ventes en lot).
+#   Affiche tous les items qui seront retirés et retournés au vendeur.
+#
+#   FONCTIONNALITÉS:
+#   - Prévisualiser tous les items de la vente en lot avant le retrait
+#   - Voir le contenu des shulkers (si applicable)
+#   - Un seul clic pour retirer tous les items de la vente
+#
+#   ACCÈS:
+#   - S'ouvre automatiquement quand un vendeur clique sur sa propre annonce en lot
+#   - Affiché uniquement si open-confirm-inventory est true dans config.yml
+#
+#   Documentation: https://docs.groupez.dev/zauctionhouse/introduction
+#   Discord: https://discord.groupez.dev/
+#
+################################################################################################################################
+
+#=============================================================================
+# PARAMÈTRES DE L'INVENTAIRE
+#=============================================================================
+
+# Titre de l'inventaire - format question avec "items" au pluriel.
+name: "#0c1719Retirer ces items ?"
+
+# Taille de l'inventaire - 6 rangées pour afficher tous les items de la vente en lot.
+size: 54
+
+#=============================================================================
+# PATTERNS
+#=============================================================================
+
+patterns:
+  # Bordures décoratives en vitres.
+  - 'zauctionhouse-decoration'
+
+#=============================================================================
+# ITEMS
+#=============================================================================
+
+items:
+
+  #---------------------------------------------------------------------------
+  # AFFICHAGE DU CONTENU EN LOT
+  #---------------------------------------------------------------------------
+  # Affiche tous les items inclus dans la vente en lot.
+
+  item-content:
+    # Type de bouton - affiche tous les items de la vente.
+    type: ZAUCTIONHOUSE_ITEM_CONTENT
+
+    # Slots pour afficher les items (4 rangées × 9 colonnes = 36 slots).
+    slots:
+      - 9-44
+
+  #---------------------------------------------------------------------------
+  # BOUTON CONFIRMER LE RETRAIT
+  #---------------------------------------------------------------------------
+  # Retire tous les items de la vente.
+
+  confirm:
+    type: ZAUCTIONHOUSE_CONFIRM_REMOVE_LISTED
+
+    item:
+      material: GREEN_STAINED_GLASS_PANE
+      name: "#2CCED2<bold>ʀᴇᴛɪʀᴇʀ"
+      lore:
+        - "#92ffffRetirer cet item."
+        - ""
+        - "#8c8c8c• #2CCED2Cliquez #92ffffpour retirer"
+
+    # Zone en bas à gauche (3 slots).
+    slots:
+      - 46-48
+
+  #---------------------------------------------------------------------------
+  # BOUTON ANNULER/RETOUR
+  #---------------------------------------------------------------------------
+  # Annule et retourne à l'hôtel des ventes.
+
+  deny:
+    type: BACK
+
+    item:
+      material: RED_STAINED_GLASS_PANE
+      name: "#2CCED2<bold>ʀᴇᴛᴏᴜʀ"
+      lore:
+        - "#92ffffRetourner en arrière."
+        - ""
+        - "#8c8c8c• #2CCED2Cliquez #92ffffpour revenir"
+
+    # Zone en bas à droite (3 slots).
+    slots:
+      - 50-52
+
+  #---------------------------------------------------------------------------
+  # BOUTON CONTENU SHULKER
+  #---------------------------------------------------------------------------
+  # Ouvre la visionneuse de contenu shulker.
+
+  shulker:
+    type: ZAUCTIONHOUSE_SHULKER_OPEN
+
+    # Centre de la rangée du bas.
+    slot: 49
+
+    item:
+      material: SHULKER_BOX
+      name: "#2CCED2<bold>ᴠᴏɪʀ ʟᴇ ᴄᴏɴᴛᴇɴᴜ sʜᴜʟᴋᴇʀ"
+      lore:
+        - "#92ffffVoir le contenu des boîtes shulker."
+        - ""
+        - "#8c8c8c• #2CCED2Cliquez #92ffffpour voir le contenu"

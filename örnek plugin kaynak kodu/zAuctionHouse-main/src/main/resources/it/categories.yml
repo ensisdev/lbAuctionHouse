@@ -1,0 +1,303 @@
+################################################################################################################################
+#
+#   zAuctionHouse V4 - Configurazione delle Categorie
+#
+#   Questo file definisce le categorie di oggetti per organizzare la casa d'aste.
+#   Le categorie aiutano i giocatori a sfogliare gli oggetti più facilmente filtrando per tipo.
+#
+#   FUNZIONAMENTO DELLE CATEGORIE:
+#   - Ogni categoria ha un ID univoco (la chiave YAML, es: "weapons", "armor")
+#   - Le categorie usano regole per determinare quali oggetti appartengono loro
+#   - Gli oggetti vengono automaticamente ordinati nelle categorie secondo queste regole
+#   - Un oggetto può apparire in più categorie se corrisponde a più regole
+#   - La categoria "misc" (o qualsiasi categoria senza regole) agisce come fallback
+#
+#   ORDINE DELLE CATEGORIE:
+#   - Le categorie appaiono nel GUI nell'ordine definito in inventories/categories.yml
+#   - Questo file definisce solo le regole, non l'ordine di visualizzazione
+#
+#   TIPI DI REGOLE (vedi rules.yml per la documentazione completa):
+#   - material        : Corrispondenza per nome del materiale Minecraft
+#   - material-suffix : Corrispondenza per suffisso del materiale
+#   - tag             : Corrispondenza per tag Bukkit/Paper
+#   - name            : Corrispondenza per nome di visualizzazione dell'oggetto
+#   - lore            : Corrispondenza per contenuto del lore
+#   - custom-model-data: Corrispondenza per valore CustomModelData
+#   - and/or          : Combinare più regole
+#   - Regole di plugin di oggetti personalizzati (itemsadder, oraxen, mmoitems, ecc.)
+#
+#   REGOLE DI ESCLUSIONE (BANNED RULES):
+#   - Puoi aggiungere una lista "banned-rules" a qualsiasi categoria
+#   - Gli oggetti che corrispondono a una banned rule sono ESCLUSI dalla categoria,
+#     anche se corrispondono alle regole di inclusione
+#   - Usa gli stessi tipi di regole delle regole normali
+#   - Utile per escludere oggetti personalizzati (es: oggetti con un CustomModelData specifico)
+#
+#   Documentazione: https://docs.groupez.dev/zauctionhouse/introduction
+#   Discord: https://discord.groupez.dev/
+#
+################################################################################################################################
+
+#=============================================================================
+# IMPOSTAZIONI DELLE CATEGORIE
+#=============================================================================
+
+settings:
+  # Attivare o disattivare completamente il sistema di categorie.
+  # Quando disattivato, tutti gli oggetti vengono visualizzati insieme senza opzioni di filtro.
+  # La categoria "Tutti" sarà l'unica vista disponibile.
+  enabled: true
+
+  # Nome di visualizzazione per la categoria "Tutti" (mostra tutti gli oggetti qualsiasi sia il tipo).
+  # Questa categoria esiste sempre e mostra tutti gli oggetti elencati.
+  # Supporta la formattazione MiniMessage e i colori hex.
+  all-category-name: "Casa d'aste"
+
+#=============================================================================
+# DEFINIZIONI DELLE CATEGORIE
+#=============================================================================
+# Ogni categoria è definita con:
+#   - Chiave (identificatore univoco, es: "weapons") - usato nei file di inventario
+#   - display-name: Mostrato nel GUI (supporta la formattazione MiniMessage)
+#   - rules: Lista di regole che determinano quali oggetti appartengono a questa categoria
+#   - banned-rules: (opzionale) Lista di regole per ESCLUDERE oggetti da questa categoria
+#
+# IMPORTANTE: Le chiavi delle categorie devono corrispondere al campo 'category' in inventories/categories.yml
+
+#-----------------------------------------------------------------------------
+# CATEGORIA BLOCCHI
+#-----------------------------------------------------------------------------
+# Contiene tutti i blocchi posizionabili di Minecraft.
+# Usa il tag BLOCKS di Bukkit per una corrispondenza completa.
+
+blocks:
+  # Nome di visualizzazione mostrato nell'inventario delle categorie.
+  display-name: "Blocchi"
+
+  # Regole per far corrispondere gli oggetti a questa categoria.
+  # Un oggetto che corrisponde a QUALSIASI regola apparirà in questa categoria.
+  rules:
+    # Far corrispondere tutti i materiali blocchi usando il sistema di tag Bukkit.
+    # Il tag BLOCKS include tutti i blocchi posizionabili di Minecraft.
+    # Questo è più affidabile che elencare i materiali individualmente.
+    - type: tag
+      tags:
+        - BLOCKS    # Tag personalizzato che corrisponde a tutti i blocchi Minecraft
+
+#-----------------------------------------------------------------------------
+# CATEGORIA ARMI
+#-----------------------------------------------------------------------------
+# Contiene le armi da combattimento: spade, archi, balestre, tridenti.
+
+weapons:
+  display-name: "Armi"
+
+  rules:
+    # Far corrispondere tutti i tipi di spade per suffisso.
+    # Questo cattura: WOODEN_SWORD, STONE_SWORD, IRON_SWORD, GOLDEN_SWORD,
+    # DIAMOND_SWORD, NETHERITE_SWORD, e qualsiasi spada modata.
+    - type: material-suffix
+      suffixes:
+        - "_SWORD"
+
+    # Far corrispondere le armi a distanza specificamente per materiale.
+    # Queste non seguono un pattern, quindi le elenchiamo individualmente.
+    - type: material
+      materials:
+        - BOW         # Arco standard
+        - CROSSBOW    # Balestra con meccanica di caricamento
+        - TRIDENT     # Arma lanciabile e da mischia
+
+#-----------------------------------------------------------------------------
+# CATEGORIA ARMATURE
+#-----------------------------------------------------------------------------
+# Contiene l'equipaggiamento protettivo: elmi, corazze, gambali, stivali, scudi.
+
+armor:
+  display-name: "Armature"
+
+  rules:
+    # Far corrispondere i pezzi di armatura standard per suffisso.
+    # Questo cattura tutti i tipi di materiali: cuoio, maglia, ferro, oro, diamante, netherite.
+    - type: material-suffix
+      suffixes:
+        - "_HELMET"
+        - "_CHESTPLATE"
+        - "_LEGGINGS"
+        - "_BOOTS"
+
+    # Far corrispondere oggetti protettivi speciali che non seguono il pattern di suffisso.
+    - type: material
+      materials:
+        - ELYTRA        # Ali per planare
+        - SHIELD        # Oggetto di blocco
+        - TURTLE_HELMET # Elmo speciale in scaglie di tartaruga
+
+#-----------------------------------------------------------------------------
+# CATEGORIA STRUMENTI
+#-----------------------------------------------------------------------------
+# Contiene strumenti utilitari: picconi, asce, pale, zappe, e strumenti vari.
+
+tools:
+  display-name: "Strumenti"
+
+  rules:
+    # Far corrispondere gli strumenti standard per suffisso.
+    # Questo cattura tutti i tipi di materiali: legno, pietra, ferro, oro, diamante, netherite.
+    - type: material-suffix
+      suffixes:
+        - "_PICKAXE"
+        - "_AXE"
+        - "_SHOVEL"
+        - "_HOE"
+
+    # Far corrispondere strumenti vari che non seguono il pattern di suffisso.
+    - type: material
+      materials:
+        - SHEARS          # Per tosare le pecore e rompere blocchi
+        - FLINT_AND_STEEL # Per accendere fuochi
+        - FISHING_ROD     # Per pescare
+
+#-----------------------------------------------------------------------------
+# CATEGORIA CONSUMABILI
+#-----------------------------------------------------------------------------
+# Contiene cibo e pozioni che possono essere consumati.
+
+consumables:
+  display-name: "Consumabili"
+
+  rules:
+    # Far corrispondere pozioni e oggetti alimentari di valore specificamente.
+    # Elenchiamo i consumabili di valore comuni piuttosto che tutto il cibo
+    # per mantenere questa categoria concentrata su oggetti scambiabili.
+    - type: material
+      materials:
+        # Pozioni
+        - POTION           # Pozioni bevibili
+        - SPLASH_POTION    # Pozioni lanciabili
+        - LINGERING_POTION # Pozioni ad effetto area
+
+        # Oggetti alimentari di valore
+        - GOLDEN_APPLE           # Mela d'oro standard
+        - ENCHANTED_GOLDEN_APPLE # Mela di Notch / Mela di Dio
+
+        # Cibo cotto comunemente scambiato
+        - COOKED_BEEF     # Bistecca
+        - COOKED_PORKCHOP # Braciola cotta
+        - BREAD           # Cibo base
+        - CAKE            # Cibo posizionabile
+        - COOKIE          # Piccolo spuntino
+        - PUMPKIN_PIE     # Cibo del raccolto
+
+#-----------------------------------------------------------------------------
+# CATEGORIA RISORSE
+#-----------------------------------------------------------------------------
+# Contiene minerali, lingotti e materiali per il crafting.
+
+resources:
+  display-name: "Risorse"
+
+  rules:
+    # Far corrispondere le risorse di crafting di valore.
+    # Questi sono materiali comunemente scambiati usati nel crafting.
+    - type: material
+      materials:
+        # Materiali lavorati (lingotti e gemme)
+        - COAL            # Carburante e crafting
+        - IRON_INGOT      # Metallo comune
+        - GOLD_INGOT      # Metallo prezioso
+        - DIAMOND         # Gemma di valore
+        - EMERALD         # Valuta dei villager
+        - NETHERITE_INGOT # Materiale di fine gioco
+        - LAPIS_LAZULI    # Materiale per incantamento
+        - REDSTONE        # Materiale per circuiti
+        - COPPER_INGOT    # Materiale da costruzione
+        - AMETHYST_SHARD  # Materiale decorativo
+
+        # Minerali grezzi (per il mining con Tocco di Velluto)
+        - RAW_IRON        # Minerale di ferro grezzo
+        - RAW_GOLD        # Minerale d'oro grezzo
+        - RAW_COPPER      # Minerale di rame grezzo
+
+#-----------------------------------------------------------------------------
+# CATEGORIA LIBRI INCANTATI
+#-----------------------------------------------------------------------------
+# Contiene i libri incantati per lo scambio di incantamenti.
+# I libri incantati sono oggetti comunemente scambiati nelle case d'aste.
+
+enchanted-books:
+  display-name: "Libri incantati"
+
+  rules:
+    # Far corrispondere solo i libri incantati.
+    # Nota: Questo corrisponde al tipo di oggetto, non se ha incantamenti.
+    # I libri normali (BOOK) non sono inclusi.
+    - type: material
+      materials:
+        - ENCHANTED_BOOK
+
+#-----------------------------------------------------------------------------
+# CATEGORIA VARIE (FALLBACK)
+#-----------------------------------------------------------------------------
+# Contiene tutti gli oggetti che non corrispondono a nessun'altra categoria.
+# Agisce come contenitore per assicurarsi che ogni oggetto abbia una categoria.
+#
+# IMPORTANTE: Una categoria senza regole diventa la categoria fallback.
+# Gli oggetti che non corrispondono a nessun'altra categoria appariranno qui.
+
+misc:
+  display-name: "Varie"
+  # Nessuna regola definita = categoria fallback per gli oggetti senza corrispondenza.
+  # Qualsiasi oggetto che non corrisponde ad armi, armature, strumenti, ecc. va qui.
+
+#=============================================================================
+# AGGIUNGERE CATEGORIE PERSONALIZZATE
+#=============================================================================
+# Puoi aggiungere le tue categorie seguendo lo stesso formato:
+#
+# mia-categoria-personalizzata:
+#   display-name: "#ff5555La Mia Categoria"
+#   rules:
+#     - type: material
+#       materials:
+#         - DIAMOND_BLOCK
+#         - EMERALD_BLOCK
+#
+# Non dimenticare di aggiungere anche un pulsante per la tua categoria in:
+# inventories/categories.yml
+#
+# ESEMPI:
+#
+# # Categoria personalizzata per gli oggetti ItemsAdder
+# oggetti-personalizzati:
+#   display-name: "#ffd700Oggetti Personalizzati"
+#   rules:
+#     - type: itemsadder
+#       items:
+#         - "mionamespace:*"  # Tutti gli oggetti del tuo namespace
+#
+# # Categoria per oggetti con un lore specifico
+# oggetti-speciali:
+#   display-name: "#ff00ffOggetti Speciali"
+#   rules:
+#     - type: lore
+#       mode: CONTAINS
+#       values:
+#         - "Edizione Speciale"
+#         - "Limitato"
+#
+# # Categoria con regole di esclusione (banned-rules)
+# # Esempio: Includere tutti gli strumenti ma escludere oggetti con un CustomModelData specifico
+# # Una zappa di netherite con CustomModelData 300 NON APPARIRA in questa categoria,
+# # ma una zappa di netherite normale si.
+# strumenti-esempio:
+#   display-name: "#aaffaaStrumenti"
+#   rules:
+#     - type: material-suffix
+#       suffixes:
+#         - "_HOE"
+#         - "_PICKAXE"
+#   banned-rules:
+#     - type: custom-model-data
+#       values:
+#         - 300

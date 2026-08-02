@@ -1,0 +1,204 @@
+################################################################################################################################
+#
+#   zAuctionHouse V4 - Inventaire de Vente
+#
+#   Cet inventaire permet aux joueurs de mettre des items en vente via un GUI.
+#   Ouvert via /ah sell (quand enable-sell-inventory est true dans config.yml).
+#
+#   FONCTIONNALITÉS:
+#   - Sélectionner des items de l'inventaire à vendre
+#   - Ajuster le prix avec les boutons d'incrémentation/décrémentation
+#   - Choisir le type d'économie (si plusieurs économies sont activées)
+#   - Confirmer ou annuler la mise en vente
+#
+#   Documentation: https://docs.groupez.dev/zauctionhouse/introduction
+#   Discord: https://discord.groupez.dev/
+#
+################################################################################################################################
+
+#=============================================================================
+# PARAMÈTRES DE L'INVENTAIRE
+#=============================================================================
+
+# Titre de l'inventaire.
+name: "#0c1719Vendre un item"
+
+# Taille de l'inventaire - 6 rangées.
+size: 54
+
+#=============================================================================
+# PATTERNS
+#=============================================================================
+
+patterns:
+  # Bordures décoratives en vitres.
+  - 'zauctionhouse-decoration'
+
+#=============================================================================
+# ITEMS
+#=============================================================================
+
+items:
+
+  #---------------------------------------------------------------------------
+  # ZONE D'AFFICHAGE DE L'ITEM
+  #---------------------------------------------------------------------------
+  # Affiche le(s) item(s) actuellement sélectionné(s) pour la vente.
+  # Les joueurs peuvent cliquer sur des items de leur inventaire pour les ajouter ici.
+
+  show-item:
+    # Type de bouton - gère la sélection et l'affichage des items.
+    type: ZAUCTIONHOUSE_SELL_SHOW_ITEM
+
+    # Slots pour afficher les items sélectionnés.
+    # Couvre toute la zone centrale (36 slots).
+    slots:
+      - 9-44
+
+    # Slot pour afficher le placeholder "aucun item sélectionné".
+    empty-slot: 22
+
+    # Item placeholder quand rien n'est sélectionné.
+    item:
+      material: BARRIER
+      name: "#ff0000<bold>Aucun item sélectionné"
+      lore:
+        - ""
+        - "#8c8c8cTenez un item dans votre main"
+        - "#8c8c8cou sélectionnez des items de votre inventaire"
+
+  #---------------------------------------------------------------------------
+  # BOUTON ANNULER
+  #---------------------------------------------------------------------------
+  # Annule la vente et retourne les items au joueur.
+
+  cancel:
+    # Type de bouton - gère l'annulation et le retour des items.
+    type: ZAUCTIONHOUSE_SELL_CANCEL
+
+    # Position du slot - extrême gauche de la rangée du bas.
+    slot: 45
+
+    item:
+      # Vitre rouge indique une action d'annulation/danger.
+      material: RED_STAINED_GLASS_PANE
+      name: "#ff0000<bold>ANNULER"
+      lore:
+        - ""
+        - "#8c8c8c• #2CCED2Cliquez #92ffffpour annuler et récupérer les items"
+
+  #---------------------------------------------------------------------------
+  # BOUTON DIMINUER LE PRIX
+  #---------------------------------------------------------------------------
+  # Baisse le prix de vente avec différents montants selon le type de clic.
+
+  private-decrease:
+    # Type de bouton - gère la modification du prix.
+    type: ZAUCTIONHOUSE_SELL_PRICE
+
+    # Position du slot.
+    slot: 48
+
+    # Montants de changement de prix pour différents types de clic.
+    # Les valeurs négatives diminuent le prix.
+    amounts:
+      left-click: -500        # Clic normal: -500
+      right-click: -100       # Clic droit: -100
+      shift-left-click: -1000 # Shift + gauche: -1000
+      shift-right-click: -2500 # Shift + droit: -2500
+
+    item:
+      # Texture signe moins rouge.
+      url: eyJ0ZXh0dXJlcyI6eyJTS0lOIjp7InVybCI6Imh0dHA6Ly90ZXh0dXJlcy5taW5lY3JhZnQubmV0L3RleHR1cmUvOTM1ZTRlMjZlYWZjMTFiNTJjMTE2NjhlMWQ2NjM0ZTdkMWQwZDIxYzQxMWNiMDg1ZjkzOTQyNjhlYjRjZGZiYSJ9fX0=
+      name: "#ff3333-1 000"
+      lore:
+        - ""
+        # %price% affiche le prix de vente actuel.
+        - "<white>Prix actuel#8c8c8c: #2CCED2%price%"
+        - ""
+        - "#8c8c8c• #92ffffClic gauche#8c8c8c: -500"
+        - "#8c8c8c• #92ffffClic droit#8c8c8c: -100"
+        - "#8c8c8c• #92ffffShift+Gauche#8c8c8c: -1 000"
+        - "#8c8c8c• #92ffffShift+Droit#8c8c8c: -2 500"
+
+  #---------------------------------------------------------------------------
+  # SÉLECTEUR D'ÉCONOMIE
+  #---------------------------------------------------------------------------
+  # Parcourt les économies disponibles.
+  # Utile uniquement quand plusieurs économies sont activées.
+
+  select-economy:
+    # Type de bouton - gère le cycle des économies.
+    type: ZAUCTIONHOUSE_SELL_ECONOMY
+
+    # Position du slot - centre de la rangée du bas.
+    slot: 49
+
+    item:
+      # Texture pièce d'or.
+      url: eyJ0ZXh0dXJlcyI6eyJTS0lOIjp7InVybCI6Imh0dHA6Ly90ZXh0dXJlcy5taW5lY3JhZnQubmV0L3RleHR1cmUvNGU3NGQ2NDcyZjgxMWVlN2U1ZTgwNWVhOTNkN2I0Yzc2MWM2NmE2NGU1OTM3MDJmYzgwNzNkYjM1N2YwNDY0ZCJ9fX0=
+      name: "#ffd700<bold>Économie"
+      lore:
+        - ""
+        # %economy% affiche le nom de l'économie actuellement sélectionnée.
+        - "<white>Actuelle#8c8c8c: #2CCED2%economy%"
+        - ""
+        - "#8c8c8c• #92ffffClic gauche#8c8c8c: Économie suivante"
+        - "#8c8c8c• #92ffffClic droit#8c8c8c: Économie précédente"
+
+  #---------------------------------------------------------------------------
+  # BOUTON AUGMENTER LE PRIX
+  #---------------------------------------------------------------------------
+  # Augmente le prix de vente avec différents montants selon le type de clic.
+
+  price-increase:
+    # Type de bouton - gère la modification du prix.
+    type: ZAUCTIONHOUSE_SELL_PRICE
+
+    # Montants de changement de prix pour différents types de clic.
+    # Les valeurs positives augmentent le prix.
+    amounts:
+      left-click: 500         # Clic normal: +500
+      right-click: 100        # Clic droit: +100
+      shift-left-click: 1000  # Shift + gauche: +1000
+      shift-right-click: 2500 # Shift + droit: +2500
+
+    # Position du slot.
+    slot: 50
+
+    item:
+      # Texture signe plus vert.
+      url: eyJ0ZXh0dXJlcyI6eyJTS0lOIjp7InVybCI6Imh0dHA6Ly90ZXh0dXJlcy5taW5lY3JhZnQubmV0L3RleHR1cmUvOWEyZDg5MWM2YWU5ZjZiYWEwNDBkNzM2YWI4NGQ0ODM0NGJiNmI3MGQ3ZjFhMjgwZGQxMmNiYWM0ZDc3NyJ9fX0=
+      name: '#00cc00+1 000'
+      lore:
+        - '<white>Prix actuel#8c8c8c: #2CCED2%price%'
+        - ''
+        - '#8c8c8c• #92ffffClic gauche#8c8c8c: +500'
+        - '#8c8c8c• #92ffffClic droit#8c8c8c: +100'
+        - '#8c8c8c• #92ffffShift+Gauche#8c8c8c: +1 000'
+        - '#8c8c8c• #92ffffShift+Droit#8c8c8c: +2 500'
+
+  #---------------------------------------------------------------------------
+  # BOUTON CONFIRMER
+  #---------------------------------------------------------------------------
+  # Confirme la vente et met le(s) item(s) en vente.
+
+  confirm:
+    # Type de bouton - gère la confirmation de vente.
+    type: ZAUCTIONHOUSE_SELL_CONFIRM
+
+    # Position du slot - extrême droite de la rangée du bas.
+    slot: 53
+
+    item:
+      # Vitre verte indique une action de confirmation/sûre.
+      material: LIME_STAINED_GLASS_PANE
+      name: "#00ff00<bold>CONFIRMER LA VENTE"
+      lore:
+        - ""
+        # Résumé des détails de la vente.
+        - "<white>Économie#8c8c8c: #2CCED2%economy%"
+        - "<white>Prix#8c8c8c: #2CCED2%price%"
+        - "<white>Items#8c8c8c: #2CCED2%item_count%"
+        - ""
+        - "#8c8c8c• #2CCED2Cliquez #92ffffpour confirmer la vente"

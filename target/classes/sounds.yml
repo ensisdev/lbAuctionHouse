@@ -1,0 +1,45 @@
+# lbSmpCore-Auction Sound Effects
+# All sounds can be enabled/disabled and customized
+# Sound names: https://hub.spigotmc.org/javadocs/spigot/org/bukkit/Sound.html
+
+enabled: true
+
+click-sound:
+  sound: UI_BUTTON_CLICK
+  volume: 1.0
+  pitch: 1.0
+
+success-sound:
+  sound: ENTITY_EXPERIENCE_ORB_PICKUP
+  volume: 1.0
+  pitch: 1.0
+
+fail-sound:
+  sound: BLOCK_ANVIL_LAND
+  volume: 0.5
+  pitch: 0.8
+
+purchase-sound:
+  sound: ENTITY_PLAYER_LEVELUP
+  volume: 1.0
+  pitch: 0.9
+
+open-gui-sound:
+  sound: BLOCK_CHEST_OPEN
+  volume: 0.7
+  pitch: 1.0
+
+close-gui-sound:
+  sound: BLOCK_CHEST_CLOSE
+  volume: 0.7
+  pitch: 1.0
+
+claim-sound:
+  sound: ENTITY_ITEM_PICKUP
+  volume: 0.8
+  pitch: 1.2
+
+page-change-sound:
+  sound: ITEM_BOOK_PAGE_TURN
+  volume: 0.8
+  pitch: 1.0

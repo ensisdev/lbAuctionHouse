@@ -1,0 +1,86 @@
+################################################################################################################################
+#
+#   zAuctionHouse V4 - Inventario de Objetos Caducados
+#
+#   Este inventario muestra los objetos que han caducado sin ser vendidos.
+#   Los jugadores pueden retirar estos objetos a su inventario.
+#
+#   CADUCIDAD:
+#   - Los objetos caducan despues del tiempo definido en config.yml (predeterminado: 2 dias)
+#   - Los objetos caducados se mueven de los anuncios activos a este inventario
+#   - Los objetos aqui tambien tienen una caducidad (predeterminado: 1 semana) antes de la eliminacion definitiva
+#
+#   ACCESO:
+#   - /ah expired
+#   - Clic en el boton "Objetos caducados" en la casa de subastas principal
+#
+#   Documentacion: https://docs.groupez.dev/zauctionhouse/introduction
+#   Discord: https://discord.groupez.dev/
+#
+################################################################################################################################
+
+#=============================================================================
+# CONFIGURACION DEL INVENTARIO
+#=============================================================================
+
+# Titulo del inventario con placeholder de paginacion.
+# %page% = pagina actual, %max-page% = total paginas
+name: '#0c1719Objetos caducados (%page%/%max-page%)'
+
+# Tamano del inventario - 6 filas.
+size: 54
+
+#=============================================================================
+# PATRONES
+#=============================================================================
+
+patterns:
+  # Bordes decorativos de vidrio.
+  - 'zauctionhouse-decoration'
+  # Botones pagina anterior/siguiente.
+  - 'zauctionhouse-pagination'
+  # Boton volver para regresar a la casa de subastas.
+  - 'zauctionhouse-back'
+
+#=============================================================================
+# OBJETOS
+#=============================================================================
+
+items:
+
+  #---------------------------------------------------------------------------
+  # VISUALIZACION DE OBJETOS CADUCADOS
+  #---------------------------------------------------------------------------
+  # Muestra todos los objetos caducados pertenecientes al jugador.
+  # Clic en los objetos para retirarlos.
+
+  items:
+    # Tipo de boton - visualiza y gestiona los objetos caducados.
+    type: ZAUCTIONHOUSE_EXPIRED_ITEMS
+
+    # Slot para el placeholder de estado vacio.
+    empty-slot: 22
+
+    # Slots para mostrar los objetos caducados (4 filas x 9 columnas = 36 slots).
+    slots:
+      - 9-17    # Fila 2
+      - 18-26   # Fila 3
+      - 27-35   # Fila 4
+      - 36-44   # Fila 5
+
+    # Objeto placeholder cuando no existen objetos caducados.
+    item:
+      material: BARRIER
+      name: '#ff0000&nNingun objeto encontrado'
+
+  remove-all:
+    type: ZAUCTIONHOUSE_REMOVE_ALL_EXPIRED
+    is-permanent: true
+    slot: 47
+    item:
+      material: CHEST
+      name: "#2CCED2<bold>Retirar todo"
+      lore:
+        - "#92ffffRetirar todos los objetos caducados."
+        - ""
+        - "#8c8c8c• #2CCED2Clic #92ffffpara retirar todo"

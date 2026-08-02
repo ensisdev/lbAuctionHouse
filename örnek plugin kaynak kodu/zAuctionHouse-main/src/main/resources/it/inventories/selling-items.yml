@@ -1,0 +1,86 @@
+################################################################################################################################
+#
+#   zAuctionHouse V4 - Inventario degli Oggetti in Vendita (I Tuoi Oggetti)
+#
+#   Questo inventario mostra gli oggetti che il giocatore ha attualmente in vendita.
+#   I giocatori possono ritirare i loro annunci e recuperare i loro oggetti.
+#
+#   FUNZIONALITÀ:
+#   - Vedere tutti i tuoi annunci attivi
+#   - Vedere il tempo rimanente prima della scadenza
+#   - Ritirare gli oggetti dalla vendita (annullare l'annuncio)
+#   - Gli oggetti non sono acquistabili da questa vista (sono i tuoi oggetti)
+#
+#   ACCESSO:
+#   - /ah selling
+#   - Clicca sul pulsante "I tuoi oggetti" nella casa d'aste principale
+#
+#   Documentazione: https://docs.groupez.dev/zauctionhouse/introduction
+#   Discord: https://discord.groupez.dev/
+#
+################################################################################################################################
+
+#=============================================================================
+# IMPOSTAZIONI DELL'INVENTARIO
+#=============================================================================
+
+# Titolo dell'inventario con placeholder di paginazione.
+name: '#0c1719Oggetti in vendita (%page%/%max-page%)'
+
+# Dimensione dell'inventario - 6 righe.
+size: 54
+
+#=============================================================================
+# PATTERN
+#=============================================================================
+
+patterns:
+  # Bordi decorativi in vetro.
+  - 'zauctionhouse-decoration'
+  # Pulsanti pagina precedente/successiva.
+  - 'zauctionhouse-pagination'
+  # Pulsante indietro per tornare alla casa d'aste.
+  - 'zauctionhouse-back'
+
+#=============================================================================
+# OGGETTI
+#=============================================================================
+
+items:
+
+  #---------------------------------------------------------------------------
+  # VISUALIZZAZIONE DEGLI OGGETTI IN VENDITA
+  #---------------------------------------------------------------------------
+  # Mostra tutti gli oggetti attualmente in vendita dal giocatore.
+  # Clicca sugli oggetti per ritirarli dalla vendita.
+
+  items:
+    # Tipo di pulsante - visualizza e gestisce gli oggetti in vendita del giocatore.
+    type: ZAUCTIONHOUSE_SELLING_ITEMS
+
+    # Slot per il placeholder dello stato vuoto.
+    empty-slot: 22
+
+    # Slot per visualizzare gli oggetti in vendita (4 righe × 9 colonne = 36 slot).
+    slots:
+      - 9-17    # Riga 2
+      - 18-26   # Riga 3
+      - 27-35   # Riga 4
+      - 36-44   # Riga 5
+
+    # Oggetto placeholder quando nessun oggetto è in vendita.
+    item:
+      material: BARRIER
+      name: '#ff0000&nNessun oggetto trovato'
+
+  remove-all:
+    type: ZAUCTIONHOUSE_REMOVE_ALL_SELLING
+    is-permanent: true
+    slot: 47
+    item:
+      material: CHEST
+      name: "#2CCED2<bold>Ritira tutto"
+      lore:
+        - "#92ffffRitira tutti gli oggetti in vendita."
+        - ""
+        - "#8c8c8c• #2CCED2Clicca #92ffffper ritirare tutto"

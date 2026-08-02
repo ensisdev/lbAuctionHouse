@@ -1,0 +1,266 @@
+# lbSmpCore-Auction Configuration
+# All settings are configurable — no hardcoded values
+config-version: 4
+
+addon-display-name: "İhale"
+
+# ════════════════════════════════════════════════════════════
+#  MESAJ DİLİ — oyunculara gösterilen metinlerin dili.
+#  tr | en | de | fr | ar   (lang/ klasöründeki dosyalar)
+#  Örnek: "en" yazarsanız mesajlar lang/en.yml dosyasındaki
+#  çevirilere göre gösterilir (eksik anahtarlar messages.yml'e düşer).
+#
+#  NOT: KOMUT isimleri buradan DEĞİL, commands.yml içindeki
+#  "command-lang" alanından seçilir — ikisi bağımsızdır.
+# ════════════════════════════════════════════════════════════
+lang: tr
+
+economy:
+  # Economy type: vault (default) or points
+  type: vault
+
+auction:
+  # Tax/commission rate (percentage, deducted from seller)
+  tax-rate: 5.0
+
+  # Auto-extend: when a bid arrives within the last <threshold-seconds>,
+  # extend the listing by <seconds> (like eBay style).
+  auto-extend:
+    seconds: 300
+    threshold-seconds: 300
+
+  # Min/Max listing price
+  min-price: 1.0
+  max-price: 1000000.0
+
+  # Default listing duration in hours
+  expire-hours: 48
+
+  # Duration options for sell GUI (hours : price per hour)
+  # Price is calculated as: duration_hours * price_per_hour
+  # Set price_per_hour: 0 for free listings
+  duration-options:
+    1: 0.0
+    6: 0.5
+    12: 1.0
+    24: 2.0
+    48: 3.0
+    72: 4.0
+
+  # Max active listings per player (permission overrides: lbsmpcore.auction.limit.<N>)
+  max-listings-per-player: 10
+
+  # Whether to show a confirmation GUI before buying
+  confirm-on-buy: true
+
+  # Whether to notify players of unclaimed items on join
+  notify-on-join: true
+
+  # Whether seller must confirm/claim money manually after sale
+  # false = money auto-deposits, true = goes to collection box
+  confirm-money: true
+
+  # Auto-renew: automatically re-list items when they expire
+  # Set to 0 to disable
+  auto-renew:
+    max-times: 0
+
+  # Rental settings (type: rent)
+  rental:
+    enabled: false
+    max-duration-days: 30
+    min-duration-days: 1
+    price-per-day: 10.0
+
+  # Lootbox settings
+  lootbox:
+    enabled: false
+    price: 100.0
+    items:
+      DIAMOND: { weight: 5, amount: 1 }
+      EMERALD: { weight: 15, amount: 3 }
+      GOLD_INGOT: { weight: 30, amount: 5 }
+      IRON_INGOT: { weight: 50, amount: 10 }
+      DIRT: { weight: 50, amount: 16 }
+      COBBLESTONE: { weight: 75, amount: 32 }
+
+# Advertise (Reklam) settings
+# Players can pay a fee to broadcast their listing to all online players
+advertise:
+  enabled: true
+  # Fee charged when listing with advertise enabled
+  fee: 500.0
+  # Additional commission taken from sale price
+  commission-percent: 10.0
+  # Max concurrent advertised listings per player
+  max-per-player: 3
+  # Announce on list (action bar broadcast)
+  announce-on-list: true
+  # Broadcast interval for active advertised listings (seconds)
+  broadcast-interval-seconds: 120
+  # Action bar message shown to players (use {item}, {seller}, {price})
+  actionbar-title: "&6📢 &e{item} &7- &6{seller} &7| &e{price}₺ &7- &6/{}ihale"
+  # Permission required to SEE advertise broadcasts (empty = everyone)
+  permission: ""
+
+# Auto-Bid settings
+# Players can set a max bid and the system bids for them automatically
+auto-bid:
+  enabled: true
+  # Minimum increment for each automatic bid
+  min-increment: 10.0
+
+# Flash Sale settings
+# Time-limited discounted listings with automatic price reduction
+flash-sale:
+  enabled: false
+  # Discount percentage (1-99). Price is reduced by this amount.
+  discount-percent: 20
+  # How long the flash sale badge lasts (hours)
+  duration-hours: 4
+  # Max regular listing duration allowed for flash sale items (hours)
+  max-listing-duration-hours: 24
+  # Max concurrent flash sale listings per player
+  max-per-player: 3
+
+# Search settings
+search:
+  enabled: true
+
+# Trade System (Oyuncu-oyuncu takas)
+# Players can send trade requests to exchange items directly
+trade:
+  enabled: true
+  # Time to accept a trade request (seconds)
+  request-timeout-seconds: 30
+  # Cooldown between trade requests (seconds)
+  request-cooldown-seconds: 10
+  # Max trade slots (items per player in trade menu)
+  max-slots: 9
+  # Require both players to confirm before swap
+  require-confirm: true
+
+# Statistics & Charts (Kişisel istatistik)
+stats:
+  enabled: true
+  # Dashboard shows last N days of sales as a chart
+  chart:
+    enabled: true
+    days: 30
+
+# Cooldown & Anti-spam
+# Prevents rapid command spam and duplicate actions
+cooldown:
+  enabled: true
+  # Command cooldowns in seconds (per player)
+  commands:
+    sell: 2
+    search: 3
+    buy: 1
+    bid: 1
+    trade: 5
+    harvest: 5
+  # Anti-dupe guard interval (ms)
+  anti-dupe:
+    enabled: true
+    # Minimum interval between identical item operations (ms)
+    item-operation-ms: 500
+
+# Daily Rewards (Günlük ödüller)
+daily-rewards:
+  enabled: true
+  # Streak bonus multiplier (consecutive days)
+  streak-bonus: true
+  streak-max-days: 7
+  rewards:
+    1:
+      money: 1000.0
+      items:
+        DIAMOND: 5
+    2:
+      money: 1500.0
+      items:
+        DIAMOND: 8
+    3:
+      money: 2000.0
+      items:
+        DIAMOND: 10
+        EMERALD: 5
+    7:
+      money: 10000.0
+      items:
+        DIAMOND: 32
+        NETHERITE_INGOT: 2
+
+# Custom Item Generator (Özel item üretici)
+# Players can generate custom-named items from templates
+item-generator:
+  enabled: true
+  # Cooldown between generations (seconds)
+  cooldown-seconds: 60
+  # Templates available in /auction itemgen menu
+  templates:
+    - id: "hero_sword"
+      name: "&6Kahraman Kılıcı"
+      material: DIAMOND_SWORD
+      lore:
+        - "&7Efsanevi bir kılıç"
+        - "&e+5 Hasar"
+      enchantments:
+        SHARPNESS: 5
+        UNBREAKING: 3
+      cost: 5000.0
+      permission: "lbsmpcore.auction.itemgen.hero_sword"
+    - id: "miner_pickaxe"
+      name: "&bMadenci Kazması"
+      material: DIAMOND_PICKAXE
+      lore:
+        - "&7Hızlı kazma"
+        - "&e+3 Hız"
+      enchantments:
+        EFFICIENCY: 5
+        UNBREAKING: 3
+      cost: 4000.0
+      permission: ""
+
+# Sorting settings
+sorting:
+  enabled: true
+  options:
+    - "&7Fiyat ↑"
+    - "&7Fiyat ↓"
+    - "&7Süre ↑"
+    - "&7Süre ↓"
+    - "&7En Yeni"
+    - "&7En Eski"
+    - "&7Satıcı A-Z"
+    - "&7Satıcı Z-A"
+    - "&7İsim A-Z"
+    - "&7İsim Z-A"
+
+# Blacklisted items (cannot be listed)
+# Cluster / Cross-server settings
+cluster:
+  # Mode: local (single server) or redis (multi-server)
+  mode: local
+  redis:
+    host: localhost
+    port: 6379
+    password: ""
+    database: 0
+    master: true
+
+blacklist:
+  enabled: true
+  materials:
+    - BEDROCK
+    - BARRIER
+    - COMMAND_BLOCK
+    - COMMAND_BLOCK_MINECART
+    - CHAIN_COMMAND_BLOCK
+    - REPEATING_COMMAND_BLOCK
+    - STRUCTURE_BLOCK
+    - STRUCTURE_VOID
+    - JIGSAW
+    - DEBUG_STICK
+    - KNOWLEDGE_BOOK

@@ -1,0 +1,127 @@
+package fr.maxlego08.zauctionhouse.api.command;
+
+import fr.maxlego08.zauctionhouse.api.AuctionPlugin;
+import fr.maxlego08.zauctionhouse.api.configuration.commands.CommandArgumentConfiguration;
+import org.bukkit.OfflinePlayer;
+import org.bukkit.entity.Player;
+
+import java.util.HashMap;
+import java.util.Map;
+import java.util.function.Function;
+
+public abstract class VCommandArgument<T extends Enum<T>> extends VCommand {
+
+    protected final Map<T, Integer> argumentIndexes = new HashMap<>();
+    protected final Map<T, String> argumentDefaultValues = new HashMap<>();
+    protected final Class<T> enumClass;
+
+    public VCommandArgument(AuctionPlugin plugin, Class<T> enumClass) {
+        super(plugin);
+        this.enumClass = enumClass;
+        this.createCommandArguments(plugin, enumClass);
+        populateIndexes();
+    }
+
+    public abstract void createCommandArguments(AuctionPlugin plugin, Class<T> enumClass);
+
+    protected void populateIndexes() {
+        for (T enumConstant : this.enumClass.getEnumConstants()) {
+            this.argumentIndexes.putIfAbsent(enumConstant, -1);
+        }
+    }
+
+    protected void forEachArgument(String path, Function<CommandArgumentConfiguration<T>, CollectionBiConsumer> consumer) {
+        var commandArgument = this.plugin.getConfiguration().loadCommandConfiguration(path, enumClass);
+        this.addSubCommand(commandArgument.aliases());
+
+        var arguments = commandArgument.arguments();
+        for (int index = 0; index != arguments.size(); index++) {
+            var commandArgumentConfiguration = arguments.get(index);
+            this.argumentIndexes.put(commandArgumentConfiguration.name(), index);
+            this.argumentDefaultValues.put(commandArgumentConfiguration.name(), commandArgumentConfiguration.defaultValue());
+
+            var autoCompletion = consumer.apply(commandArgumentConfiguration);
+            if (commandArgumentConfiguration.required()) {
+                this.addRequireArg(commandArgumentConfiguration.displayName(), autoCompletion);
+            } else {
+                this.addOptionalArg(commandArgumentConfiguration.displayName(), autoCompletion);
+            }
+        }
+    }
+
+    protected String argAsString(T value) {
+        return argAsString(value, this.argumentDefaultValues.getOrDefault(value, null));
+    }
+
+    protected String argAsString(T value, String defaultValue) {
+        return argAsString(this.argumentIndexes.get(value), defaultValue);
+    }
+
+    protected boolean argAsBoolean(T value) {
+        boolean defaultValue = false;
+        try {
+            defaultValue = Boolean.parseBoolean(this.argumentDefaultValues.getOrDefault(value, "false"));
+        } catch (Exception ignored) {
+        }
+        return argAsBoolean(value, defaultValue);
+    }
+
+    protected boolean argAsBoolean(T value, boolean defaultValue) {
+        return argAsBoolean(this.argumentIndexes.get(value), defaultValue);
+    }
+
+    protected int argAsInteger(T value) {
+        int defaultValue = 0;
+        try {
+            defaultValue = Integer.parseInt(this.argumentDefaultValues.getOrDefault(value, "0"));
+        } catch (Exception ignored) {
+        }
+        return argAsInteger(value, defaultValue);
+    }
+
+    protected int argAsInteger(T value, int defaultValue) {
+        return argAsInteger(this.argumentIndexes.get(value), defaultValue);
+    }
+
+    protected double argAsDouble(T value) {
+        var defaultDouble = 0.0;
+        try {
+            defaultDouble = Double.parseDouble(this.argumentDefaultValues.getOrDefault(value, "0.0"));
+        } catch (Exception ignored) {
+        }
+        return argAsDouble(value, defaultDouble);
+    }
+
+    protected double argAsDouble(T value, double defaultValue) {
+        return argAsDouble(this.argumentIndexes.get(value), defaultValue);
+    }
+
+    protected long argAsLong(T value) {
+        var defaultValue = 0L;
+        try {
+            defaultValue = Long.parseLong(this.argumentDefaultValues.getOrDefault(value, "0"));
+        } catch (Exception ignored) {
+        }
+        return argAsLong(value, defaultValue);
+    }
+
+    protected long argAsLong(T value, long defaultValue) {
+        return argAsLong(this.argumentIndexes.get(value), defaultValue);
+    }
+
+    protected Player argAsPlayer(T value) {
+        return argAsPlayer(this.argumentIndexes.get(value));
+    }
+
+    protected Player argAsPlayer(T value, Player defaultValue) {
+        return argAsPlayer(this.argumentIndexes.get(value), defaultValue);
+    }
+
+    protected OfflinePlayer argAsOfflinePlayer(T value) {
+        return argAsOfflinePlayer(this.argumentIndexes.get(value));
+    }
+
+    protected OfflinePlayer argAsOfflinePlayer(T value, OfflinePlayer defaultValue) {
+        return argAsOfflinePlayer(this.argumentIndexes.get(value), defaultValue);
+    }
+}

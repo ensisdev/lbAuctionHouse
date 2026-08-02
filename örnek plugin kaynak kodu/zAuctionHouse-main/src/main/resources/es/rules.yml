@@ -1,0 +1,454 @@
+################################################################################################################################
+#
+#   zAuctionHouse V4 - Configuracion de Reglas de Objetos
+#
+#   Este archivo define que objetos pueden o no pueden ser vendidos en la casa de subastas.
+#   Usa la lista negra para bloquear objetos especificos, o la lista blanca para permitir solo objetos especificos.
+#
+#   CONSEJO: Puedes guardar objetos en formato Base64 con /zmenu save <nombre del objeto>
+#            Luego referenciarlos en tus reglas para una coincidencia exacta del objeto.
+#
+#   Documentacion: https://docs.groupez.dev/zauctionhouse/introduction
+#   Discord: https://discord.groupez.dev/
+#
+################################################################################################################################
+
+#=============================================================================
+# REFERENCIA DE TIPOS DE REGLAS
+#=============================================================================
+#
+# REGLAS DE MATERIAL:
+#   type: material
+#   materials:
+#     - DIAMOND
+#     - EMERALD
+#   Descripcion: Hace coincidir los objetos por su tipo de material de Minecraft.
+#
+# REGLAS DE SUFIJO DE MATERIAL:
+#   type: material-suffix
+#   suffixes:
+#     - "_SWORD"
+#     - "_HELMET"
+#   Descripcion: Hace coincidir los materiales que terminan con el sufijo especificado.
+#
+# REGLAS DE NOMBRE:
+#   type: name
+#   mode: CONTAINS | EQUALS | STARTS_WITH | ENDS_WITH | REGEX
+#   values:
+#     - "Especial"
+#   Descripcion: Hace coincidir los objetos por su nombre de visualizacion.
+#
+# REGLAS DE LORE:
+#   type: lore
+#   mode: CONTAINS | EQUALS | STARTS_WITH | ENDS_WITH | REGEX
+#   values:
+#     - "Ligado al alma"
+#   Descripcion: Hace coincidir los objetos que tienen un texto especifico en su lore.
+#
+# REGLAS DE CUSTOM MODEL DATA:
+#   type: custom-model-data
+#   values:
+#     - 1001
+#     - 1002
+#   Descripcion: Hace coincidir los objetos con valores CustomModelData especificos.
+#
+# REGLAS DE ETIQUETA:
+#   type: tag
+#   tags:
+#     - BLOCKS
+#     - ITEMS
+#   Descripcion: Hace coincidir los objetos usando etiquetas Bukkit/Paper.
+#
+# REGLAS NBT:
+#   type: nbt
+#   path: "custom.data.key"
+#   value: "valor_esperado"
+#   Descripcion: Hace coincidir los objetos con datos NBT especificos.
+#
+# REGLAS DE COMBINACION:
+#   type: and
+#   rules:
+#     - <regla1>
+#     - <regla2>
+#   Descripcion: TODAS las reglas deben coincidir (AND logico).
+#
+#   type: or
+#   rules:
+#     - <regla1>
+#     - <regla2>
+#   Descripcion: CUALQUIER regla debe coincidir (OR logico).
+#
+#=============================================================================
+# REGLAS DE PLUGINS DE OBJETOS PERSONALIZADOS
+#=============================================================================
+#
+# Estos tipos de reglas se integran con los plugins de objetos personalizados populares.
+# Los objetos se hacen coincidir por sus identificadores especificos del plugin.
+# Soporta caracteres comodin (*) para la coincidencia por patron.
+#
+# ITEMSADDER:
+#   type: itemsadder
+#   items:
+#     - "namespace:item_id"      # Coincidencia exacta
+#     - "namespace:*"            # Todos los objetos del namespace
+#
+# ORAXEN:
+#   type: oraxen
+#   items:
+#     - "espada_personalizada"   # Coincidencia exacta
+#     - "*_armadura"             # Coincidencia por patron
+#
+# NEXO:
+#   type: nexo
+#   items:
+#     - "espada_mitica"
+#     - "especial_*"
+#
+# MMOITEMS:
+#   type: mmoitems
+#   items:
+#     - "SWORD:CUTLASS"          # Formato TIPO:ID
+#     - "SWORD:*"                # Todos los objetos de tipo SWORD
+#     - "*:OBJETO_LEGENDARIO"    # Cualquier tipo con este ID
+#
+# EXECUTABLEITEMS:
+#   type: executableitems
+#   items:
+#     - "varita_personalizada"
+#
+# ECOITEMS:
+#   type: ecoitems
+#   items:
+#     - "lagrima_packmaster"
+#
+# CRUCIBLE (MythicCrucible):
+#   type: crucible
+#   items:
+#     - "espada_mitica"
+#
+# SLIMEFUN:
+#   type: slimefun
+#   items:
+#     - "ELECTRIC_MOTOR"
+#
+# HEADDATABASE:
+#   type: headdatabase
+#   items:
+#     - "12345"
+#
+# NOVA:
+#   type: nova
+#   items:
+#     - "machines:horno_electrico"
+#
+# DENIZEN:
+#   type: denizen
+#   items:
+#     - "mi_script_personalizado"
+#
+# ADVANCEDITEMS:
+#   type: advanceditems
+#   items:
+#     - "baston_magico"
+#
+# CUSTOMCRAFTING (WolfyUtilities):
+#   type: customcrafting
+#   items:
+#     - "minamespace:objeto_personalizado"
+#
+# ZHEAD:
+#   type: zhead
+#   items:
+#     - "id_cabeza_personalizada"
+#
+# MAGICCOSMETICS:
+#   type: magiccosmetics
+#   items:
+#     - "sombrero_corona"
+#
+# HMCCOSMETICS:
+#   type: hmccosmetics
+#   items:
+#     - "alas_doradas"
+#
+# ZITEMS:
+#   type: zitems
+#   items:
+#     - "gema_personalizada"
+#
+# CRAFTENGINE:
+#   type: craftengine
+#   items:
+#     - "namespace:bloque_personalizado"
+#
+# EXECUTABLEBLOCKS:
+#   type: executableblocks
+#   items:
+#     - "cofre_magico"
+#
+#=============================================================================
+
+#=============================================================================
+# CONFIGURACION DE LISTA NEGRA
+#=============================================================================
+# Los objetos que coincidan con CUALQUIER regla de esta lista NO PUEDEN ser vendidos en la casa de subastas.
+# La lista negra se verifica ANTES que la lista blanca.
+# Si un objeto coincide con una regla de la lista negra, se bloquea independientemente de la lista blanca.
+
+blacklist:
+  # Activar o desactivar el sistema de lista negra
+  # Cuando esta desactivado, ningun objeto se bloquea (a menos que la lista blanca este activada).
+  enabled: true
+
+  # Lista de reglas que definen los objetos bloqueados
+  # Un objeto que coincida con CUALQUIERA de estas reglas sera bloqueado de la venta.
+  rules:
+
+    #-------------------------------------------------------------------------
+    # EJEMPLO: Bloquear el bedrock (impide la venta de objetos de admin)
+    #-------------------------------------------------------------------------
+    - type: material
+      materials:
+        - BEDROCK
+
+    #-------------------------------------------------------------------------
+    # EJEMPLO: Bloquear los objetos con un lore "No comerciable" Y un model data especifico
+    # Esto demuestra la combinacion de multiples condiciones con 'and'.
+    #-------------------------------------------------------------------------
+    - type: and
+      rules:
+        # Condicion 1: El objeto debe tener "No comerciable" en alguna parte de su lore
+        - type: lore
+          mode: CONTAINS
+          values:
+            - "No comerciable"
+        # Condicion 2: El objeto debe tener un CustomModelData de 1001
+        - type: custom-model-data
+          values:
+            - 1001
+
+    #=========================================================================
+    # EJEMPLOS DE PLUGINS DE OBJETOS PERSONALIZADOS
+    #=========================================================================
+    # Descomenta y modifica estos ejemplos para usarlos con tus plugins de objetos personalizados.
+    # Cada ejemplo muestra el nombre del plugin y los patrones de configuracion comunes.
+
+    #-------------------------------------------------------------------------
+    # ItemsAdder - Bloquear objetos ItemsAdder especificos
+    #-------------------------------------------------------------------------
+    # - type: itemsadder
+    #   items:
+    #     - "namespace:item_id"       # Bloquea un objeto especifico
+    #     - "namespace:*"             # Bloquea TODOS los objetos de este namespace
+    #     - "minamespace:raro_*"      # Bloquea los objetos que empiezan con "raro_"
+
+    #-------------------------------------------------------------------------
+    # Oraxen - Bloquear objetos Oraxen especificos
+    #-------------------------------------------------------------------------
+    # - type: oraxen
+    #   items:
+    #     - "espada_personalizada"    # Bloquea un objeto especifico
+    #     - "*_armadura"              # Bloquea todos los objetos que terminan con "_armadura"
+    #     - "evento_*"                # Bloquea todos los objetos de evento
+
+    #-------------------------------------------------------------------------
+    # Nexo - Bloquear objetos Nexo especificos
+    #-------------------------------------------------------------------------
+    # - type: nexo
+    #   items:
+    #     - "espada_mitica"
+    #     - "especial_*"              # Bloquea todos los objetos que empiezan con "especial_"
+    #     - "*_ligado"                # Bloquea todos los objetos ligados
+
+    #-------------------------------------------------------------------------
+    # MMOItems - Bloquear MMOItems especificos (formato TIPO:ID)
+    #-------------------------------------------------------------------------
+    # - type: mmoitems
+    #   items:
+    #     - "SWORD:CUTLASS"           # Bloquea una espada especifica
+    #     - "SWORD:*"                 # Bloquea TODAS las espadas
+    #     - "*:OBJETO_LEGENDARIO"     # Bloquea el ID de objeto de cualquier tipo
+    #     - "TOOL:*"                  # Bloquea todas las herramientas
+
+    #-------------------------------------------------------------------------
+    # ExecutableItems - Bloquear ExecutableItems especificos
+    #-------------------------------------------------------------------------
+    # - type: executableitems
+    #   items:
+    #     - "varita_personalizada"
+    #     - "voucher_*"               # Bloquea todos los vouchers
+    #     - "admin_*"                 # Bloquea los objetos de admin
+
+    #-------------------------------------------------------------------------
+    # EcoItems - Bloquear EcoItems especificos
+    #-------------------------------------------------------------------------
+    # - type: ecoitems
+    #   items:
+    #     - "lagrima_packmaster"
+    #     - "colgante_*"              # Bloquea todos los colgantes
+
+    #-------------------------------------------------------------------------
+    # MythicCrucible - Bloquear objetos Crucible especificos
+    #-------------------------------------------------------------------------
+    # - type: crucible
+    #   items:
+    #     - "espada_mitica"
+    #     - "dungeon_*"               # Bloquea el botin de mazmorras
+
+    #-------------------------------------------------------------------------
+    # Slimefun - Bloquear objetos Slimefun especificos
+    #-------------------------------------------------------------------------
+    # - type: slimefun
+    #   items:
+    #     - "ELECTRIC_MOTOR"
+    #     - "*_INGOT"                 # Bloquea todos los lingotes personalizados
+    #     - "CARGO_*"                 # Bloquea los objetos de carga
+
+    #-------------------------------------------------------------------------
+    # HeadDatabase - Bloquear cabezas HeadDatabase especificas
+    #-------------------------------------------------------------------------
+    # - type: headdatabase
+    #   items:
+    #     - "12345"                   # Bloquea una cabeza especifica por ID
+    #     - "123*"                    # Bloquea las cabezas con ID que empiezan con 123
+
+    #-------------------------------------------------------------------------
+    # Nova - Bloquear objetos Nova especificos
+    #-------------------------------------------------------------------------
+    # - type: nova
+    #   items:
+    #     - "machines:horno_electrico"
+    #     - "machines:*"              # Bloquea todos los objetos del addon machines
+    #     - "*:panel_solar"           # Bloquea los paneles solares de cualquier addon
+
+    #-------------------------------------------------------------------------
+    # Denizen - Bloquear objetos scripteados Denizen especificos
+    #-------------------------------------------------------------------------
+    # - type: denizen
+    #   items:
+    #     - "mi_script_personalizado"
+    #     - "*_arma"                  # Bloquea los scripts de armas
+
+    #-------------------------------------------------------------------------
+    # AdvancedItems - Bloquear AdvancedItems especificos
+    #-------------------------------------------------------------------------
+    # - type: advanceditems
+    #   items:
+    #     - "baston_magico"
+    #     - "rpg_*"                   # Bloquea los objetos RPG
+
+    #-------------------------------------------------------------------------
+    # CustomCrafting/WolfyUtilities - Bloquear objetos personalizados especificos
+    #-------------------------------------------------------------------------
+    # - type: customcrafting
+    #   items:
+    #     - "minamespace:objeto_personalizado"
+    #     - "minamespace:*"           # Bloquea todo del namespace
+
+    #-------------------------------------------------------------------------
+    # zHead - Bloquear cabezas zHead especificas
+    #-------------------------------------------------------------------------
+    # - type: zhead
+    #   items:
+    #     - "id_cabeza_personalizada"
+    #     - "categoria_*"             # Bloquea una categoria entera
+
+    #-------------------------------------------------------------------------
+    # MagicCosmetics - Bloquear objetos MagicCosmetics especificos
+    #-------------------------------------------------------------------------
+    # - type: magiccosmetics
+    #   items:
+    #     - "sombrero_corona"
+    #     - "mochila_*"               # Bloquea todas las mochilas
+
+    #-------------------------------------------------------------------------
+    # HMCCosmetics - Bloquear objetos HMCCosmetics especificos
+    #-------------------------------------------------------------------------
+    # - type: hmccosmetics
+    #   items:
+    #     - "alas_doradas"
+    #     - "aura_*"                  # Bloquea todas las auras
+
+    #-------------------------------------------------------------------------
+    # zItems - Bloquear objetos zItems especificos
+    #-------------------------------------------------------------------------
+    # - type: zitems
+    #   items:
+    #     - "gema_personalizada"
+    #     - "mejora_*"                # Bloquea los objetos de mejora
+
+    #-------------------------------------------------------------------------
+    # CraftEngine - Bloquear objetos CraftEngine especificos
+    #-------------------------------------------------------------------------
+    # - type: craftengine
+    #   items:
+    #     - "namespace:bloque_personalizado"
+    #     - "namespace:*"             # Bloquea todo del namespace
+
+    #-------------------------------------------------------------------------
+    # ExecutableBlocks - Bloquear ExecutableBlocks especificos
+    #-------------------------------------------------------------------------
+    # - type: executableblocks
+    #   items:
+    #     - "cofre_magico"
+    #     - "teletransporte_*"        # Bloquea los bloques de teletransporte
+
+#=============================================================================
+# CONFIGURACION DE LISTA BLANCA
+#=============================================================================
+# Cuando esta activada, SOLO los objetos que coincidan con una regla de la lista blanca pueden ser vendidos.
+# Todos los demas objetos se bloquean automaticamente.
+# La lista blanca se verifica DESPUES de la lista negra.
+#
+# CASOS DE USO:
+# - Crear una casa de subastas especializada (ej: solo libros encantados)
+# - Limitar los objetos comerciables para servidores de eventos
+# - Restringir la economia a tipos de objetos especificos
+
+whitelist:
+  # Activar o desactivar el sistema de lista blanca
+  # Cuando esta desactivado, todos los objetos estan permitidos (excepto los bloqueados por la lista negra).
+  # Cuando esta activado, SOLO los objetos que coincidan con las reglas de la lista blanca pueden ser vendidos.
+  enabled: false
+
+  # Lista de reglas que definen los objetos permitidos
+  # Un objeto debe coincidir con AL MENOS UNA regla para poder ser vendido.
+  rules:
+
+    #-------------------------------------------------------------------------
+    # EJEMPLO: Permitir solo las Estrellas del Nether con "Voucher" en su nombre
+    # Esto crea una casa de subastas reservada para vouchers.
+    #-------------------------------------------------------------------------
+    - type: and
+      rules:
+        # Condicion 1: Debe ser una Estrella del Nether
+        - type: material
+          materials:
+            - NETHER_STAR
+        # Condicion 2: Debe tener "Voucher" en el nombre de visualizacion
+        - type: name
+          mode: CONTAINS
+          values:
+            - "Voucher"
+
+    #-------------------------------------------------------------------------
+    # Ejemplos adicionales de lista blanca (descomentar para usar):
+    #-------------------------------------------------------------------------
+
+    # Permitir solo las armas
+    # - type: material-suffix
+    #   suffixes:
+    #     - "_SWORD"
+    #     - "_AXE"
+
+    # Permitir solo los objetos con un lore especifico (ej: "Comerciable")
+    # - type: lore
+    #   mode: CONTAINS
+    #   values:
+    #     - "Comerciable"
+
+    # Permitir tipos de MMOItems especificos
+    # - type: mmoitems
+    #   items:
+    #     - "WEAPON:*"
+    #     - "ARMOR:*"

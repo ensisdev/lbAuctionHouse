@@ -1,0 +1,160 @@
+################################################################################################################################
+#
+#   zAuctionHouse V4 - Inventario Principale Cronologia Admin
+#
+#   Questo è l'hub admin per visualizzare la cronologia delle aste di un giocatore.
+#   Da qui, gli admin possono accedere a tutti gli aspetti dell'attività d'asta di un giocatore.
+#
+#   FUNZIONALITÀ:
+#   - Visualizza gli oggetti scaduti del giocatore target
+#   - Visualizza gli oggetti acquistati del giocatore target
+#   - Visualizza gli oggetti in vendita del giocatore target
+#   - Accedi ai log delle azioni
+#   - Accedi alla cronologia delle transazioni
+#
+#   ACCESSO:
+#   - /ah admin history <giocatore>
+#   - Richiede permessi admin
+#
+#   Documentazione: https://docs.groupez.dev/zauctionhouse/introduction
+#   Discord: https://discord.groupez.dev/
+#
+################################################################################################################################
+
+#=============================================================================
+# IMPOSTAZIONI INVENTARIO
+#=============================================================================
+
+# Titolo dell'inventario con placeholder del giocatore target.
+# %target% = nome del giocatore visualizzato
+name: '#0c1719Cronologia globale admin (%target%)'
+
+# Dimensione inventario - 6 righe.
+size: 54
+
+#=============================================================================
+# OGGETTI
+#=============================================================================
+
+items:
+
+  #---------------------------------------------------------------------------
+  # TESTA DEL GIOCATORE TARGET
+  #---------------------------------------------------------------------------
+  # Mostra la testa del giocatore target visualizzato.
+
+  target:
+    # Tipo pulsante - visualizza informazioni del giocatore target.
+    type: ZAUCTIONHOUSE_ADMIN_HISTORY_MAIN
+
+    # Posizione slot - centro in alto.
+    slot: 13
+
+    item:
+      # Mostra la testa del giocatore target.
+      # %target% viene sostituito con il nome del giocatore.
+      player-head: '%target%'
+      name: '#2CCED2<bold>%target%'
+
+  #---------------------------------------------------------------------------
+  # PULSANTE OGGETTI SCADUTI
+  #---------------------------------------------------------------------------
+  # Apre gli oggetti scaduti del giocatore target.
+
+  expired:
+    # Tipo pulsante - apre la vista oggetti scaduti admin.
+    type: ZAUCTIONHOUSE_ADMIN_HISTORY_EXPIRED
+
+    # Posizione slot.
+    slot: 28
+
+    item:
+      # Texture clessidra/orologio.
+      url: "eyJ0ZXh0dXJlcyI6eyJTS0lOIjp7InVybCI6Imh0dHA6Ly90ZXh0dXJlcy5taW5lY3JhZnQubmV0L3RleHR1cmUvZjdhYWRmZjlkZGM1NDZmZGNlYzZlZDU5MTljYzM5ZGZhOGQwYzA3ZmY0YmM2MTNhMTlmMmU2ZDdmMjU5MyJ9fX0="
+      name: '#2CCED2<bold>ᴏɢɢᴇᴛᴛɪ sᴄᴀᴅᴜᴛɪ'
+      lore:
+        # %expired-items% = numero di oggetti scaduti per target
+        # %s% = suffisso pluralizzazione
+        - '#92ffff%target% ha #2CCED2%expired-items% #92ffffoggett%s% scadut%s%.'
+        - ''
+        - '#8c8c8c• #2CCED2Clicca #92ffffper aprire'
+
+  #---------------------------------------------------------------------------
+  # PULSANTE OGGETTI ACQUISTATI
+  #---------------------------------------------------------------------------
+  # Apre gli oggetti acquistati del giocatore target.
+
+  purchased:
+    # Tipo pulsante - apre la vista oggetti acquistati admin.
+    type: ZAUCTIONHOUSE_ADMIN_HISTORY_PURCHASED
+
+    slot: 29
+
+    item:
+      # Texture baule.
+      url: "eyJ0ZXh0dXJlcyI6eyJTS0lOIjp7InVybCI6Imh0dHA6Ly90ZXh0dXJlcy5taW5lY3JhZnQubmV0L3RleHR1cmUvZjM3Y2FlNWM1MWViMTU1OGVhODI4ZjU4ZTBkZmY4ZTZiN2IwYjFhMTgzZDczN2VlY2Y3MTQ2NjE3NjEifX19"
+      name: '#2CCED2<bold>ᴏɢɢᴇᴛᴛɪ ᴀᴄǫᴜɪsᴛᴀᴛɪ'
+      lore:
+        # %purchased-items% = numero di oggetti acquistati
+        - '#92ffff%target% ha #2CCED2%purchased-items% #92ffffoggett%s% acquistat%s%.'
+        - ''
+        - '#8c8c8c• #2CCED2Clicca #92ffffper aprire'
+
+  #---------------------------------------------------------------------------
+  # PULSANTE OGGETTI IN VENDITA
+  #---------------------------------------------------------------------------
+  # Apre gli oggetti attualmente in vendita del giocatore target.
+
+  selling:
+    # Tipo pulsante - apre la vista oggetti in vendita admin.
+    type: ZAUCTIONHOUSE_ADMIN_HISTORY_SELLING
+
+    slot: 30
+
+    item:
+      # Texture icona giocatore.
+      url: "eyJ0ZXh0dXJlcyI6eyJTS0lOIjp7InVybCI6Imh0dHA6Ly90ZXh0dXJlcy5taW5lY3JhZnQubmV0L3RleHR1cmUvMjU4MDdjYzRjM2I2OTU4YWVhNjE1NmU4NDUxOGQ5MWE0OWM1ZjMyOTcxZTZlYjI2OWEyM2EyNWEyNzE0NSJ9fX0="
+      name: '#2CCED2<bold>ᴏɢɢᴇᴛᴛɪ ɪɴ ᴠᴇɴᴅɪᴛᴀ'
+      lore:
+        # %selling-items% = numero di oggetti in vendita
+        - '#92ffff%target% ha #2CCED2%selling-items% #92ffffoggett%s% in vendita.'
+        - ''
+        - '#8c8c8c• #2CCED2Clicca #92ffffper aprire'
+
+  #---------------------------------------------------------------------------
+  # PULSANTE LOG
+  #---------------------------------------------------------------------------
+  # Apre i log delle azioni per il giocatore target.
+  # I log mostrano tutte le azioni d'asta: inserzioni, acquisti, rimozioni.
+
+  logs:
+    # Tipo pulsante - apre la vista log admin.
+    type: ZAUCTIONHOUSE_ADMIN_HISTORY_LOGS
+
+    slot: 33
+
+    item:
+      material: SUNFLOWER
+      name: '#2CCED2<bold>ʟᴏɢ'
+      lore:
+        - ''
+        - '#8c8c8c• #2CCED2Clicca #92ffffper aprire'
+
+  #---------------------------------------------------------------------------
+  # PULSANTE TRANSAZIONI
+  #---------------------------------------------------------------------------
+  # Apre la cronologia delle transazioni per il giocatore target.
+  # Le transazioni mostrano le vendite completate con dettagli finanziari.
+
+  transactions:
+    # Tipo pulsante - apre la vista transazioni admin.
+    type: ZAUCTIONHOUSE_ADMIN_HISTORY_TRANSACTIONS
+
+    slot: 34
+
+    item:
+      material: NETHER_STAR
+      name: '#2CCED2<bold>ᴛʀᴀɴsᴀᴢɪᴏɴɪ'
+      lore:
+        - ''
+        - '#8c8c8c• #2CCED2Clicca #92ffffper aprire'

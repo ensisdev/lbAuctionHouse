@@ -1,0 +1,54 @@
+################################################################################################################################
+#
+#   zAuctionHouse V4 - ตั้งค่าตัวเลือก
+#
+#   อินเวนทอรีนี้ให้ผู้เล่นจัดการการตั้งค่าส่วนตัว
+#
+################################################################################################################################
+
+name: '#0c1719ตัวเลือก'
+size: 27
+
+patterns:
+  - 'zauctionhouse-decoration'
+  - 'zauctionhouse-back'
+
+items:
+
+  broadcast-sell:
+    type: ZAUCTIONHOUSE_OPTION_TOGGLE
+    slot: 11
+    option-name: broadcast_sell
+    enable-text: '<green>เปิด'
+    disable-text: '<red>ปิด'
+    item:
+      material: OAK_SIGN
+      name: '#2CCED2<bold>การประกาศการขาย'
+      lore:
+        - ''
+        - '#92ffffเปิด/ปิดข้อความประกาศการขาย'
+        - '#92ffffเมื่อเปิด คุณจะเห็นข้อความ'
+        - '#92ffffเมื่อผู้เล่นลงขายไอเทม'
+        - ''
+        - '#8c8c8cสถานะ: %option_status%'
+        - ''
+        - '#8c8c8c• #2CCED2คลิก #92ffffเพื่อสลับ'
+
+  broadcast-purchase:
+    type: ZAUCTIONHOUSE_OPTION_TOGGLE
+    slot: 15
+    option-name: broadcast_purchase
+    enable-text: '<green>เปิด'
+    disable-text: '<red>ปิด'
+    item:
+      material: GOLD_INGOT
+      name: '#2CCED2<bold>การประกาศการซื้อ'
+      lore:
+        - ''
+        - '#92ffffเปิด/ปิดข้อความประกาศการซื้อ'
+        - '#92ffffเมื่อเปิด คุณจะเห็นข้อความ'
+        - '#92ffffเมื่อผู้เล่นซื้อไอเทม'
+        - ''
+        - '#8c8c8cสถานะ: %option_status%'
+        - ''
+        - '#8c8c8c• #2CCED2คลิก #92ffffเพื่อสลับ'
