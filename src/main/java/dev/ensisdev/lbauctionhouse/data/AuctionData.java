@@ -68,10 +68,14 @@ public class AuctionData {
                     "buyer_name TEXT, " +
                     "buyer_uuid TEXT, " +
                     "rental_ends_at INTEGER DEFAULT 0, " +
-                    "renew_count INTEGER DEFAULT 0");
+                    "renew_count INTEGER DEFAULT 0, " +
+                    "lore_text TEXT DEFAULT '', " +
+                    "enchant_text TEXT DEFAULT ''");
 
             try { adapter.execute("ALTER TABLE auction_listings ADD COLUMN rental_ends_at INTEGER DEFAULT 0"); } catch (Exception ignored) {}
             try { adapter.execute("ALTER TABLE auction_listings ADD COLUMN renew_count INTEGER DEFAULT 0"); } catch (Exception ignored) {}
+            try { adapter.execute("ALTER TABLE auction_listings ADD COLUMN lore_text TEXT DEFAULT ''"); } catch (Exception ignored) {}
+            try { adapter.execute("ALTER TABLE auction_listings ADD COLUMN enchant_text TEXT DEFAULT ''"); } catch (Exception ignored) {}
             try { adapter.execute("ALTER TABLE auction_listings ADD COLUMN display_name TEXT DEFAULT ''"); } catch (Exception ignored) {}
             try { adapter.execute("ALTER TABLE auction_listings ADD COLUMN starting_bid REAL DEFAULT 0"); } catch (Exception ignored) {}
             try { adapter.execute("ALTER TABLE auction_listings ADD COLUMN type TEXT NOT NULL DEFAULT 'BIN'"); } catch (Exception ignored) {}
@@ -193,8 +197,8 @@ public class AuctionData {
     public void insertListing(AuctionListing listing) {
         try {
             dataManager.getAdapter().execute(
-                "INSERT INTO auction_listings (id, seller_uuid, seller_name, item_data, display_name, price, starting_bid, type, listed_at, expires_at, sold, rental_ends_at, material, flash_sale_ends_at, original_price, bin_price, advertised) " +
-                "VALUES (?,?,?,?,?,?,?,?,?,?,0,?,?,?,?,?,?)",
+                "INSERT INTO auction_listings (id, seller_uuid, seller_name, item_data, display_name, price, starting_bid, type, listed_at, expires_at, sold, rental_ends_at, material, flash_sale_ends_at, original_price, bin_price, advertised, lore_text, enchant_text) " +
+                "VALUES (?,?,?,?,?,?,?,?,?,?,0,?,?,?,?,?,?,?,?)",
                 listing.id().toString(),
                 listing.sellerUUID().toString(),
                 listing.sellerName(),
@@ -212,7 +216,9 @@ public class AuctionData {
                 listing.flashSaleEndsAt(),
                 listing.originalPrice(),
                 listing.binPrice(),
-                listing.isAdvertised() ? 1 : 0
+                listing.isAdvertised() ? 1 : 0,
+                extractLoreText(listing.item()),
+                extractEnchantText(listing.item())
             );
         } catch (SQLException e) {
             logger.log(Level.SEVERE, "İlan ekleme hatası", e);
@@ -286,9 +292,12 @@ public class AuctionData {
      * Sayfalı arama — sadece eşleşen ilanları sayfalı döndürür.
      */
     public List<AuctionListing> searchListingsPage(String query, int limit, int offset) {
+        String q = "%" + query.toLowerCase() + "%";
         return getListings(
-            "SELECT * FROM auction_listings WHERE sold = 0 AND expired = 0 AND LOWER(display_name) LIKE ? ORDER BY listed_at DESC LIMIT ? OFFSET ?",
-            "%" + query.toLowerCase() + "%", limit, offset);
+            "SELECT * FROM auction_listings WHERE sold = 0 AND expired = 0 AND " +
+            "(LOWER(display_name) LIKE ? OR LOWER(lore_text) LIKE ? OR LOWER(enchant_text) LIKE ?) " +
+            "ORDER BY listed_at DESC LIMIT ? OFFSET ?",
+            q, q, q, limit, offset);
     }
 
     /**
@@ -302,8 +311,10 @@ public class AuctionData {
      * Arama filtresine uyan toplam ilan sayısı.
      */
     public int getActiveListingsCount(String search) {
-        return getCount("SELECT COUNT(*) FROM auction_listings WHERE sold = 0 AND expired = 0 AND LOWER(display_name) LIKE ?",
-                "%" + search.toLowerCase() + "%");
+        String q = "%" + search.toLowerCase() + "%";
+        return getCount("SELECT COUNT(*) FROM auction_listings WHERE sold = 0 AND expired = 0 AND " +
+                "(LOWER(display_name) LIKE ? OR LOWER(lore_text) LIKE ? OR LOWER(enchant_text) LIKE ?)",
+                q, q, q);
     }
 
     private int getCount(String sql, Object... params) {
@@ -377,9 +388,11 @@ public class AuctionData {
                 "SELECT * FROM auction_listings WHERE sold = 0 AND expired = 0 AND LOWER(seller_name) LIKE ?",
                 "%" + sellerName + "%");
         }
+        String q = "%" + query.toLowerCase() + "%";
         return getListings(
-            "SELECT * FROM auction_listings WHERE sold = 0 AND expired = 0 AND LOWER(display_name) LIKE ?",
-            "%" + query.toLowerCase() + "%");
+            "SELECT * FROM auction_listings WHERE sold = 0 AND expired = 0 AND " +
+            "(LOWER(display_name) LIKE ? OR LOWER(lore_text) LIKE ? OR LOWER(enchant_text) LIKE ?)",
+            q, q, q);
     }
 
     /**
@@ -394,8 +407,10 @@ public class AuctionData {
         List<Object> params = new ArrayList<>();
 
         if (filter.hasQuery()) {
-            sql.append(" AND (LOWER(display_name) LIKE ? OR LOWER(material) LIKE ?)");
+            sql.append(" AND (LOWER(display_name) LIKE ? OR LOWER(material) LIKE ? OR LOWER(lore_text) LIKE ? OR LOWER(enchant_text) LIKE ?)");
             String q = "%" + filter.query().toLowerCase() + "%";
+            params.add(q);
+            params.add(q);
             params.add(q);
             params.add(q);
         }
@@ -436,8 +451,10 @@ public class AuctionData {
         List<Object> params = new ArrayList<>();
 
         if (filter.hasQuery()) {
-            sql.append(" AND (LOWER(display_name) LIKE ? OR LOWER(material) LIKE ?)");
+            sql.append(" AND (LOWER(display_name) LIKE ? OR LOWER(material) LIKE ? OR LOWER(lore_text) LIKE ? OR LOWER(enchant_text) LIKE ?)");
             String q = "%" + filter.query().toLowerCase() + "%";
+            params.add(q);
+            params.add(q);
             params.add(q);
             params.add(q);
         }
@@ -884,14 +901,15 @@ public class AuctionData {
 
     public CompletableFuture<Void> insertListingAsync(AuctionListing listing) {
         return dataManager.async().executeAsync(
-            "INSERT INTO auction_listings (id, seller_uuid, seller_name, item_data, display_name, price, starting_bid, type, listed_at, expires_at, sold, rental_ends_at, material, flash_sale_ends_at, original_price, bin_price, advertised) " +
-            "VALUES (?,?,?,?,?,?,?,?,?,?,0,0,?,?,?,?,?)",
+            "INSERT INTO auction_listings (id, seller_uuid, seller_name, item_data, display_name, price, starting_bid, type, listed_at, expires_at, sold, rental_ends_at, material, flash_sale_ends_at, original_price, bin_price, advertised, lore_text, enchant_text) " +
+            "VALUES (?,?,?,?,?,?,?,?,?,?,0,0,?,?,?,?,?,?,?)",
             listing.id().toString(), listing.sellerUUID().toString(), listing.sellerName(),
             serializeItem(listing.item()),
             listing.item().getItemMeta().hasDisplayName() ? listing.item().getItemMeta().getDisplayName() : listing.item().getType().name(),
             listing.price(), listing.startingBid(), listing.type(), listing.listedAt(), listing.expiresAt(),
             listing.item().getType().name(), listing.flashSaleEndsAt(), listing.originalPrice(),
-            listing.binPrice(), listing.isAdvertised() ? 1 : 0
+            listing.binPrice(), listing.isAdvertised() ? 1 : 0,
+            extractLoreText(listing.item()), extractEnchantText(listing.item())
         );
     }
 
@@ -1251,6 +1269,26 @@ public class AuctionData {
     // ----------------------------------------------------------------
     // ItemStack Serialization (Paper serializeAsBytes / deserializeBytes)
     // ----------------------------------------------------------------
+
+    /**
+     * Eşyanın lore satırlarını tek metinde birleştirir (arama için).
+     */
+    private String extractLoreText(ItemStack item) {
+        var meta = item.getItemMeta();
+        if (meta == null || !meta.hasLore()) return "";
+        return String.join(" ", meta.getLore());
+    }
+
+    /**
+     * Eşyanın büyülerini (enchant isimleri) tek metinde birleştirir (arama için).
+     */
+    private String extractEnchantText(ItemStack item) {
+        var meta = item.getItemMeta();
+        if (meta == null || !meta.hasEnchants()) return "";
+        return meta.getEnchants().keySet().stream()
+                .map(e -> e.getKey().getKey())
+                .collect(java.util.stream.Collectors.joining(" "));
+    }
 
     private String serializeItem(ItemStack item) {
         try {
