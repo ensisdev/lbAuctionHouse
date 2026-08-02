@@ -306,7 +306,7 @@ public class MainMenuGUI extends BaseMenu {
             totalCount = data.getActiveListingsCount(searchQuery);
             listings = data.searchListingsPage(searchQuery, pageSize, offset);
         } else {
-            totalCount = data.getActiveListingsCount();
+            totalCount = manager.getListingCache().getActiveListingsCount();
             listings = data.getActiveListingsPage(pageSize, offset);
         }
 

@@ -111,8 +111,11 @@ public class ItemInfoGUI extends BaseMenu {
         if (sm != null) {
             sm.setOwningPlayer(Bukkit.getOfflinePlayer(listing.sellerUUID()));
             sm.setDisplayName("§6" + listing.sellerName());
-            var stats = data.getPlayerStats(listing.sellerUUID());
-            double bal = safeBalance(listing.sellerUUID());
+            // Cache'li okuma — her GUI açılışında 2 SQL + bakiye sorgusu çekmemek için
+            var stats = manager.getListingCache().getPlayerStats(listing.sellerUUID());
+            double bal = manager.getListingCache().getPlayerBalance(
+                    listing.sellerUUID(),
+                    uuid -> manager.getApi().getEconomyManager().getBalance(uuid));
             sm.setLore(java.util.List.of(
                     "§7Satılan eşya: §f" + stats.totalSold(),
                     "§7Alınan eşya: §f" + stats.totalBought(),
@@ -132,14 +135,6 @@ public class ItemInfoGUI extends BaseMenu {
                 .name("&c&lGeri")
                 .lore("&7Ana menüye dön")
                 .build());
-    }
-
-    private double safeBalance(java.util.UUID uuid) {
-        try {
-            return manager.getApi().getEconomyManager().getBalance(uuid);
-        } catch (Exception e) {
-            return 0;
-        }
     }
 
     private String displayName(AuctionListing listing) {

@@ -45,6 +45,15 @@ public class ListingCacheService {
     /** Unclaimed koleksiyon sayısı (oyuncu bazlı) — TTL 5s */
     private final Map<UUID, CacheEntry<Integer>> unclaimedCountCache = new ConcurrentHashMap<>();
 
+    /** Aktif ilan TOPLAM sayısı — TTL 5s (ana menüde sayfalama için) */
+    private volatile CacheEntry<Integer> activeCountCache;
+
+    /** Satıcı istatistikleri (oyuncu bazlı) — TTL 15s (ItemInfoGUI) */
+    private final Map<UUID, CacheEntry<AuctionData.PlayerStats>> playerStatsCache = new ConcurrentHashMap<>();
+
+    /** Oyuncu bakiyesi — TTL 3s (ItemInfoGUI) */
+    private final Map<UUID, CacheEntry<Double>> balanceCache = new ConcurrentHashMap<>();
+
     private final AuctionData data;
     private final AddonLogger logger;
     private final long activeListingsTtlMillis;
@@ -128,6 +137,52 @@ public class ListingCacheService {
         return fresh;
     }
 
+    /**
+     * Aktif ilan TOPLAM sayısını cache'den okur (ana menü sayfalama).
+     */
+    public int getActiveListingsCount() {
+        CacheEntry<Integer> cached = activeCountCache;
+        if (cached != null && !cached.isExpired()) {
+            return cached.value();
+        }
+        int fresh = data.getActiveListingsCount();
+        activeCountCache = new CacheEntry<>(fresh, System.currentTimeMillis() + activeListingsTtlMillis);
+        return fresh;
+    }
+
+    /**
+     * Satıcı istatistiklerini cache'den okur (TTL 15s) — ItemInfoGUI açılışlarında
+     * her seferinde 2 SQL sorgusu çekmemek için.
+     */
+    public AuctionData.PlayerStats getPlayerStats(UUID playerUuid) {
+        CacheEntry<AuctionData.PlayerStats> cached = playerStatsCache.get(playerUuid);
+        if (cached != null && !cached.isExpired()) {
+            return cached.value();
+        }
+        AuctionData.PlayerStats fresh = data.getPlayerStats(playerUuid);
+        playerStatsCache.put(playerUuid, new CacheEntry<>(fresh, System.currentTimeMillis() + 15_000L));
+        return fresh;
+    }
+
+    /**
+     * Oyuncu bakiyesini cache'den okur (TTL 3s). Loader, bakiye kaynağıdır (ör: economy manager).
+     */
+    public double getPlayerBalance(UUID playerUuid, Function<UUID, Double> loader) {
+        CacheEntry<Double> cached = balanceCache.get(playerUuid);
+        if (cached != null && !cached.isExpired()) {
+            return cached.value();
+        }
+        double fresh;
+        try {
+            Double v = loader.apply(playerUuid);
+            fresh = v == null ? 0 : v;
+        } catch (Exception e) {
+            fresh = 0;
+        }
+        balanceCache.put(playerUuid, new CacheEntry<>(fresh, System.currentTimeMillis() + 3_000L));
+        return fresh;
+    }
+
     // ----------------------------------------------------------------
     // Cache Bozma (Invalidation)
     // ----------------------------------------------------------------
@@ -137,6 +192,7 @@ public class ListingCacheService {
      */
     public void invalidateAll() {
         activeListingsCache = null;
+        activeCountCache = null;
         playerCountCache.clear();
         listingCache.clear();
         unclaimedCountCache.clear();
@@ -147,6 +203,7 @@ public class ListingCacheService {
      */
     public void invalidateListing(UUID listingId) {
         activeListingsCache = null;
+        activeCountCache = null;
         listingCache.remove(listingId);
         playerCountCache.clear();
     }
@@ -157,6 +214,8 @@ public class ListingCacheService {
     public void invalidatePlayer(UUID playerUuid) {
         playerCountCache.remove(playerUuid);
         unclaimedCountCache.remove(playerUuid);
+        playerStatsCache.remove(playerUuid);
+        balanceCache.remove(playerUuid);
     }
 
     /**
@@ -187,9 +246,14 @@ public class ListingCacheService {
         if (activeListingsCache != null && activeListingsCache.isExpired()) {
             activeListingsCache = null;
         }
+        if (activeCountCache != null && activeCountCache.isExpired()) {
+            activeCountCache = null;
+        }
         playerCountCache.entrySet().removeIf(e -> e.getValue().isExpired());
         listingCache.entrySet().removeIf(e -> e.getValue().isExpired());
         unclaimedCountCache.entrySet().removeIf(e -> e.getValue().isExpired());
+        playerStatsCache.entrySet().removeIf(e -> e.getValue().isExpired());
+        balanceCache.entrySet().removeIf(e -> e.getValue().isExpired());
     }
 
     /**
@@ -197,9 +261,12 @@ public class ListingCacheService {
      */
     public void shutdown() {
         activeListingsCache = null;
+        activeCountCache = null;
         playerCountCache.clear();
         listingCache.clear();
         unclaimedCountCache.clear();
+        playerStatsCache.clear();
+        balanceCache.clear();
         logger.info("ListingCacheService kapatıldı.");
     }
 
