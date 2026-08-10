@@ -30,7 +30,6 @@ public record AuctionListing(
         double originalPrice,  // flash sale öncesi orijinal fiyat (0 = flash sale değil)
         boolean expired,       // true = süresi doldu ve işlendi
         double binPrice,       // "BOTH" tipi için BIN fiyatı (0 = BIN/BID)
-        boolean sealed,        // true = gizli teklif (sealed bid)
         boolean advertised,    // true = reklamlı ilan (global duyurulur, fiyat +komisyon)
         boolean offersEnabled   // true = alıcı pazarlık teklifi gönderebilir
 ) {

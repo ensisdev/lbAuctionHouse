@@ -26,6 +26,14 @@
             <url>https://repo.papermc.io/repository/maven-public/</url>
         </repository>
         <repository>
+            <id>codemc-snapshots</id>
+            <url>https://repo.codemc.io/repository/maven-snapshots/</url>
+            <snapshots>
+                <enabled>true</enabled>
+                <updatePolicy>always</updatePolicy>
+            </snapshots>
+        </repository>
+        <repository>
             <id>mvn-wesjd-net</id>
             <url>https://mvn.wesjd.net/</url>
             <snapshots>
@@ -99,11 +107,11 @@
             <version>2.0.9</version>
             <scope>compile</scope>
         </dependency>
-        <!-- bStats metrikleri -->
+        <!-- AnvilGUI: tabela yerine örs (anvil) arayüzü ile metin girişi -->
         <dependency>
-            <groupId>org.bstats</groupId>
-            <artifactId>bstats-bukkit</artifactId>
-            <version>3.1.0</version>
+            <groupId>net.wesjd</groupId>
+            <artifactId>anvilgui</artifactId>
+            <version>1.10.6-SNAPSHOT</version>
             <scope>compile</scope>
         </dependency>
         <!-- Testler -->
@@ -167,8 +175,8 @@
                                     <shadedPattern>dev.ensisdev.lbauctionhouse.libs.mysql</shadedPattern>
                                 </relocation>
                                 <relocation>
-                                    <pattern>org.bstats</pattern>
-                                    <shadedPattern>dev.ensisdev.lbauctionhouse.libs.bstats</shadedPattern>
+                                    <pattern>net.wesjd.anvilgui</pattern>
+                                    <shadedPattern>dev.ensisdev.lbauctionhouse.libs.anvilgui</shadedPattern>
                                 </relocation>
                             </relocations>
                             <filters>
@@ -179,6 +187,14 @@
                                         <exclude>META-INF/*.DSA</exclude>
                                         <exclude>META-INF/*.RSA</exclude>
                                     </excludes>
+                                </filter>
+                                <!-- AnvilGUI: version wrapper'ları runtime'da Class.forName ile yüklenir,
+                                     minimizeJar bunları "kullanılmayan" sanıp atmasın diye tümü korunur -->
+                                <filter>
+                                    <artifact>net.wesjd:anvilgui</artifact>
+                                    <includes>
+                                        <include>**</include>
+                                    </includes>
                                 </filter>
                                 <filter>
                                     <artifact>redis.clients:jedis</artifact>

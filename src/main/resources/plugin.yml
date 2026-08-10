@@ -5,33 +5,62 @@ api-version: 1.20
 authors: [EnsisDev, LBDev]
 description: Auction House plugin — standalone (independent from lbSmpCore)
 softdepend: [PlaceholderAPI]
+# Folia runtime'da region-thread uyumlu scheduler kullanılır (SchedulerAdapter)
+folia-supported: true
 
 commands:
   auction:
     description: Main Auction command
     # usage: bilinçli olarak TANIMLANMADI — statik/İngilizce kullanım mesajı gösterilmez.
     # Gerçek kullanım mesajları messages.yml üzerinden dinamik olarak yönetilir.
-    permission: lbsmpcore.auction.use
+    permission: lbauctionhouse.use
 
 permissions:
-  lbsmpcore.auction.use:
+  lbauctionhouse.use:
     description: Allows using the auction system
     default: true
-  lbsmpcore.auction.admin:
+  lbauctionhouse.sell:
+    description: Allows selling items on the auction
+    default: true
+  lbauctionhouse.trade:
+    description: Allows player-to-player trading
+    default: true
+  lbauctionhouse.admin:
     description: Allows admin auction commands (remove, reload, clear)
     default: op
-  lbsmpcore.auction.limit.5:
-    description: Allows 5 active listings
+  # ─── İlan limiti (yeni format) ─────────────────────────────
+  # Normal oyuncular varsayılan olarak 5 ilan açabilir.
+  # VIP/lüks oyunculara lbauctionhouse.auctionlimit.10 gibi
+  # izinler vererek limitlerini yükseltebilirsiniz.
+  lbauctionhouse.auctionlimit.5:
+    description: Allows 5 active listings (default)
     default: true
-  lbsmpcore.auction.limit.10:
+  lbauctionhouse.auctionlimit.10:
     description: Allows 10 active listings
     default: op
-  lbsmpcore.auction.limit.15:
+  lbauctionhouse.auctionlimit.15:
     description: Allows 15 active listings
     default: op
-  lbsmpcore.auction.limit.20:
+  lbauctionhouse.auctionlimit.20:
     description: Allows 20 active listings
     default: op
-  lbsmpcore.auction.limit.50:
+  lbauctionhouse.auctionlimit.50:
+    description: Allows 50 active listings
+    default: op
+
+  # ─── Eski format (geriye dönük uyumluluk) ─────────────────
+  lbauctionhouse.limit.5:
+    description: Allows 5 active listings
+    default: true
+  lbauctionhouse.limit.10:
+    description: Allows 10 active listings
+    default: op
+  lbauctionhouse.limit.15:
+    description: Allows 15 active listings
+    default: op
+  lbauctionhouse.limit.20:
+    description: Allows 20 active listings
+    default: op
+  lbauctionhouse.limit.50:
     description: Allows 50 active listings
     default: op

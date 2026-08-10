@@ -1,84 +1,244 @@
-# Auction Main Menu GUI Layout
-# All items, names, lore, slots are fully customizable
+# ============================================================
+# 🏠 ANA MENÜ GUI (lbAuctionHouse) — TAM ÖZELLEŞTIRILEBILIR
+# Tüm alanlar isteğe bağlıdır; eksikse mantıklı varsayılanlar uygulanır.
+# Material değerleri vanilla Material enum'ından gelir (örn: DIAMOND_SWORD).
+# Texture alanı: Player Head için base64 string; boş bırakılırsa material kullanılır.
+# ============================================================
 
-title: "&8&l» &6&lɪʜᴀʟᴇ &8&l«"
+# Envanter başlığı (renk kodu: &, hex: &#RRGGBB, gradient: <gradient:#renk1:#renk2> ... </gradient>)
+title: "&8&l» <gradient:#FFB74D:#FFD54F>ɪʜᴀʟᴇ ᴀɴᴀ ᴍᴇɴü</gradient> &8&l«"
+
+# Satır sayısı (1-6 arası). İçerideki content-slots buna göre 0-(rows*9-1) aralığında tanımlanır.
 rows: 6
 
+# ============================================================
+# ÇERÇEVE (border) — kenardaki boş slotları doldurur (varsayılan: siyah cam)
+# ============================================================
 border:
-  material: BLACK_STAINED_GLASS_PANE
-  name: " "
-  slots: "0-8, 45-53"
+  material: BLACK_STAINED_GLASS_PANE           # vanilla material veya PLAYER_HEAD (texture ile)
+  texture: ""                                  # base64 skin (yalnızca PLAYER_HEAD için)
+  name: " "                                    # görünür isim
+  amount: 1                                    # 1-64
+  custom-model-data: 0                         # texture pack uyumu
+  glow: false                                  # enchantment ile parlasın (Enchantment.UNBREAKING eklenir)
+  hide-flags: false                            # tüm ItemFlag'leri gizle (Enchantment, AttributeModify...)
+  slots: "0,1,2,3,4,5,6,7,8,9,17,18,26,27,35,36,44,45,46,47,48,49,50,51,52,53"  # tekrarlanan çerçeve slotları
 
+# ============================================================
+# ARKA PLAN DOLGUSU (background-fill) — border/content/nav hariç TÜM boş slotlara uygulanır
+# Tanımlanmazsa arka plan boş kalır (sıfır durumlar için faydalı).
+# ============================================================
+background-fill:
+  material: GRAY_STAINED_GLASS_PANE
+  texture: ""
+  name: " "
+  amount: 1
+  custom-model-data: 0
+  glow: false
+  hide-flags: false
+
+# ============================================================
+# NAVİGASYON ÖĞELERİ (her satır için tam özelleştirme desteklenir)
+#   id          → benzersiz kimlik (kod bu kimliği kullanarak aksiyonu çözümler)
+#   slot        → envanter slotu (0-53)
+#   material    → vanilla material
+#   texture     → base64 player-head texture
+#   name        → görünür ad (& + hex + gradient destekli)
+#   lore        → lore satırları (List<String>)
+#   left-click  → sol tıklama aksiyonu (aşağıdaki listeden biri)
+#   right-click → sağ tıklama aksiyonu (boşsa pas geçilir)
+#   amount      → 1-64
+#   custom-model-data → texture pack uyumu
+#   glow        → enchantment ile parlasın
+#   hide-flags  → ItemFlag'leri gizle
+# ============================================================
+# ────────────────────────────────────────────────────────────
+# NAVİGASYON BUTONLARI — tasarım dili
+#   • lore'lar iki tonlu bullet deseni:  &#8c8c8c•  &#FFD54F<etiket>  &#8c8c8c—  <değer>
+#   • Altın &FFD54F  → küçük-başlık (small-caps) etiket
+#   • Beyaz &F5F5F5  → birincil metin
+#   • Yeşil &55FF55  → olumlu eylem (sol tık)
+#   • Camgöbeği &2CCED2 → ikincil bilgi / teklif
+#   • Kırmızı &FF5555 → iptal / olumsuz
+# ────────────────────────────────────────────────────────────
 navigation:
   previous-page:
     slot: 45
     material: ARROW
-    name: "&a« Önceki Sayfa"
-    lore: []
-    left-click: "previous_page"
-    right-click: ""
+    texture: ""
+    name: "&c&l◀ ᴏɴᴄᴇᴋɪ"
+    lore:
+      - "&#8c8c8c•  &#55FF55Sol Tık &#8c8c8c— önceki sayfaya dön"
+    left-click: previous-page
+    right-click: previous-page
+    amount: 1
+    custom-model-data: 0
+    glow: false
+    hide-flags: false
+
   next-page:
     slot: 53
     material: ARROW
-    name: "&aSonraki Sayfa »"
-    lore: []
-    left-click: "next_page"
-    right-click: ""
-  close:
+    texture: ""
+    name: "&a&lꜱᴏɴʀᴀᴋɪ ▶"
+    lore:
+      - "&#8c8c8c•  &#55FF55Sol Tık &#8c8c8c— sonraki sayfaya geç"
+    left-click: next-page
+    right-click: next-page
+    amount: 1
+    custom-model-data: 0
+    glow: false
+    hide-flags: false
+
+  back:
     slot: 49
     material: BARRIER
-    name: "&cKapat"
-    lore: ["&7İhaleyi kapat"]
-    left-click: "close"
-    right-click: ""
+    texture: ""
+    name: "&c&l✖ ɢᴇʀɪ"
+    lore:
+      - "&#8c8c8c•  &#FF5555Sol Tık &#8c8c8c— ana menüyü kapat"
+    left-click: close
+    right-click: close
+    amount: 1
+    custom-model-data: 0
+    glow: false
+    hide-flags: false
+
   my-listings:
     slot: 46
-    material: BOOK
-    name: "&eİlanlarım"
-    lore: ["&7Aktif ilanlarını görüntüle"]
-    left-click: "my_listings"
-    right-click: ""
+    material: CHEST
+    texture: ""
+    name: "&e&l📋 ɪʟᴀɴʟᴀʀɪᴍ"
+    lore:
+      - "&#8c8c8c•  &#55FF55Sol Tık &#8c8c8c— aktif ilanlarını yönet"
+    left-click: open-my-listings
+    right-click: open-my-listings
+    amount: 1
+    custom-model-data: 0
+    glow: false
+    hide-flags: false
+
   collection-box:
     slot: 52
-    material: CHEST
-    name: "&6Kolim"
-    lore: ["&7Bekleyen ödüllerin"]
-    left-click: "collection_box"
-    right-click: ""
+    material: HOPPER
+    texture: ""
+    name: "&a&l📦 ᴏᴅᴜʟ ᴋᴜᴛᴜꜱᴜ"
+    lore:
+      - "&#8c8c8c•  &#55FF55Sol Tık &#8c8c8c— bekleyen ödülleri topla"
+    left-click: open-collection-box
+    right-click: open-collection-box
+    amount: 1
+    custom-model-data: 0
+    glow: false
+    hide-flags: false
 
+  refresh:
+    slot: 5
+    material: LIME_DYE
+    texture: ""
+    name: "&a&l🔄 ʏᴇɴɪʟᴇ"
+    lore:
+      - "&#8c8c8c•  &#55FF55Sol Tık &#8c8c8c— listeyi tazele"
+    left-click: refresh
+    right-click: refresh
+    amount: 1
+    custom-model-data: 0
+    glow: false
+    hide-flags: false
+
+  search:
+    slot: 48
+    material: COMPASS
+    texture: ""
+    name: "&d&l🔍 ᴀʀᴀᴍᴀ"
+    lore:
+      - "&#8c8c8c•  &#55FF55Sol Tık &#8c8c8c— eşya ara"
+      - "&#8c8c8c•  &#FF5555Sağ Tık &#8c8c8c— aramayı temizle"
+    left-click: open-search
+    right-click: clear-search
+    amount: 1
+    custom-model-data: 0
+    glow: false
+    hide-flags: false
+
+# ============================================================
+# ARAMA BUTONU (search) — ayrı bir alan (navigation ile çakışmaması için)
+# navigation.id=search zaten bu amaçla yukarıda tanımlıdır.
+# Bu alan yalnızca navigation ile yapılandırılmayan ileri düzey durumlar içindir.
+# ============================================================
 search:
-  slot: 48
-  material: OAK_SIGN
-  name: "&bEşya Ara"
-  lore: ["&7Tıkla — isimle ara", "&7Sağ tık — temizle"]
+  slot: -1                                       # -1 ise navigation.search kullanılır
+  material: ""
+  texture: ""
+  name: ""
+  lore: []
+  left-click: open-search
+  right-click: clear-search
+  amount: 1
+  custom-model-data: 0
+  glow: false
+  hide-flags: false
 
-sorting:
-  slot: 50
-  material: HOPPER
-  name: "&dSırala"
-  options:
-    - "&7Fiyat ↑"
-    - "&7Fiyat ↓"
-    - "&7Süre ↑"
-    - "&7Süre ↓"
-    - "&7En Yeni"
-
-# Filtre (kategori + teklifli) butonu. Lore'da kategoriler gri, aktif olan mavi.
-filter:
+# ============================================================
+# SIRALAMA / TEKLİF FİLTRESİ (sort) — geri (49) ve ödül kutusu (52) arasında
+#   slot       → buton slotu (varsayılan: 51)
+#   material   → vanilla material (texture doluysa yok sayılır)
+#   texture    → custom head base64 (ör. https://mineskin.org → değerini yapıştır)
+#   options    → sıralama seçenekleri (gösterimde kullanılır; kod kendi mod listesini seçer)
+# ============================================================
+sort:
   slot: 51
   material: HOPPER
-  name: "&aFiltre"
+  texture: ""
+  name: "&2&l🗂 SIRALA"           # NOT: Ad kodda dinamik üretilir → geçerli mod adı + " ( Tıkla )"
+  lore:
+    - "&#8c8c8c•  &#55FF55Sol / Sağ Tık &#8c8c8c— sıralamayı değiştir"
+  options:
+    # NOT: Bu liste yalnızca görsel/bilgi amaçlıdır; sort butonunun
+    # döngüsü ve gösterimi config.yml → sorting.options listesinden gelir.
+    - "&#FFD54Fꜰɪʏᴀᴛ ↑"
+    - "&#FFD54Fꜰɪʏᴀᴛ ↓"
+    - "&#FFD54Fꜱᴜʀᴇ ↑"
+    - "&#FFD54Fꜱᴜʀᴇ ↓"
+    - "&#FFD54Fᴇɴ ʏᴇɴɪ"
+    - "&#FFD54Fᴇɴ ᴇꜱᴋɪ"
+    - "&#FFD54Fꜱᴀᴛɪᴄɪ ᴀ-ᴢ"
+    - "&#FFD54Fꜱᴀᴛɪᴄɪ ᴢ-ᴀ"
+    - "&#FFD54Fɪꜱɪᴍ ᴀ-ᴢ"
+    - "&#FFD54Fɪꜱɪᴍ ᴢ-ᴀ"
+  left-click: cycle-sort
+  right-click: cycle-sort
+  amount: 1
+  custom-model-data: 0
+  glow: false
+  hide-flags: false
 
-content-slots: "9-44"
+# ============================================================
+# TEKLİF FİLTRESİ — ayrı buton YOK. "Teklifli" modu sort hunisinde
+# (sıralama döngüsünün sonunda) yer alır; bakınız: sort.options.
+# ============================================================
 
-# İlan item'larının lore'u. %seller% %price% %time_left% değişkenleri doldurulur.
-# İlk satırlar tıklama yönergeleridir (& renk kodu desteklenir).
+# ============================================================
+# İÇERİK SLOTLARI (content-slots) — liste elemanlarının yerleşeceği slotlar
+# Virgülle ayrılmış slot listesi + aralık destekli ("10-16" gibi)
+# ============================================================
+content-slots: "10,11,12,13,14,15,16,19,20,21,22,23,24,25,28,29,30,31,32,33,34,37,38,39,40,41,42,43"
+
+# ============================================================
+# LORE-FORMAT — listedeki her eşya için uygulanan lore şablonu
+# Desteklenen değişkenler: %seller%, %price%, %time_left%, %amount%
+# ============================================================
 lore-format:
-  - "&8[🛒] &eSol Tıkla &7| Satın Al"
-  - "&8[👁] &eSağ Tıkla &7| Önizle"
+  - "&#8c8c8c•  &#FFD54Fꜱᴀᴛɪᴄɪ &#8c8c8c— &#F5F5F5%seller%"
+  - "&#8c8c8c•  &#FFD54Fꜰɪʏᴀᴛ  &#8c8c8c— &#FFAA00%price%"
+  - "&#8c8c8c•  &#FFD54Fᴋᴀʟᴀɴ  &#8c8c8c— &#F5F5F5%time_left%"
+  - "&#8c8c8c•  &#FFD54Fᴀᴅᴇᴛ   &#8c8c8c— &#F5F5F5%amount%"
   - ""
-  - "&7Satıcı: &f%seller%"
-  - "&7Fiyat: &6%price%"
-  - "&7Kalan: &e%time_left%"
-  - ""
-  - "&7Adet: &f%amount%"
+  - "&#8c8c8c•  &#55FF55Sol Tık  &#8c8c8c— satın al"
+  - "&#8c8c8c•  &#2CCED2Sağ Tık  &#8c8c8c— detayları gör"
+  - "&#8c8c8c•  &#F5F5F5Shift-Sağ &#8c8c8c— favorilere ekle / çıkar"
+
+# ============================================================
+# SÜRESİ DOLANLARI GÖSTER TOGGLE (sadece my-listings.yml'de kullanılır)
+# Burada tanımlanmaz; yml-specific bölümler diğer dosyalardadır.
+# ============================================================

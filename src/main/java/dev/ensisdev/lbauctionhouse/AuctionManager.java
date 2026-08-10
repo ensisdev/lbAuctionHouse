@@ -1,14 +1,17 @@
 package dev.ensisdev.lbauctionhouse;
 
 import dev.ensisdev.lbauctionhouse.config.AuctionConfig;
-import dev.ensisdev.lbauctionhouse.data.AuctionData;
+import dev.ensisdev.lbauctionhouse.data.CollectionEntry;
 import dev.ensisdev.lbauctionhouse.data.AuctionListing;
 import dev.ensisdev.lbauctionhouse.data.AuctionBid;
 import dev.ensisdev.lbauctionhouse.data.AuctionLog;
 import dev.ensisdev.lbauctionhouse.economy.AuctionEconomy;
+import dev.ensisdev.lbauctionhouse.gui.AdminGUI;
 import dev.ensisdev.lbauctionhouse.gui.CollectionBoxGUI;
 import dev.ensisdev.lbauctionhouse.gui.ConfirmBuyGUI;
+import dev.ensisdev.lbauctionhouse.gui.FavoritesGUI;
 import dev.ensisdev.lbauctionhouse.gui.GUILayoutLoader;
+import dev.ensisdev.lbauctionhouse.gui.HistoryGUI;
 import dev.ensisdev.lbauctionhouse.gui.MainMenuGUI;
 import dev.ensisdev.lbauctionhouse.gui.MyListingsGUI;
 import dev.ensisdev.lbauctionhouse.core.addon.AddonLogger;
@@ -27,6 +30,7 @@ import org.bukkit.inventory.ItemStack;
 
 import java.util.List;
 import java.util.UUID;
+import java.util.concurrent.CompletableFuture;
 
 /**
  * Auction sisteminin merkezi iş mantığı sınıfı.
@@ -38,7 +42,7 @@ public class AuctionManager {
 
     private final LbAuctionHouse plugin;
     private final AuctionAPI api;
-    private final AuctionData data;
+    private final CollectionEntry data;
     private final AuctionConfig config;
     private final AuctionEconomy economy;
     private final AddonLogger logger;
@@ -52,11 +56,19 @@ public class AuctionManager {
     private MyListingsGUI myListingsGUI;
     private ConfirmBuyGUI confirmBuyGUI;
     private CollectionBoxGUI collectionBoxGUI;
+    private FavoritesGUI favoritesGUI;
+    private HistoryGUI historyGUI;
+    private AdminGUI adminGUI;
 
     private long lastExpiryCheck = 0;
 
-    public AuctionData getData() { return data; }
+    public CollectionEntry getData() { return data; }
     public AuctionAPI getApi() { return api; }
+
+    /** Tüm yüklenmiş layout'ları admin GUI'si için döndürür. */
+    public java.util.Map<String, dev.ensisdev.lbauctionhouse.gui.GUILayoutLoader.GUILayout> getLayouts() {
+        return layoutLoader.getLayouts();
+    }
 
     private dev.ensisdev.lbauctionhouse.service.NegotiationService negotiation;
     /** Pazarlık (teklif) servisi — anlık olarak başlatılır. */
@@ -65,7 +77,7 @@ public class AuctionManager {
         return negotiation;
     }
 
-    public AuctionManager(LbAuctionHouse plugin, AuctionAPI api, AuctionData data,
+    public AuctionManager(LbAuctionHouse plugin, AuctionAPI api, CollectionEntry data,
                           AuctionConfig config, AuctionEconomy economy,
                           AddonLogger logger, GUILayoutLoader layoutLoader,
                           ClusterBridge cluster,
@@ -120,7 +132,7 @@ public class AuctionManager {
 
     public void openConfirmBuy(Player player, AuctionListing listing) {
         if (confirmBuyGUI == null)
-            confirmBuyGUI = new ConfirmBuyGUI(this, config, layoutLoader);
+            confirmBuyGUI = new ConfirmBuyGUI(this, layoutLoader);
         confirmBuyGUI.open(player, listing);
     }
 
@@ -128,6 +140,85 @@ public class AuctionManager {
         if (collectionBoxGUI == null)
             collectionBoxGUI = new CollectionBoxGUI(this, config, data, economy, layoutLoader);
         collectionBoxGUI.open(player);
+    }
+
+    public void openFavorites(Player player) {
+        if (favoritesGUI == null)
+            favoritesGUI = new FavoritesGUI(this, config, data, economy, layoutLoader);
+        favoritesGUI.open(player);
+    }
+
+    public void openHistory(Player player) {
+        if (historyGUI == null)
+            historyGUI = new HistoryGUI(this, config, data, economy, layoutLoader);
+        historyGUI.open(player);
+    }
+
+    public void openAdminGUI(Player player) {
+        if (adminGUI == null)
+            adminGUI = new AdminGUI(this, config, data, economy);
+        adminGUI.open(player);
+    }
+
+    /**
+     * Cache'lenmiş tüm GUI örneklerini sıfırlar (reload/sıcak yenileme için).
+     * <p>
+     * GUI'ler layout'u (gui/*.yml) constructor'da BİR KEZ okur ve burada singleton
+     * olarak saklanır. {@code GUILayoutLoader.clearCache()} layout cache'ini temizlese
+     * bile oluşturulmuş örnekler eski layout nesnesini tutmaya devam eder; bu nedenle
+     * config değişikliğinin yeni açılışlarda uygulanması için örnekler yeniden
+     * oluşturulmalıdır. Reload komutu bu metodu çağırır; bir sonraki açılışta
+     * ilgili GUI yeni (güncel) layout ile kurulur.
+     */
+    public void resetCachedGuis() {
+        mainMenuGUI = null;
+        myListingsGUI = null;
+        confirmBuyGUI = null;
+        collectionBoxGUI = null;
+        favoritesGUI = null;
+        historyGUI = null;
+        adminGUI = null;
+    }
+
+    /**
+     * Süresi dolmuş bir ilanı onaylı olarak yeniden listeler.
+     * <p>
+     * Eşyanın koleksiyona düşen kopyası temizlenir (ilaç/dupe önlenir),
+     * ilan aktif edilir ve varsa süre ücreti kesilir.
+     *
+     * @return yenileme başarılı mı?
+     */
+    public boolean renewListing(Player player, AuctionListing listing) {
+        if (listing == null || listing.sold() || !listing.expired()) return false;
+
+        if (data.isPlayerBanned(player.getUniqueId())) {
+            player.sendMessage("§cİhalelerden yasaklandınız!");
+            return false;
+        }
+
+        // İlan limiti kontrolü (permission bazlı)
+        int limit = getMaxLimit(player);
+        int current = listingCache.getActiveCountBySeller(player.getUniqueId());
+        if (current >= limit) {
+            player.sendMessage(api.getLanguageManager().getPrefixed("auction.listing.failed-limit"));
+            return false;
+        }
+
+        // Süre ücreti (varsa) — yeni listelemeyle aynı kurallar
+        double durationFee = config.getDurationOptions().getOrDefault(config.getExpireHours(), 0.0) * config.getExpireHours();
+        if (durationFee > 0) {
+            if (!economy.has(player, durationFee)) {
+                player.sendMessage(api.getLanguageManager().getPrefixed("auction.purchase.insufficient-funds"));
+                return false;
+            }
+            economy.withdraw(player, durationFee);
+        }
+
+        long newExpiresAt = System.currentTimeMillis() + (config.getExpireHours() * 3600_000L);
+        data.removeCollectionByListing(listing.id());
+        data.relistListing(listing.id(), newExpiresAt);
+        data.incrementRenewCount(listing.id());
+        return true;
     }
 
     // ----------------------------------------------------------------
@@ -212,6 +303,15 @@ public class AuctionManager {
             economy.withdraw(player, durationFee);
         }
 
+        // İlan başına sabit ön ücret (listing fee) — sıfırsa atlanır
+        double listingFee = config.getListingFee();
+        if (listingFee > 0) {
+            if (!economy.has(player, listingFee)) return false;
+            economy.withdraw(player, listingFee);
+            player.sendMessage(api.getLanguageManager().getPrefixed("auction.listing.fee-charged",
+                    "fee", economy.format(listingFee)));
+        }
+
         long flashSaleEndsAt = 0;
         double originalPrice = 0;
         if (config.isFlashSaleEnabled() && expireHours <= config.getFlashSaleMaxDurationHours()) {
@@ -219,7 +319,7 @@ public class AuctionManager {
             if (currentFlashCount < config.getFlashSaleMaxPerPlayer()) {
                 flashSaleEndsAt = now + (config.getFlashSaleDurationHours() * 3600_000L);
                 originalPrice = price;
-                price = price * (100 - config.getFlashSaleDiscountPercent()) / 100;
+                price = dev.ensisdev.lbauctionhouse.util.AuctionMath.flashSalePrice(price, config.getFlashSaleDiscountPercent());
             }
         }
 
@@ -229,21 +329,24 @@ public class AuctionManager {
         AuctionListing listing = new AuctionListing(
                 id, player.getUniqueId(), player.getName(),
                 item, finalPrice, 0, "BIN", now, expiresAt, false, null, null,
-                flashSaleEndsAt, originalPrice, false, 0, false, advertised, finalOffers
+                flashSaleEndsAt, originalPrice, false, 0, advertised, finalOffers
         );
 
         data.insertListingAsync(listing).thenRun(() -> {
             cluster.onListingCreated(listing);
+            if (config.isDiscordWebhookEnabled()) {
+                String whUrl = config.getDiscordWebhookUrl();
+                String itemName = dev.ensisdev.lbauctionhouse.util.ItemNames.displayName(item);
+                dev.ensisdev.lbauctionhouse.util.DiscordWebhook.notifyListing(whUrl, player.getName(), itemName, finalPrice);
+            }
             if (finalAdvertised) {
-                org.bukkit.Bukkit.getScheduler().runTask(
-                        (org.bukkit.plugin.java.JavaPlugin) plugin,
-                        () -> broadcastService.broadcastAdvertisedListing(listing));
+                plugin.getScheduler().runTask(() -> broadcastService.broadcastAdvertisedListing(listing));
             }
 
             // Wishlist bildirimi ana thread'de
             String matName = listing.item().getType().name();
             var watchers = data.getWishlistWatchers(matName);
-            org.bukkit.Bukkit.getScheduler().runTask((org.bukkit.plugin.java.JavaPlugin) plugin, () -> {
+            plugin.getScheduler().runTask(() -> {
                 for (UUID watcherUUID : watchers) {
                     if (watcherUUID.equals(player.getUniqueId())) continue;
                     var watcher = Bukkit.getPlayer(watcherUUID);
@@ -261,6 +364,21 @@ public class AuctionManager {
                     player.getName(), null, null, item, finalPrice, 0, id.toString());
         }).exceptionally(ex -> {
             logger.warn("İlan eklenirken hata: " + ex.getMessage());
+            // DB'ye eklenemedi → eşya ve alınan tüm ücretler iade edilir (eşya kaybı önlenir).
+            // NOT: Envanter işlemleri Folia'da oyuncunun kendi region'ında yapılmalıdır —
+            // bu yüzden runTaskForPlayer (Bukkit'te runTask ile aynıdır) kullanılır.
+            plugin.getScheduler().runTaskForPlayer(player, () -> {
+                player.getInventory().addItem(item.clone());
+                if (finalAdvertised && config.isAdvertiseEnabled()) {
+                    double advFee = config.getAdvertiseFee();
+                    if (advFee > 0) economy.deposit(player.getUniqueId(), advFee);
+                }
+                // durationFee metot scope'unda tanımlı — lambda içinde erişilebilir (effectively final)
+                if (durationFee > 0) economy.deposit(player.getUniqueId(), durationFee);
+                // listingFee de aynı şekilde iade edilir (önceden iade edilmiyordu — eksikti)
+                if (listingFee > 0) economy.deposit(player.getUniqueId(), listingFee);
+                player.sendMessage(api.getLanguageManager().getPrefixed("auction.listing.failed-db"));
+            });
             return null;
         });
 
@@ -300,8 +418,12 @@ public class AuctionManager {
             if (fresh == null || fresh.sold()) return PurchaseResult.ALREADY_SOLD;
             if (fresh.sellerUUID().equals(buyer.getUniqueId())) return PurchaseResult.CANNOT_BUY_OWN;
 
-                // Envanter kontrolü — envanter doluysa uyar
-                if (buyer.getInventory().firstEmpty() == -1) {
+                // Envanter kontrolü — paketler açılır; stackable eşyalar dahil tam kapasite kontrolü
+                ItemStack itemStack = fresh.item().clone();
+                List<ItemStack> toGive = BundleItems.isBundle(itemStack)
+                        ? BundleItems.unpack(itemStack)
+                        : List.of(itemStack);
+                if (!canHoldInventory(buyer, toGive)) {
                     buyer.sendMessage(api.getLanguageManager().getPrefixed("auction.purchase.inventory-full"));
                     return PurchaseResult.CANCELLED;
                 }
@@ -322,11 +444,7 @@ public class AuctionManager {
                     return PurchaseResult.TRANSACTION_FAILED;
                 }
 
-                ItemStack itemStack = fresh.item().clone();
                 // Paket (fıçı) ise eşyaları AÇ ve tek tek ver; shulker kutusu olduğu gibi verilir.
-                List<ItemStack> toGive = BundleItems.isBundle(itemStack)
-                        ? BundleItems.unpack(itemStack)
-                        : List.of(itemStack);
                 var leftover = buyer.getInventory().addItem(toGive.toArray(new ItemStack[0]));
 
                 double taxRate = config.getTaxRate();
@@ -350,13 +468,13 @@ public class AuctionManager {
                     if (config.isConfirmMoney()) {
                         data.addToCollectionAsync(fresh.sellerUUID(), "MONEY", null, finalNetAmount, lid);
                         // Main thread'de bildirim
-                        org.bukkit.Bukkit.getScheduler().runTask((org.bukkit.plugin.java.JavaPlugin) plugin, () -> {
+                        plugin.getScheduler().runTask(() -> {
                             var sellerPlayer = Bukkit.getPlayer(fresh.sellerUUID());
                             if (sellerPlayer != null && sellerPlayer.isOnline()) {
                                 sellerPlayer.sendMessage(api.getLanguageManager().getPrefixed(
                                         "auction.purchase.sold-notification",
                                         "item", dev.ensisdev.lbauctionhouse.util.ItemNames.displayName(fresh.item()),
-                                        "price", economy.format(fresh.price()),
+                                        "price", economy.format(buyPrice),
                                         "command", config.getLangMainCommand()));
                             }
                         });
@@ -366,9 +484,15 @@ public class AuctionManager {
 
                     cluster.onListingSold(fresh, buyer.getName());
                     data.insertLogAsync(AuctionLog.Action.PURCHASE.name(), fresh.sellerUUID().toString(), fresh.sellerName(),
-                            buyer.getUniqueId().toString(), buyer.getName(), fresh.item(), fresh.price(), taxRate, lid.toString());
+                            buyer.getUniqueId().toString(), buyer.getName(), fresh.item(), buyPrice, taxRate, lid.toString());
                 }).exceptionally(ex -> {
                     logger.warn("Satış işareti hatası: " + ex.getMessage());
+                    // DB'de satış işareti tamamlanamadı → işlemi geri al:
+                    // ilan yeniden satılabilir (undoSold) + alıcının parası iade edilir.
+                    plugin.getScheduler().runTask(() -> {
+                        data.undoSold(lid);
+                        economy.deposit(buyer.getUniqueId(), buyPrice);
+                    });
                     return null;
                 });
 
@@ -376,8 +500,7 @@ public class AuctionManager {
                 if (config.isDiscordWebhookEnabled()) {
                     String whUrl = config.getDiscordWebhookUrl();
                     String itemName = dev.ensisdev.lbauctionhouse.util.ItemNames.displayName(fresh.item());
-                    org.bukkit.Bukkit.getScheduler().runTaskAsynchronously(
-                            (org.bukkit.plugin.java.JavaPlugin) plugin,
+                    plugin.getScheduler().runTaskAsynchronously(
                             () -> dev.ensisdev.lbauctionhouse.util.DiscordWebhook.notifySale(
                                     whUrl, buyer.getName(), itemName, buyPrice));
                 }
@@ -456,15 +579,47 @@ public class AuctionManager {
     }
 
     /**
-     * Admin: tüm aktif ilanları temizler.
+     * Admin: tüm aktif ilanları temizler. Ana thread'i bloklamaz —
+     * ilanlar arka planda expired işaretlenir ve koleksiyona async eklenir.
      */
-    public int clearAllListings() {
-        List<AuctionListing> active = data.getActiveListings();
-        for (AuctionListing listing : active) {
-            data.markExpiredAsync(listing.id());
-            data.addToCollection(listing.sellerUUID(), "ITEM", listing.item(), 0, listing.id());
+    public CompletableFuture<Integer> clearAllListingsAsync() {
+        return data.getActiveListingsAsync().thenApply(active -> {
+            for (AuctionListing listing : active) {
+                data.markExpiredAsync(listing.id());
+                data.addToCollectionAsync(listing.sellerUUID(), "ITEM", listing.item(), 0, listing.id());
+            }
+            return active.size();
+        });
+    }
+
+    /**
+     * Oyuncunun envanterinin verilen eşyaları sığdırıp sığdıramayacağını kontrol eder.
+     * Stackable eşyalar için mevcut stack'lere ekleme yapılabilir mi diye hesaba katar
+     * (firstEmpty() == -1 tek başına 64'lük yığınlar için yanlış sonuç verir).
+     */
+    private boolean canHoldInventory(Player player, List<ItemStack> incoming) {
+        if (incoming == null || incoming.isEmpty()) return true;
+        ItemStack[] contents = player.getInventory().getContents();
+        int emptySlots = 0;
+        for (ItemStack c : contents) {
+            if (c == null || c.getType().isAir()) emptySlots++;
         }
-        return active.size();
+        for (ItemStack item : incoming) {
+            if (item == null || item.getType().isAir()) continue;
+            int amount = item.getAmount();
+            // Önce aynı türdeki mevcut stack'lere ekle
+            for (ItemStack c : contents) {
+                if (amount <= 0) break;
+                if (c != null && c.isSimilar(item) && c.getAmount() < c.getMaxStackSize()) {
+                    amount -= Math.min(c.getMaxStackSize() - c.getAmount(), amount);
+                }
+            }
+            if (amount <= 0) continue;
+            int neededSlots = (amount + item.getMaxStackSize() - 1) / item.getMaxStackSize();
+            if (neededSlots > emptySlots) return false;
+            emptySlots -= neededSlots;
+        }
+        return true;
     }
 
     // ----------------------------------------------------------------
@@ -487,7 +642,25 @@ public class AuctionManager {
         return listingCache.getUnclaimedCount(playerUUID);
     }
 
-    public List<AuctionData.CollectionEntry> getUnclaimedCollection(UUID playerUUID) {
+    /**
+     * Oyuncunun bekleyen (claim edilmemiş) para bakiyesi.
+     * Koleksiyondaki MONEY tipindeki girişlerin toplamıdır.
+     */
+    public double getUnclaimedBalance(UUID playerUUID) {
+        return data.getUnclaimedCollection(playerUUID).stream()
+                .filter(e -> "MONEY".equals(e.type()))
+                .mapToDouble(e -> e.amount())
+                .sum();
+    }
+
+    /**
+     * Oyuncunun toplam satış/satın alma istatistiklerini döndürür.
+     */
+    public CollectionEntry.PlayerStats getPlayerStats(UUID playerUUID) {
+        return listingCache.getPlayerStats(playerUUID);
+    }
+
+    public List<CollectionEntry.UnclaimedEntry> getUnclaimedCollection(UUID playerUUID) {
         return data.getUnclaimedCollection(playerUUID);
     }
 
@@ -500,10 +673,14 @@ public class AuctionManager {
     // ----------------------------------------------------------------
 
     private int getMaxLimit(Player player) {
-        // lbsmpcore.auction.limit.5 gibi izinleri kontrol et
+        // İzin sırası:
+        // 1) lbauctionhouse.auctionlimit.<N> (yeni format — en yüksek değer kazanır)
+        // 2) lbauctionhouse.limit.<N> (eski format — geriye dönük uyumluluk)
+        // 3) config'deki auction.max-listings-per-player (varsayılan)
         int highest = config.getMaxListingsPerPlayer();
         for (int i = 50; i >= 1; i--) {
-            if (player.hasPermission("lbsmpcore.auction.limit." + i)) {
+            if (player.hasPermission("lbauctionhouse.auctionlimit." + i)
+                    || player.hasPermission("lbauctionhouse.limit." + i)) {
                 return i;
             }
         }
@@ -547,6 +724,10 @@ public class AuctionManager {
                     data.updateExpiresAt(lid, extended);
                 }
 
+                // Önce yeni teklifin parasını ÇEK — başarısızsa işlem hiç yapılmaz.
+                // (Eski teklif önce iade edilirse ve çekim başarısız olursa para enflasyonu oluşur.)
+                if (!economy.withdraw(bidder, amount)) return BidResult.TRANSACTION_FAILED;
+
                 AuctionBid previous = data.getHighestBid(lid);
                 if (previous != null) {
                     economy.deposit(previous.bidderUUID(), previous.amount());
@@ -563,7 +744,6 @@ public class AuctionManager {
                     }
                 }
 
-                economy.withdraw(bidder, amount);
                 data.insertBidAsync(lid, bidder.getUniqueId(), bidder.getName(), amount);
                 data.updateListingPriceAsync(lid, amount);
 
@@ -582,8 +762,7 @@ public class AuctionManager {
                 if (config.isDiscordWebhookEnabled()) {
                     String whUrl = config.getDiscordWebhookUrl();
                     String itemName = dev.ensisdev.lbauctionhouse.util.ItemNames.displayName(fresh.item());
-                    org.bukkit.Bukkit.getScheduler().runTaskAsynchronously(
-                            (org.bukkit.plugin.java.JavaPlugin) plugin,
+                    plugin.getScheduler().runTaskAsynchronously(
                             () -> dev.ensisdev.lbauctionhouse.util.DiscordWebhook.notifyBid(
                                     whUrl, bidder.getName(), itemName, amount));
                 }
@@ -669,8 +848,7 @@ public class AuctionManager {
         if (now - lastExpiryCheck < 60_000) return;
         lastExpiryCheck = now;
 
-        org.bukkit.Bukkit.getScheduler().runTaskAsynchronously(
-                (org.bukkit.plugin.java.JavaPlugin) plugin, () -> {
+        plugin.getScheduler().runTaskAsynchronously(() -> {
             List<AuctionListing> expired = data.getExpiredListings();
             if (expired.isEmpty()) return;
 
@@ -686,7 +864,7 @@ public class AuctionManager {
                     data.updateExpiresAt(listing.id(), newExpiresAt);
                     final String itemName = dev.ensisdev.lbauctionhouse.util.ItemNames.displayName(listing.item());
                     final UUID sellerId = listing.sellerUUID();
-                    org.bukkit.Bukkit.getScheduler().runTask((org.bukkit.plugin.java.JavaPlugin) plugin, () -> {
+                    plugin.getScheduler().runTask(() -> {
                         var seller = Bukkit.getPlayer(sellerId);
                         if (seller != null && seller.isOnline()) {
                             seller.sendMessage(api.getLanguageManager().getPrefixed("auction.listing.auto-renewed",
@@ -700,8 +878,7 @@ public class AuctionManager {
 
             // Süresi dolmuş BID ilanlarını işle (main thread)
             if (!bids.isEmpty()) {
-                org.bukkit.Bukkit.getScheduler().runTask(
-                        (org.bukkit.plugin.java.JavaPlugin) plugin, () -> resolveBids(bids));
+                plugin.getScheduler().runTask(() -> resolveBids(bids));
             }
             if (!expired.isEmpty()) logger.info(expired.size() + " süresi dolmuş ilan işlendi.");
         });
@@ -802,8 +979,7 @@ public class AuctionManager {
         // Kiralama sonunda iade planla (DB'ye de yaz)
         long returnAt = System.currentTimeMillis() + (days * 86400_000L);
         data.updateRentalEnd(listing.id(), returnAt);
-        org.bukkit.Bukkit.getScheduler().runTaskLater(
-            (org.bukkit.plugin.java.JavaPlugin) plugin,
+        plugin.getScheduler().runTaskLater(
             () -> returnRentalItem(listing),
             days * 86400_000L / 50L // tick
         );
@@ -870,6 +1046,12 @@ public class AuctionManager {
 
             player.sendMessage(api.getLanguageManager().getPrefixed("auction.lootbox.result",
                     "item", mat.name()));
+
+            if (config.isDiscordWebhookEnabled()) {
+                String whUrl = config.getDiscordWebhookUrl();
+                plugin.getScheduler().runTaskAsynchronously(
+                        () -> dev.ensisdev.lbauctionhouse.util.DiscordWebhook.notifyLootbox(whUrl, player.getName(), mat.name()));
+            }
         } catch (Exception e) {
             player.sendMessage(api.getLanguageManager().getPrefixed("auction.lootbox.error",
                     "item", chosen));

@@ -122,24 +122,35 @@ public class AuctionMessages {
      * Mesajı Component olarak döndürür (placeholder'lar ile).
      */
     public Component get(String key, String... placeholders) {
-        return api.getLanguageManager().get("auction." + key, placeholders);
+        return api.getLanguageManager().get("auction." + key, convertPlaceholders(placeholders));
     }
 
     /**
      * Mesajı prefix ile döndürür.
      */
     public Component getPrefixed(String key, String... placeholders) {
-        return api.getLanguageManager().getPrefixed("auction." + key, placeholders);
+        return api.getLanguageManager().getPrefixed("auction." + key, convertPlaceholders(placeholders));
     }
 
     /**
      * Placeholder formatını dönüştür: {@code %seller%} → {@code {seller}}
      * Core LanguageManager {@code {key}} formatını kullanır.
+     * <p>
+     * Girdi formatı: {@code "seller", "Enes", "price", "100"}
+     * Çıktı formatı: {@code "{seller}", "Enes", "{price}", "100"}
      */
     public String[] convertPlaceholders(String... pairs) {
-        // pairs: "seller", "Enes", "price", "100"
-        // → "seller", "Enes", "price", "100" (Core zaten {seller} formatını kullanır)
-        // messages.yml'de %seller% kullanılıyorsa convert et
-        return pairs;
+        if (pairs == null || pairs.length == 0) return pairs;
+        String[] converted = new String[pairs.length];
+        for (int i = 0; i < pairs.length; i++) {
+            String p = pairs[i];
+            // Anahtar konumları (çift indeks) %key% → {key} dönüşümüne tabi tutulur
+            if (i % 2 == 0 && p != null && p.startsWith("%") && p.endsWith("%") && p.length() > 2) {
+                converted[i] = "{" + p.substring(1, p.length() - 1) + "}";
+            } else {
+                converted[i] = p;
+            }
+        }
+        return converted;
     }
 }

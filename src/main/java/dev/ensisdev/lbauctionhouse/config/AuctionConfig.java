@@ -11,7 +11,6 @@ import org.bukkit.configuration.file.YamlConfiguration;
 
 import java.io.File;
 import java.util.ArrayList;
-import java.util.HashMap;
 import java.util.HashSet;
 import java.util.LinkedHashMap;
 import java.util.List;
@@ -43,6 +42,23 @@ public class AuctionConfig {
     private FileConfiguration sounds;
     private FileConfiguration categories;
     private FileConfiguration lang;
+    /** features.yml → özellik aç/kapa kayıt defteri (runtime güncellenebilir). */
+    private FeatureRegistry features;
+
+    /**
+     * Özellik aç/kapa kayıt defterini döndürür (komutlar, GUI, PAPI bu kayıta bakar).
+     */
+    public FeatureRegistry getFeatures() {
+        return features;
+    }
+
+    /**
+     * Belirtilen feature anahtarı açık mı? Tanımsız anahtarlar için {@code true}.
+     * Yeni eklenen özellikler varsayılan olarak açık gelir — geriye dönük uyumluluk.
+     */
+    public boolean isFeatureEnabled(String key) {
+        return features == null || features.isEnabled(key);
+    }
 
     public AuctionConfig(LbAuctionHouse plugin, AuctionAPI api) {
         this.plugin = plugin;
@@ -61,6 +77,7 @@ public class AuctionConfig {
         loadLanguage();
         loadSounds();
         loadCategories();
+        loadFeatures();   // features.yml — komut ve GUI feature gate'leri için
     }
 
     /**
@@ -99,45 +116,62 @@ public class AuctionConfig {
      */
     private void migrateIfNeeded() {
         int currentVersion = config.getInt("config-version", 1);
-        if (currentVersion >= 3) return;
-
-        logger.info("Config migrasyonu başlatılıyor (v" + currentVersion + " → v3)...");
+        boolean changed = false;
 
         // v1 → v2: flash-sale + auto-bid + wishlist bölümleri eklendi
-        if (!config.contains("flash-sale")) {
-            config.set("flash-sale.enabled", false);
-            config.set("flash-sale.discount-percent", 20);
-            config.set("flash-sale.duration-hours", 4);
-            config.set("flash-sale.max-listing-duration-hours", 24);
-            config.set("flash-sale.max-per-player", 3);
-            logger.info("  + flash-sale bölümü eklendi.");
-        }
-        if (!config.contains("auto-bid")) {
-            config.set("auto-bid.enabled", true);
-            config.set("auto-bid.min-increment", 10.0);
-            logger.info("  + auto-bid bölümü eklendi.");
+        if (currentVersion < 2) {
+            logger.info("Config migrasyonu başlatılıyor (v" + currentVersion + " → v5)...");
+            if (!config.contains("flash-sale")) {
+                config.set("flash-sale.enabled", false);
+                config.set("flash-sale.discount-percent", 20);
+                config.set("flash-sale.duration-hours", 4);
+                config.set("flash-sale.max-listing-duration-hours", 24);
+                config.set("flash-sale.max-per-player", 3);
+                logger.info("  + flash-sale bölümü eklendi.");
+            }
+            if (!config.contains("auto-bid")) {
+                config.set("auto-bid.enabled", true);
+                config.set("auto-bid.min-increment", 10.0);
+                logger.info("  + auto-bid bölümü eklendi.");
+            }
+            changed = true;
         }
 
         // v2 → v3: advertise (reklam) bölümü eklendi
-        if (!config.contains("advertise")) {
-            config.set("advertise.enabled", true);
-            config.set("advertise.fee", 500.0);
-            config.set("advertise.commission-percent", 10.0);
-            config.set("advertise.max-per-player", 3);
-            config.set("advertise.announce-on-list", true);
-            config.set("advertise.broadcast-interval-seconds", 120);
-            config.set("advertise.actionbar-title", "&6📢 &e{item} &7- &6{seller} &7| &e{price}₺ &7- &6/{}ihale");
-            config.set("advertise.permission", "");
-            logger.info("  + advertise bölümü eklendi.");
+        if (currentVersion < 3) {
+            if (!config.contains("advertise")) {
+                config.set("advertise.enabled", true);
+                config.set("advertise.fee", 500.0);
+                config.set("advertise.commission-percent", 10.0);
+                config.set("advertise.max-per-player", 3);
+                config.set("advertise.announce-on-list", true);
+                config.set("advertise.broadcast-interval-seconds", 120);
+                config.set("advertise.actionbar-title", "&6📢 &e{item} &7- &6{seller} &7| &e{price}₺ &7- &6/{}ihale");
+                config.set("advertise.permission", "");
+                logger.info("  + advertise bölümü eklendi.");
+            }
+            changed = true;
         }
 
-        config.set("config-version", 3);
-        try {
-            plugin.saveConfig();
-            logger.info("Config migrasyonu tamamlandı (v3).");
-        } catch (Exception e) {
-            // Başlangıç yolunda — hata yutulmaz, TAM stack trace basılır.
-            logger.log(java.util.logging.Level.WARNING, "Config kaydedilemedi:", e);
+        // v4 → v5: kaldırılan özelliklerin anahtarları temizlenir
+        // (daily-rewards, item-generator ve bStats settings bloğu artık desteklenmiyor)
+        if (currentVersion < 5) {
+            config.set("daily-rewards", null);
+            config.set("item-generator", null);
+            config.set("settings", null);
+            logger.info("  - kaldırılan özellikler temizlendi (daily-rewards, item-generator, settings/bStats).");
+            changed = true;
+        }
+
+        if (changed) {
+            config.set("config-version", 5);
+            try {
+                plugin.saveConfig();
+                logger.info("Config migrasyonu tamamlandı (v" + currentVersion + " → v5).");
+            } catch (Exception e) {
+                // Başlangıç yolunda — hata yutulmaz, TAM stack trace basılır.
+                logger.log(java.util.logging.Level.WARNING, "Config kaydedilemedi:", e);
+            }
         }
     }
 
@@ -147,6 +181,41 @@ public class AuctionConfig {
 
     private void loadCategories() {
         this.categories = loadYaml("gui/categories.yml");
+    }
+
+    /**
+     * features.yml → {@link FeatureRegistry} yüklenir. İlk yüklemede kayıt defteri oluşturulur,
+     * sonraki reload'larda yalnızca içeriği tazelenir (admin {@code set()} ile yapılan overrides korunur).
+     */
+    private void loadFeatures() {
+        if (this.features == null) {
+            // İlk yükleme — FeatureRegistry'nin kendisi defaults map'ini kullanıyor
+            Map<String, Boolean> defaults = new LinkedHashMap<>();
+            defaults.put(FeatureRegistry.Keys.FAVORITES, true);
+            defaults.put(FeatureRegistry.Keys.SEARCH, true);
+            defaults.put(FeatureRegistry.Keys.SORT, true);
+            defaults.put(FeatureRegistry.Keys.CATEGORIES, true);
+            defaults.put(FeatureRegistry.Keys.BIDS, true);
+            defaults.put(FeatureRegistry.Keys.NEGOTIATION, true);
+            defaults.put(FeatureRegistry.Keys.HISTORY, true);
+            defaults.put(FeatureRegistry.Keys.MY_LISTINGS, true);
+            defaults.put(FeatureRegistry.Keys.COLLECTION_BOX, true);
+            defaults.put(FeatureRegistry.Keys.TRADE, true);
+            defaults.put(FeatureRegistry.Keys.PLAYER_LISTINGS, true);
+            defaults.put(FeatureRegistry.Keys.BUNDLE_EDIT, true);
+            defaults.put(FeatureRegistry.Keys.ADMIN_PANEL, true);
+            defaults.put(FeatureRegistry.Keys.BAN_SYSTEM, true);
+            defaults.put(FeatureRegistry.Keys.WEBHOOK, true);
+            defaults.put(FeatureRegistry.Keys.REFRESH_LISTINGS, true);
+            defaults.put(FeatureRegistry.Keys.CONFIRMATION, true);
+            defaults.put(FeatureRegistry.Keys.TAX, true);
+            defaults.put(FeatureRegistry.Keys.AUTO_RENEW, true);
+            defaults.put(FeatureRegistry.Keys.BROWSE, true);
+            this.features = new FeatureRegistry(plugin, defaults);
+        } else {
+            // Sonraki reload — cache tazelenir (diskten güncellenmiş)
+            this.features.reload();
+        }
     }
 
     /**
@@ -298,6 +367,9 @@ public class AuctionConfig {
      * Kod seviyesi varsayılan sub-command isimleri — TÜRKÇE.
      * commands.yml ve dil dosyası boş olduğunda kullanılır.
      * Böylece hiçbir yapılandırma olmasa bile komutlar Türkçe çalışır.
+     * <p>
+     * <b>Not:</b> {@code yenile} burada YOK — sadece admin komutunda çalışır.
+     * Kullanıcı istemi: "/ihale yenile → /ihaleadmin yenile" taşıması.
      */
     private static final Map<String, List<String>> SUBCOMMAND_DEFAULTS = Map.ofEntries(
             Map.entry("sell",       List.of("sat", "list", "sell")),
@@ -305,7 +377,7 @@ public class AuctionConfig {
             Map.entry("mylistings", List.of("ilanlarım", "ilanlarim", "mylistings", "my")),
             Map.entry("collect",    List.of("kutu", "collect", "al", "claim")),
             Map.entry("remove",     List.of("sil", "remove", "delete")),
-            Map.entry("reload",     List.of("yenile", "reload")),
+            Map.entry("reload",     List.of("reload")),   // yenile kaldırıldı; sadece admin'de
             Map.entry("admin",      List.of("yönet", "admin", "adm")),
             Map.entry("stats",      List.of("istatistik", "stats", "stat")),
             Map.entry("ban",        List.of("yasak", "ban")),
@@ -364,7 +436,9 @@ public class AuctionConfig {
             "ban",     List.of("yasak", "ban"),
             "unban",   List.of("affet", "unban"),
             "banlist", List.of("yasaklılar", "banlist", "banliste"),
-            "inspect", List.of("inspect", "incele")
+            "inspect", List.of("inspect", "incele"),
+            "reload",  List.of("yenile", "reload", "tazele"),  // yenile artık sadece burada
+            "gui",     List.of("gui", "panel")
     );
 
     /**
@@ -519,6 +593,11 @@ public class AuctionConfig {
     // ----------------------------------------------------------------
     // Auto-Renew
     // ----------------------------------------------------------------
+
+    /** İlan başına sabit ön ücret (0 = ücretsiz). */
+    public double getListingFee() {
+        return config.getDouble("auction.listing-fee", 0.0);
+    }
 
     public int getAutoRenewMax() {
         return config.getInt("auction.auto-renew.max-times", 0);
@@ -700,14 +779,23 @@ public class AuctionConfig {
             ConfigurationSection cat = sec.getConfigurationSection(key);
             if (cat == null) continue;
             try {
-                Material icon = Material.valueOf(cat.getString("icon", "GRASS_BLOCK").toUpperCase());
+                String iconStr = cat.getString("icon", "GRASS_BLOCK");
+                Material icon;
+                try {
+                    icon = Material.valueOf(iconStr.toUpperCase());
+                } catch (IllegalArgumentException ex) {
+                    icon = Material.GRASS_BLOCK;
+                }
                 List<Material> materials = new ArrayList<>();
                 for (String m : cat.getStringList("materials")) {
                     try { materials.add(Material.valueOf(m.toUpperCase())); }
                     catch (IllegalArgumentException ignored) {}
                 }
                 int sortPriority = cat.getInt("sort-priority", 50);
-                result.add(new Category(key, cat.getString("name", key), icon, materials, sortPriority));
+                String texture = cat.getString("texture", "");
+                boolean glow = cat.getBoolean("glow", false);
+                boolean hideFlags = cat.getBoolean("hide-flags", false);
+                result.add(new Category(key, cat.getString("name", key), icon, texture, materials, sortPriority, glow, hideFlags));
             } catch (Exception e) {
                 logger.warning("Kategori yüklenemedi: " + key + " — " + e.getMessage());
             }
@@ -717,7 +805,20 @@ public class AuctionConfig {
         return result;
     }
 
-    public record Category(String id, String name, Material icon, List<Material> materials, int sortPriority) {}
+    /**
+     * Kategori tanımı — ikon materyali, görünür ad ve materyal listesi.
+     * Tam özelleştirme destekler: {@code texture} (Player Head base64),
+     * {@code glow} (Enchantment.UNBREAKING ile parlasın), {@code hideFlags}
+     * (tüm ItemFlag'leri gizle).
+     */
+    public record Category(String id, String name, Material icon, String texture,
+                           List<Material> materials, int sortPriority,
+                           boolean glow, boolean hideFlags) {
+        /** Geriye dönük uyumluluk. */
+        public Category(String id, String name, Material icon, List<Material> materials, int sortPriority) {
+            this(id, name, icon, "", materials, sortPriority, false, false);
+        }
+    }
 
     // ----------------------------------------------------------------
     // Trade (config.yml)
@@ -779,95 +880,26 @@ public class AuctionConfig {
         return config.getInt("cooldown.anti-dupe.item-operation-ms", 500);
     }
 
-    // ----------------------------------------------------------------
-    // Daily Rewards (config.yml)
-    // ----------------------------------------------------------------
-
-    public boolean isDailyRewardsEnabled() {
-        return config.getBoolean("daily-rewards.enabled", true);
+    public int getNegotiationOfferCooldownMs() {
+        return config.getInt("cooldown.negotiation.offer-ms", 750);
     }
-
-    public boolean isDailyStreakBonus() {
-        return config.getBoolean("daily-rewards.streak-bonus", true);
-    }
-
-    public int getDailyStreakMaxDays() {
-        return config.getInt("daily-rewards.streak-max-days", 7);
-    }
-
-    /** Gün bazlı ödül: {gün: {money, items:{MAT:adet}}} */
-    public Map<Integer, DailyReward> getDailyRewards() {
-        Map<Integer, DailyReward> rewards = new LinkedHashMap<>();
-        ConfigurationSection sec = config.getConfigurationSection("daily-rewards.rewards");
-        if (sec == null) return rewards;
-        for (String key : sec.getKeys(false)) {
-            try {
-                int day = Integer.parseInt(key);
-                ConfigurationSection r = sec.getConfigurationSection(key);
-                double money = r != null ? r.getDouble("money", 0) : 0;
-                Map<String, Integer> items = new HashMap<>();
-                if (r != null) {
-                    ConfigurationSection itemsSec = r.getConfigurationSection("items");
-                    if (itemsSec != null) {
-                        for (String mat : itemsSec.getKeys(false)) {
-                            items.put(mat.toUpperCase(), itemsSec.getInt(mat, 1));
-                        }
-                    }
-                }
-                rewards.put(day, new DailyReward(day, money, items));
-            } catch (NumberFormatException ignored) {}
-        }
-        return rewards;
-    }
-
-    public record DailyReward(int day, double money, Map<String, Integer> items) {}
 
     // ----------------------------------------------------------------
-    // Item Generator (config.yml)
+    // Genel limitler
     // ----------------------------------------------------------------
 
-    public boolean isItemGeneratorEnabled() {
-        return config.getBoolean("item-generator.enabled", true);
+    /** Bir bundle (paket) envanterine paketlenebilecek maksimum eşya sayısı. */
+    public int getMaxBundleItems() {
+        return config.getInt("limits.bundle-items", 45);
     }
 
-    public int getItemGeneratorCooldownSeconds() {
-        return config.getInt("item-generator.cooldown-seconds", 60);
+    /** Oyuncu başına geçmiş (history) kaydında gösterilecek maksimum log sayısı. */
+    public int getMaxHistoryLogs() {
+        return config.getInt("limits.history-logs", 200);
     }
 
-    /** Özel item şablonlarını yükler. */
-    public List<ItemTemplate> getItemTemplates() {
-        List<ItemTemplate> templates = new ArrayList<>();
-        List<Map<?, ?>> list = config.getMapList("item-generator.templates");
-        for (Map<?, ?> map : list) {
-            try {
-                @SuppressWarnings("unchecked")
-                Map<String, Object> m = (Map<String, Object>) map;
-                String id = String.valueOf(m.getOrDefault("id", ""));
-                if (id.isEmpty()) continue;
-                String name = String.valueOf(m.getOrDefault("name", id));
-                Material material = Material.valueOf(String.valueOf(m.getOrDefault("material", "STONE")).toUpperCase());
-                double cost = Double.parseDouble(String.valueOf(m.getOrDefault("cost", 0)));
-                String permission = String.valueOf(m.getOrDefault("permission", ""));
-                List<String> lore = new ArrayList<>();
-                Object loreObj = m.get("lore");
-                if (loreObj instanceof List<?> loreList) {
-                    for (Object o : loreList) lore.add(String.valueOf(o));
-                }
-                Map<String, Integer> enchantments = new HashMap<>();
-                Object enchObj = m.get("enchantments");
-                if (enchObj instanceof Map<?, ?> enchMap) {
-                    for (Map.Entry<?, ?> e : enchMap.entrySet()) {
-                        enchantments.put(String.valueOf(e.getKey()).toUpperCase(), Integer.parseInt(String.valueOf(e.getValue())));
-                    }
-                }
-                templates.add(new ItemTemplate(id, name, material, lore, enchantments, cost, permission));
-            } catch (Exception e) {
-                logger.warning("Item template yüklenemedi: " + e.getMessage());
-            }
-        }
-        return templates;
+    /** Aynı komutun ardışık çağrıları arası minimum süre (ms). */
+    public long getCommandCooldownMs() {
+        return Math.max(0L, config.getLong("limits.command-cooldown-ms", 500L));
     }
-
-    public record ItemTemplate(String id, String name, Material material, List<String> lore,
-                               Map<String, Integer> enchantments, double cost, String permission) {}
 }

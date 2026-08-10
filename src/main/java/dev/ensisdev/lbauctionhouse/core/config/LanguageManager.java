@@ -285,7 +285,7 @@ public class LanguageManager {
     // ----------------------------------------------------------------
 
     private void registerDefaults() {
-        defaults.put("prefix", "<dark_gray>[</dark_gray><gold><bold>lbAuctionHouse</bold></gold><dark_gray>]</dark_gray>");
+        defaults.put("prefix", "<dark_gray><bold>[</bold></dark_gray><gradient:#7B2FBE:#C084FC><bold>ʟʙᴀᴜᴄᴛɪᴏɴʜᴏᴜꜱᴇ</bold></gradient><dark_gray><bold>]</bold></dark_gray>");
         defaults.put("core.reload.success", "<green>Configuration and addons reloaded.</green>");
         defaults.put("core.reload.no-permission", "<red>You don't have permission!</red>");
         defaults.put("core.version.info", "<aqua>lbAuctionHouse v{version}</aqua>");

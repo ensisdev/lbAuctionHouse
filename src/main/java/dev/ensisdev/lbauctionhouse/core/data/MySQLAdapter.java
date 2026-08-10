@@ -106,6 +106,12 @@ public class MySQLAdapter implements StorageAdapter {
     }
 
     @Override
+    public void ensureMigrationTable() throws SQLException {
+        // MySQL'de SQLite'a özgü DEFAULT (datetime('now')) geçersizdir — uyumlu tanım kullanılır.
+        createTableIfNotExists("_migrations", "version INTEGER PRIMARY KEY, applied_at TEXT NOT NULL");
+    }
+
+    @Override
     public Connection getConnection() throws SQLException {
         if (!isConnected()) {
             throw new SQLException("MySQL bağlantısı kapalı.");

@@ -118,7 +118,9 @@ public class TradeService {
         if (session == null) return;
         sessions.remove(session.other(player).getUniqueId());
         session.close();
-        player.sendMessage("§7Takas oturumu kapatıldı.");
+        if (!session.isCompleted()) {
+            player.sendMessage("§7Takas oturumu kapatıldı.");
+        }
     }
 
     /** Oyuncu çıkınca temizlik */
@@ -188,6 +190,7 @@ public class TradeService {
         private final Map<UUID, ItemStack[]> playerItems = new HashMap<>();
         private final Map<UUID, Boolean> confirmations = new HashMap<>();
         private boolean closed = false;
+        private boolean completed = false;
 
         public TradeSession(Player a, Player b, int maxSlots, boolean requireConfirm) {
             this.playerA = a;
@@ -252,26 +255,51 @@ public class TradeService {
             return item;
         }
 
-        /** GUI'deki bir slotu güncellemek için (InventoryClickEvent'ten) */
-        public void updateSlot(Player player, int slot, ItemStack item) {
-            if (closed) return;
-            // Sadece kendi tarafındaki slotlar (0..maxSlots-1)
-            if (slot >= 0 && slot < maxSlots) {
-                ItemStack[] mine = playerItems.get(player.getUniqueId());
-                if (mine != null) {
-                    mine[slot] = item == null || item.getType() == Material.AIR ? null : item.clone();
-                }
-                confirmations.put(player.getUniqueId(), false);
-                refreshBoth();
-            }
+        /** GUI'deki bir slotu günceller (InventoryClickEvent'ten).
+         *  Yalnızca slot verisini değiştirir; eşya/envanter transferi çağıran tarafta yapılır.
+         *  @return yerinden çıkarılan önceki eşya (iade edilmek üzere), yoksa null
+         */
+        public ItemStack updateSlot(Player player, int slot, ItemStack item) {
+            if (closed) return null;
+            if (slot < 0 || slot >= maxSlots) return null;
+            ItemStack[] mine = playerItems.get(player.getUniqueId());
+            if (mine == null) return null;
+
+            ItemStack prev = mine[slot];
+            mine[slot] = (item == null || item.getType() == Material.AIR) ? null : item.clone();
+            confirmations.put(player.getUniqueId(), false);
+            refreshBoth();
+            return prev;
         }
 
         private void refreshBoth() {
             if (closed) return;
             Player a = Bukkit.getPlayer(playerA.getUniqueId());
             Player b = Bukkit.getPlayer(playerB.getUniqueId());
+            refreshInventory(a);
+            refreshInventory(b);
             if (a != null && a.isOnline()) a.updateInventory();
             if (b != null && b.isOnline()) b.updateInventory();
+        }
+
+        /** Açık takas GUI'sindeki slot görünümünü yeniler (sol: kendi, sağ: karşı taraf). */
+        private void refreshInventory(Player p) {
+            if (p == null || !p.isOnline()) return;
+            Inventory inv = p.getOpenInventory().getTopInventory();
+            if (inv == null || inv.getSize() != 54) return;
+            ItemStack[] mine = playerItems.get(p.getUniqueId());
+            if (mine != null) {
+                for (int i = 0; i < mine.length; i++) {
+                    inv.setItem(i, mine[i] != null ? mine[i].clone() : null);
+                }
+            }
+            Player opp = other(p);
+            ItemStack[] theirs = playerItems.get(opp.getUniqueId());
+            if (theirs != null) {
+                for (int i = 0; i < theirs.length; i++) {
+                    inv.setItem(9 + i, theirs[i] != null ? theirs[i].clone() : null);
+                }
+            }
         }
 
         /** Oyuncu onay düğmesine bastı. Her iki onaylanınca takas gerçekleşir. */
@@ -300,6 +328,8 @@ public class TradeService {
             if (a == null || b == null || !a.isOnline() || !b.isOnline()) {
                 if (a != null && a.isOnline()) a.sendMessage("§cTakas iptal edildi (karşı taraf çevrimdışı).");
                 if (b != null && b.isOnline()) b.sendMessage("§cTakas iptal edildi (karşı taraf çevrimdışı).");
+                refundItems();
+                closeInventories();
                 return;
             }
 
@@ -310,23 +340,24 @@ public class TradeService {
             if (isEmpty(aItems) && isEmpty(bItems)) {
                 a.sendMessage("§7Takas için eşya koymadınız — iptal edildi.");
                 b.sendMessage("§7Takas için eşya koymadınız — iptal edildi.");
+                closeInventories();
                 return;
             }
 
-            // Envanter kontrolü — taşma olursa iptal
-            for (ItemStack item : bItems) {
-                if (item != null && a.getInventory().firstEmpty() == -1) {
-                    a.sendMessage("§cEnvanterin dolu! Takas iptal edildi.");
-                    b.sendMessage("§cKarşı tarafın envanteri dolu! Takas iptal edildi.");
-                    return;
-                }
+            // Envanter kontrolü — taşma olursa iptal (eşyalar iade edilir)
+            if (!canHold(a, bItems)) {
+                refundItems();
+                a.sendMessage("§cEnvanterin dolu! Takas iptal edildi.");
+                b.sendMessage("§cKarşı tarafın envanteri dolu! Takas iptal edildi.");
+                closeInventories();
+                return;
             }
-            for (ItemStack item : aItems) {
-                if (item != null && b.getInventory().firstEmpty() == -1) {
-                    b.sendMessage("§cEnvanterin dolu! Takas iptal edildi.");
-                    a.sendMessage("§cKarşı tarafın envanteri dolu! Takas iptal edildi.");
-                    return;
-                }
+            if (!canHold(b, aItems)) {
+                refundItems();
+                b.sendMessage("§cEnvanterin dolu! Takas iptal edildi.");
+                a.sendMessage("§cKarşı tarafın envanteri dolu! Takas iptal edildi.");
+                closeInventories();
+                return;
             }
 
             // Swap: A'nın eşyalarını B'ye, B'ninkileri A'ya
@@ -337,11 +368,48 @@ public class TradeService {
                 if (item != null) a.getInventory().addItem(item.clone());
             }
 
-            clearItems(a);
-            clearItems(b);
+            // Eşyalar transfer edildi — close()'ta tekrar iade edilmesin
+            playerItems.clear();
+            completed = true;
 
             a.sendMessage("§a§lTakas tamamlandı! " + b.getName() + " ile eşya değiştiniz.");
             b.sendMessage("§a§lTakas tamamlandı! " + a.getName() + " ile eşya değiştiniz.");
+
+            // GUI'leri kapat — InventoryCloseEvent, oturumun map'ten temizlenmesini tetikler
+            closeInventories();
+        }
+
+        /** Oyuncunun envanterinin verilen eşyaları sığdırıp sığdıramayacağını kontrol eder (stackable dahil). */
+        private boolean canHold(Player player, ItemStack[] incoming) {
+            if (incoming == null) return true;
+            ItemStack[] contents = player.getInventory().getContents();
+            int emptySlots = 0;
+            for (ItemStack c : contents) {
+                if (c == null || c.getType() == Material.AIR) emptySlots++;
+            }
+            for (ItemStack item : incoming) {
+                if (item == null || item.getType() == Material.AIR) continue;
+                int amount = item.getAmount();
+                // Önce aynı türdeki mevcut stack'lere ekle
+                for (ItemStack c : contents) {
+                    if (amount <= 0) break;
+                    if (c != null && c.isSimilar(item) && c.getAmount() < c.getMaxStackSize()) {
+                        amount -= Math.min(c.getMaxStackSize() - c.getAmount(), amount);
+                    }
+                }
+                if (amount <= 0) continue;
+                int neededSlots = (amount + item.getMaxStackSize() - 1) / item.getMaxStackSize();
+                if (neededSlots > emptySlots) return false;
+                emptySlots -= neededSlots;
+            }
+            return true;
+        }
+
+        private void closeInventories() {
+            Player a = Bukkit.getPlayer(playerA.getUniqueId());
+            Player b = Bukkit.getPlayer(playerB.getUniqueId());
+            if (a != null && a.isOnline()) a.closeInventory();
+            if (b != null && b.isOnline()) b.closeInventory();
         }
 
         private boolean isEmpty(ItemStack[] items) {
@@ -352,9 +420,21 @@ public class TradeService {
             return true;
         }
 
-        private void clearItems(Player player) {
-            player.getInventory().remove(Material.AIR);
-            player.updateInventory();
+        /**
+         * Koyulan tüm eşyaları gerçek envanterlerine iade eder.
+         * (Takas iptal/taşma durumunda — eşyalar takas slotlarında bekler.)
+         */
+        private void refundItems() {
+            for (UUID uuid : playerItems.keySet()) {
+                Player p = Bukkit.getPlayer(uuid);
+                if (p == null || !p.isOnline()) continue;
+                ItemStack[] items = playerItems.get(uuid);
+                if (items == null) continue;
+                for (ItemStack item : items) {
+                    if (item != null) p.getInventory().addItem(item.clone());
+                }
+            }
+            playerItems.clear();
         }
 
         public int getMaxSlots() {
@@ -364,14 +444,17 @@ public class TradeService {
         public void close() {
             if (closed) return;
             closed = true;
-            Player a = Bukkit.getPlayer(playerA.getUniqueId());
-            Player b = Bukkit.getPlayer(playerB.getUniqueId());
-            if (a != null && a.isOnline()) a.closeInventory();
-            if (b != null && b.isOnline()) b.closeInventory();
+            // Koyulan eşyaları gerçek envanterlere iade et (dupe/veri kaybı önleme)
+            refundItems();
+            closeInventories();
         }
 
         public boolean isClosed() {
             return closed;
+        }
+
+        public boolean isCompleted() {
+            return completed;
         }
     }
 }

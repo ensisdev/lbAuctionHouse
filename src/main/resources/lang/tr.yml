@@ -19,7 +19,7 @@ subcommands:
   mylistings: [ilanlarim, ilanlarım, mylistings, my]
   collect: [kutu, collect, al, claim]
   remove: [sil, remove, delete]
-  reload: [yenile, reload]
+  reload: [reload]   # yenile kaldırıldı — sadece /ihaleadmin altında
   stats: [stats, stat, istatistik]
   ban: [ban, yasak]
   search: [search, ara]
@@ -35,13 +35,16 @@ admin:
   ban: [ban, yasak]
   unban: [unban, affet]
   banlist: [banlist, banliste, yasaklılar]
+  inspect: [inspect, incele]
+  gui: [gui, panel]
+  reload: [yenile, reload, tazele]   # /ihaleadmin yenile | reload | tazele
 
 # ═══════════════════════════════════════════════════════════
 # MESAJLAR  (config.yml → lang: tr)
 # MiniMessage formatı desteklenir (& kodları da çalışır).
 # Placeholder'lar: %seller% %price% %item% %time_left% %amount% %player% %cmd% ...
 # ═══════════════════════════════════════════════════════════
-prefix: "<dark_gray>[</dark_gray><gold>İhale</gold><dark_gray>]</dark_gray>"
+prefix: "<dark_gray><bold>[</bold></dark_gray><gradient:#7B2FBE:#C084FC><bold>ʟʙᴀᴜᴄᴛɪᴏɴʜᴏᴜꜱᴇ</bold></gradient><dark_gray><bold>]</bold></dark_gray>"
 
 auction:
   listing:
@@ -96,19 +99,20 @@ auction:
     advertised-limit: "<red>Reklam limitine ulaştın! (%max% aktif reklamlı ilan)</red>"
     advertised-fee: "<yellow>Reklam ücreti kesildi: %price%</yellow>"
   admin:
-    header: "<gold>=== Admin Panel ===</gold>"
+    header: "<gold><bold>» ᴀᴅᴍɪɴ ᴘᴀɴᴇʟɪ «</bold></gold>"
     remove-usage: "<gray>/%cmd% admin remove <uuid></gray> <dark_gray>— İlan kaldır</dark_gray>"
     clear-usage: "<gray>/%cmd% admin clear</gray> <dark_gray>— Tüm ilanları temizle</dark_gray>"
     logs-usage: "<gray>/%cmd% admin logs</gray> <dark_gray>— Son işlemleri göster</dark_gray>"
     unknown: "<red>Bilinmeyen alt komut: %arg%</red>"
     removed: "<green>İlan kaldırıldı. Eşya satıcının kolisine düştü.</green>"
     cleared: "<green><white>%count%</white> ilan temizlendi. Eşyalar satıcıların kolisine düştü.</green>"
+    reloaded: "<green>Yapılandırma yeniden yüklendi. Yeni ayarlar aktif.</green>"
     not-found: "<red>İlan bulunamadı.</red>"
     no-logs: "<red>Henüz işlem kaydı yok.</red>"
-    logs-header: "<gold>=== Son %count% İşlem ===</gold>"
+    logs-header: "<gold><bold>» ꜱᴏɴ %count% ɪꜱʟᴇᴍ «</bold></gold>"
     invalid-number: "<red>Geçersiz sayı!</red>"
     invalid-uuid: "<red>Geçersiz UUID!</red>"
-    stats-header: "<gold>=== İhale İstatistikleri ===</gold>"
+    stats-header: "<gold><bold>» ɪʜᴀʟᴇ ɪꜱᴛᴀᴛɪꜱᴛɪᴋʟᴇʀɪ «</bold></gold>"
     stats-line: "<gray>%label%:</gray> <white>%value%</white>"
     stats-total-sales: "Toplam Satış"
     stats-total-revenue: "Toplam Gelir"
@@ -123,7 +127,7 @@ auction:
       player-offline-no-uuid: "<red>Oyuncu bulunamadı. Çevrimiçi olmayan oyuncular için UUID girin.</red>"
       unbanned: "<green>%player% yasağı kaldırıldı.</green>"
       no-banned: "<green>Yasaklı oyuncu yok.</green>"
-      banned-list-header: "<gold>=== Yasaklı Oyuncular (%count%) ===</gold>"
+      banned-list-header: "<gold><bold>» ʏᴀꜱᴀᴋʟɪ ᴏʏᴜɴᴄᴜʟᴀʀ (%count%) «</bold></gold>"
   flash-sale:
     active: "<gold>⚡ İNDİRİM! %discount%% indirim!</gold>"
     ended: "<yellow>Flash sale süren doldu: %item%</yellow>"
@@ -135,7 +139,7 @@ auction:
     usage: "<red>Kullanım:</red> <gray>/%cmd% search <sorgu> [min:100] [max:500] [type:BIN] [seller:isim] [mat:DIAMOND] [ads]</gray>"
     example: "<gray>Örnek: /%cmd% search elmas min:100 max:500</gray>"
     example-seller: "<gray>Örnek: /%cmd% search seller:Notch ads</gray>"
-    header: "<gold>=== İlan Arama Sonuçları (%count%) ===</gold>"
+    header: "<gold><bold>» ɪʟᴀɴ ᴀʀᴀᴍᴀ ꜱᴏɴᴜᴄʟᴀʀɪ (%count%) «</bold></gold>"
     empty: "<red>Arama kriterlerine uygun ilan bulunamadı.</red>"
     line: "<gray>• %item% %price% • %seller%%advertised%</gray>"
   view:

@@ -1,7 +1,7 @@
 package dev.ensisdev.lbauctionhouse.command.cmd;
 
 import dev.ensisdev.lbauctionhouse.command.framework.AuctionCmd;
-import dev.ensisdev.lbauctionhouse.data.AuctionData;
+import dev.ensisdev.lbauctionhouse.data.CollectionEntry;
 
 import java.text.NumberFormat;
 import java.time.Instant;
@@ -20,7 +20,7 @@ public class CmdStats extends AuctionCmd {
             DateTimeFormatter.ofPattern("dd/MM").withZone(ZoneId.systemDefault());
 
     public CmdStats() {
-        super("stats", "lbsmpcore.auction.use", false);
+        super("stats", "lbauctionhouse.use", false);
         setAliases("istatistik", "statistics");
         setDescription("İstatistiklerim + satış grafiği");
     }
@@ -29,8 +29,8 @@ public class CmdStats extends AuctionCmd {
     protected void execute() {
         if (player == null) return;
 
-        AuctionData.PlayerStats stats = manager.getData().getPlayerStats(player.getUniqueId());
-        List<AuctionData.DailySales> chart = manager.getData().getPlayerSalesChart(player.getUniqueId(), 30);
+        CollectionEntry.PlayerStats stats = manager.getData().getPlayerStats(player.getUniqueId());
+        List<CollectionEntry.DailySales> chart = manager.getData().getPlayerSalesChart(player.getUniqueId(), 30);
 
         msg("§6§l=== İstatistiklerim ===");
         msg(" §7Satılan Eşya: §e" + stats.totalSold());
@@ -45,7 +45,7 @@ public class CmdStats extends AuctionCmd {
      * Son 30 günü 3'er günlük 10 gruba bölerek dikey ASCII bar chart üretir.
      * Bar genişliği grup içindeki maksimum kazanca göre ölçeklenir.
      */
-    private String buildChart(List<AuctionData.DailySales> chart) {
+    private String buildChart(List<CollectionEntry.DailySales> chart) {
         if (chart.isEmpty()) {
             return "§7Satış verisi yok.";
         }
@@ -59,7 +59,7 @@ public class CmdStats extends AuctionCmd {
         long maxRevenue = 1;
 
         for (int i = 0; i < chart.size(); i++) {
-            AuctionData.DailySales day = chart.get(i);
+            CollectionEntry.DailySales day = chart.get(i);
             int g = Math.min(i / perGroup, groups - 1);
             groupRevenue[g] += Math.round(day.revenue() * 100);
             groupCount[g] += day.count();

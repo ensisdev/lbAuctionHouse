@@ -23,7 +23,7 @@ import java.util.List;
 public final class BundleItems {
 
     private static NamespacedKey key;
-    private static final int MAX_BUNDLE_ITEMS = 45;
+    private static int maxBundleItems = 45;
 
     private BundleItems() {}
 
@@ -32,6 +32,7 @@ public final class BundleItems {
         if (key == null) {
             key = new NamespacedKey(plugin, "lbsmp_bundle");
         }
+        maxBundleItems = Math.max(1, plugin.getAuctionConfig().getMaxBundleItems());
     }
 
     public static boolean isBundle(ItemStack item) {
@@ -60,7 +61,7 @@ public final class BundleItems {
             String n = it.getItemMeta().hasDisplayName()
                     ? it.getItemMeta().getDisplayName() : it.getType().name();
             lore.add("§7" + it.getAmount() + "x §f" + n);
-            if (packed.size() >= MAX_BUNDLE_ITEMS) break;
+            if (packed.size() >= maxBundleItems) break;
         }
 
         meta.setDisplayName(displayName != null ? displayName : "§6§lToplu Paket");

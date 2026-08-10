@@ -26,7 +26,7 @@ public class BundleViewGUI extends BaseMenu {
     private final List<ItemStack> contents = new ArrayList<>();
 
     public BundleViewGUI() {
-        super("auction_bundle_view", "&8&l» &6&l"+ dev.ensisdev.lbauctionhouse.util.SmallCaps.toSmallCaps("PAKET İÇERİĞİ")+" &8&l«", 6);
+        super("auction_bundle_view", "&8&l» <gradient:#FFB74D:#FFD54F>"+ dev.ensisdev.lbauctionhouse.util.SmallCaps.toSmallCaps("PAKET İÇERİĞİ")+"</gradient> &8&l«", 6);
     }
 
     /**
@@ -44,7 +44,7 @@ public class BundleViewGUI extends BaseMenu {
     @Override
     protected void onOpen(Player player) {
         clear();
-        fillEmpty(MenuItem.builder(Material.GRAY_STAINED_GLASS_PANE).name(" ").build());
+        fillEmpty(MenuItem.builder(Material.BLACK_STAINED_GLASS_PANE).name(" ").build());
 
         int total = 0;
         for (ItemStack it : contents) total += it.getAmount();
@@ -53,10 +53,13 @@ public class BundleViewGUI extends BaseMenu {
             setItem(i, MenuItem.builder(contents.get(i).clone()).build());
         }
         setItem(53, MenuItem.builder(Material.BOOK)
-                .name("&eToplu Paket")
-                .lore("&7" + contents.size() + " tür, &7" + total + " adet")
+                .name("&#FFD54F&lᴛᴏᴘʟᴜ ᴘᴀᴋᴇᴛ")
+                .lore("&#8c8c8c" + contents.size() + " tür, &#FFD54F" + total + " adet")
                 .build());
-        setItem(49, MenuItem.builder(Material.BARRIER).name("&c&lKapat").build());
+        setItem(49, MenuItem.builder(Material.BARRIER)
+                .name("&#FF5555&lᴋᴀᴘᴀᴛ")
+                .lore("&#8c8c8c• &#FF5555Tıkla &#F5F5F5— kapat")
+                .build());
     }
 
     @Override

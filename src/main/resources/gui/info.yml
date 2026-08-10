@@ -1,26 +1,92 @@
-# İlan Bilgileri GUI'si (27 slot) — ayarlanabilir layout
-# Bir ilana sağ tıklayınca açılır.
-#
-#   • item-slot    → ilan edilen eşya bilgileri
-#   • seller-slot  → satıcı bilgileri (oyuncu kafası + istatistik)
-#   • buy-slot     → satın alma butonu
-#   • close-slot   → geri dön butonu
-# Tüm slot'lar ve görünüm özelleştirilebilir.
+# ============================================================
+# 📊 İLAN BİLGİSİ GUI — TAM ÖZELLEŞTIRILEBILIR
+# Layout: 27 slot (3 satır). Standart düzen:
+#   item-slot    → ortadaki ilan eşyası
+#   seller-slot  → satıcı kafası (slot 11)
+#   navigation   → buy/close/favorite butonları
+# ============================================================
 
-title: "&8&l» &6&lɪʟᴀɴ ʙɪʟɢɪꜱɪ &8&l«"
+title: "&8&l» <gradient:#FFB74D:#FFD54F>ɪʟᴀɴ ʙɪʟɢɪꜱɪ</gradient> &8&l«"
 rows: 3
 
+# Çerçeve
 border:
-  material: GRAY_STAINED_GLASS_PANE
+  material: BLACK_STAINED_GLASS_PANE
+  texture: ""
   name: " "
-  slots: "0-8, 18-26"
+  amount: 1
+  custom-model-data: 0
+  glow: false
+  hide-flags: false
+  slots: "0,1,2,3,5,6,7,8,9,12,17,18,20,21,22,23,24,25,26"
 
-item-slot: 14
+# Arka plan dolgusu
+background-fill:
+  material: GRAY_STAINED_GLASS_PANE
+  texture: ""
+  name: " "
+  amount: 1
+  custom-model-data: 0
+  glow: false
+  hide-flags: false
+
+# İlan eşyası slotu (envanter ortası)
+item-slot: 13
+item-lore-format:
+  - "&#8c8c8c•  &#FFD54Fꜱᴀᴛɪᴄɪ &#8c8c8c— &#F5F5F5%seller%"
+  - "&#8c8c8c•  &#FFD54Fꜰɪʏᴀᴛ  &#8c8c8c— &#FFAA00%price%"
+  - "&#8c8c8c•  &#FFD54Fᴋᴀʟᴀɴ  &#8c8c8c— &#F5F5F5%time_left%"
+  - "&#8c8c8c•  &#FFD54Fᴀᴅᴇᴛ   &#8c8c8c— &#F5F5F5%amount%"
+  - "&#8c8c8c•  &#FFD54Fᴛᴜʀ    &#8c8c8c— &#F5F5F5%type%"
+
+# Satıcı kafası slotu (slot 11)
 seller-slot: 11
-buy-slot: 17
-close-slot: 22
+seller-lore-format:
+  - "&#8c8c8c•  &#FFD54Fꜱᴀᴛᴛɪ  &#8c8c8c— &#F5F5F5%sold%"
+  - "&#8c8c8c•  &#FFD54Fᴀʟᴅɪ  &#8c8c8c— &#F5F5F5%bought%"
+  - "&#8c8c8c•  &#FFD54Fᴋᴀᴢᴀɴᴄ  &#8c8c8c— &#FFAA00%earned%"
+  - "&#8c8c8c•  &#FFD54Fʙᴀᴋɪʏᴇ  &#8c8c8c— &#FFAA00%balance%"
 
-buy-material: LIME_WOOL
-buy-name: "&a&l✔ Satın Al"
-buy-lore:
-  - "&7Tıkla — satın almayı onayla"
+# Navigation (buy/close/favorite)
+navigation:
+  buy:
+    slot: 15
+    material: LIME_DYE
+    texture: ""
+    name: "&a&l✔ ꜱᴀᴛɪɴ ᴀʟ"
+    lore:
+      - "&#8c8c8c•  &#55FF55Sol Tık &#8c8c8c— satın almayı onayla"
+    left-click: buy
+    right-click: buy
+    amount: 1
+    custom-model-data: 0
+    glow: true
+    hide-flags: true
+
+  favorite:
+    slot: 10
+    material: GOLD_INGOT
+    texture: ""
+    name: "&e&l⭐ ꜰᴀᴠᴏʀɪ"
+    lore:
+      - "&#8c8c8c•  &#F5F5F5Sol Tık &#8c8c8c— favorilere ekle / çıkar"
+    left-click: toggle-favorite
+    right-click: toggle-favorite
+    amount: 1
+    custom-model-data: 0
+    glow: false
+    hide-flags: false
+
+  close:
+    slot: 16
+    material: BARRIER
+    texture: ""
+    name: "&c&l✖ ᴋᴀᴘᴀᴛ"
+    lore:
+      - "&#8c8c8c•  &#FF5555Sol Tık &#8c8c8c— ana menüye dön"
+    left-click: close
+    right-click: close
+    amount: 1
+    custom-model-data: 0
+    glow: false
+    hide-flags: false

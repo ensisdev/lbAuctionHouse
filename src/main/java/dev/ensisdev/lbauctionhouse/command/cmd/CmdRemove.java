@@ -11,7 +11,7 @@ import java.util.UUID;
 public class CmdRemove extends AuctionCmd {
 
     public CmdRemove() {
-        super("remove", "lbsmpcore.auction.admin", true);
+        super("remove", "lbauctionhouse.admin", true);
         setAliases("delete", "sil", "adminremove");
         setUsage("<ilan-uuid>");
         setDescription("İlan kaldır (admin)");

@@ -10,8 +10,6 @@ import org.bukkit.command.CommandSender;
 import org.bukkit.entity.Player;
 import org.jetbrains.annotations.NotNull;
 
-import java.util.List;
-
 /**
  * Auction alt komutları için abstract base sınıf.
  * <p>
@@ -19,7 +17,7 @@ import java.util.List;
  * <pre>
  * public class CmdSell extends AuctionCmd {
  *     public CmdSell() {
- *         super("sell", "lbsmpcore.auction.sell", false);
+ *         super("sell", "lbauctionhouse.sell", false);
  *         setAliases("sat", "list");
  *         setUsage("<fiyat>");
  *         setDescription("Eşya sat");
@@ -39,6 +37,11 @@ public abstract class AuctionCmd {
     private String[] aliases = new String[0];
     private String usage = "";
     private String description = "";
+    /**
+     * Özellik kapatma anahtarı (features.yml). {@code null} ise komut daima aktif kalır.
+     * {@code false} ise komut kaydedilmez, dispatch edilmez ve tab complete önerilerinde yer almaz.
+     */
+    private String featureKey;
 
     // Context — set before execute()
     protected LbAuctionHouse plugin;
@@ -56,6 +59,28 @@ public abstract class AuctionCmd {
         this.permission = permission;
         this.consoleCanUse = consoleCanUse;
         this.displayName = name;
+    }
+
+    /**
+     * Başka bir {@code AuctionCmd}'in yürütme context'ini (sender/player/label/...)
+     * bu objeye kopyalar.
+     * <p>
+     * Cross-class tetikleme için — bir alt komutun mantığını paylaşırken context'i paylaşmayı sağlar
+     * (örn. {@link dev.ensisdev.lbauctionhouse.command.cmd.CmdAdmin} ↦ {@code /ihaleadmin yenile}
+     * komutu için {@link dev.ensisdev.lbauctionhouse.command.cmd.CmdReload#reloaded(AuctionCmd)}).
+     *
+     * @param source context kopyalanacak kaynak komut
+     */
+    public void injectFrom(@NotNull AuctionCmd source) {
+        this.plugin = source.plugin;
+        this.manager = source.manager;
+        this.config = source.config;
+        this.messages = source.messages;
+        this.logger = source.logger;
+        this.args = source.args;
+        this.sender = source.sender;
+        this.player = source.player;
+        this.label = source.label;
     }
 
     /**
@@ -87,6 +112,20 @@ public abstract class AuctionCmd {
     public AuctionCmd setDescription(String description) {
         this.description = description;
         return this;
+    }
+
+    /**
+     * Bu alt komutun bağlı olduğu özellik anahtarı (features.yml).
+     * {@code null} verilirse özellik kapatma yoktur (komut daima aktif).
+     */
+    public AuctionCmd setFeatureKey(String featureKey) {
+        this.featureKey = featureKey;
+        return this;
+    }
+
+    /** Özellik anahtarı (null olabilir). */
+    public String getFeatureKey() {
+        return featureKey;
     }
 
     /**

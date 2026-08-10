@@ -11,7 +11,7 @@ import java.util.UUID;
 public class CmdBan extends AuctionCmd {
 
     public CmdBan() {
-        super("ban", "lbsmpcore.auction.admin", true);
+        super("ban", "lbauctionhouse.admin", true);
         setAliases("yasak");
         setDescription("Oyuncu ban yönetimi (admin)");
     }

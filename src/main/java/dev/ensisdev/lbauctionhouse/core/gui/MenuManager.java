@@ -95,6 +95,32 @@ public class MenuManager implements Listener {
         openMenus.clear();
     }
 
+    /**
+     * Tüm açık menüleri yeniden renderlar (feature toggle değişiminde).
+     * <p>
+     * Oyuncu hâlâ aynı menüyü açık tutar — stok, slot ve görsel değişiklikler anında uygulanır.
+     *
+     * @return yenilenen menü sayısı
+     */
+    public int refreshAllOpen() {
+        int count = 0;
+        for (Map.Entry<UUID, BaseMenu> entry : openMenus.entrySet()) {
+            Player player = plugin.getServer().getPlayer(entry.getKey());
+            if (player != null) {
+                entry.getValue().refresh(player);
+                count++;
+            }
+        }
+        return count;
+    }
+
+    /**
+     * Tüm açık menü haritasının salt-okunur anlık görüntüsü (debug/admin için).
+     */
+    public Map<UUID, BaseMenu> snapshot() {
+        return java.util.Collections.unmodifiableMap(openMenus);
+    }
+
     // ---- Events ----
     // ÇİFT KATMAN: LOWEST (erken iptal) + HIGHEST (tekrar iptal)
     // Başka pluginler araya girip uncancel yapsa bile HIGHEST'te tekrar iptal ederiz.

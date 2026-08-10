@@ -52,13 +52,15 @@ subcommands:
   mylistings: [ilanlarım, ilanlarim, mylistings, my]
   collect: [kutu, collect, al, claim]
   remove: [sil, remove, delete]
-  reload: [yenile, reload]
+  reload: [reload]   # yenile kaldırıldı — artık sadece /ihaleadmin altında çalışır
   stats: [istatistik, stats, stat]
   ban: [yasak, ban]
   search: [ara, search]
   trade: [takas, trade]
   view: [gör, gor, view]
   negotiate: [teklif, pazarlik]
+  favorites: [favori, fav, favorites]
+  history: [geçmiş, history, gecmis, gecmıs]
 
 # ──────────────────────────────────────────────────────────────────
 #  ADMIN ALT-KOMUTLARI  —  /<yönetim komutu> <buradaki isim>
@@ -73,3 +75,5 @@ admin:
   unban: [affet, unban]
   banlist: [yasaklılar, banlist, banliste]
   inspect: [inspect, incele]
+  gui: [panel, gui]
+  reload: [yenile, reload, tazele]   # yenile artık sadece burada

@@ -8,7 +8,7 @@ import dev.ensisdev.lbauctionhouse.command.framework.AuctionCmd;
 public class CmdCollect extends AuctionCmd {
 
     public CmdCollect() {
-        super("collect", "lbsmpcore.auction.use", false);
+        super("collect", "lbauctionhouse.use", false);
         setAliases("claim", "al", "kutu", "ödül");
         setDescription("Kolim");
     }

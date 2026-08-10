@@ -1,7 +1,8 @@
 package dev.ensisdev.lbauctionhouse.service;
 
+import dev.ensisdev.lbauctionhouse.cluster.ClusterBridge;
 import dev.ensisdev.lbauctionhouse.config.AuctionConfig;
-import dev.ensisdev.lbauctionhouse.data.AuctionData;
+import dev.ensisdev.lbauctionhouse.data.CollectionEntry;
 import dev.ensisdev.lbauctionhouse.data.AuctionListing;
 import dev.ensisdev.lbauctionhouse.core.addon.AddonLogger;
 
@@ -38,13 +39,19 @@ public class AntiDupeService {
     private final Map<UUID, Long> lastTransactionTime = new ConcurrentHashMap<>();
 
     private final AuctionConfig config;
-    private final AuctionData data;
+    private final CollectionEntry data;
     private final AddonLogger logger;
+    private final ClusterBridge cluster;
 
-    public AntiDupeService(AuctionConfig config, AuctionData data, AddonLogger logger) {
+    public AntiDupeService(AuctionConfig config, CollectionEntry data, AddonLogger logger) {
+        this(config, data, logger, null);
+    }
+
+    public AntiDupeService(AuctionConfig config, CollectionEntry data, AddonLogger logger, ClusterBridge cluster) {
         this.config = config;
         this.data = data;
         this.logger = logger;
+        this.cluster = cluster;
     }
 
     // ----------------------------------------------------------------
@@ -60,14 +67,17 @@ public class AntiDupeService {
      * @param <T> dönüş tipi
      * @return işlemin sonucu
      */
+    /**
+     * <b>DİKKAT (race düzeltmesi):</b> Kilit nesneleri artık {@code finally} bloğunda
+     * {@code listingLocks} haritasından silinmez. Aksi takdirde: A işlemi kilit nesnesini
+     * alır, B aynı nesneyi beklerken A biter ve nesneyi siler, C yeni bir kilit nesnesi
+     * oluşturur → B ve C aynı anda kritik bölgede çalışabilir (çift işlem/dupe riski).
+     * Kilitler işlem ömrü boyunca haritada tutulur; {@link #shutdown()} ile temizlenir.
+     */
     public <T> T withListingLock(UUID listingId, Supplier<T> operation) {
         Object lock = listingLocks.computeIfAbsent(listingId, k -> new Object());
         synchronized (lock) {
-            try {
-                return operation.get();
-            } finally {
-                listingLocks.remove(listingId);
-            }
+            return operation.get();
         }
     }
 
@@ -77,11 +87,7 @@ public class AntiDupeService {
     public void withListingLock(UUID listingId, Runnable operation) {
         Object lock = listingLocks.computeIfAbsent(listingId, k -> new Object());
         synchronized (lock) {
-            try {
-                operation.run();
-            } finally {
-                listingLocks.remove(listingId);
-            }
+            operation.run();
         }
     }
 
@@ -121,6 +127,13 @@ public class AntiDupeService {
             lastTransactionTime.put(playerId, now);
         }
 
+        // Çapraz sunucu kilidi: cluster modunda başka bir sunucu bu ilanı
+        // işliyorsa işlem reddedilir (SETNX). Tek sunucuda no-op'tur.
+        if (cluster != null && !cluster.tryAcquireListingLock(listingId)) {
+            logger.warn("Anti-dupe: " + listingId + " başka bir sunucuda işleniyor.");
+            return false;
+        }
+
         inProgress.put(listingId, new Transaction(playerId, System.nanoTime()));
         return true;
     }
@@ -130,6 +143,7 @@ public class AntiDupeService {
      */
     public void endTransaction(UUID listingId) {
         inProgress.remove(listingId);
+        if (cluster != null) cluster.releaseListingLock(listingId);
     }
 
     // ----------------------------------------------------------------

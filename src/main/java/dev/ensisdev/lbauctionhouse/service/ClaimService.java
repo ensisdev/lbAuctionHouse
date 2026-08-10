@@ -1,7 +1,7 @@
 package dev.ensisdev.lbauctionhouse.service;
 
-import dev.ensisdev.lbauctionhouse.data.AuctionData;
-import dev.ensisdev.lbauctionhouse.data.AuctionData.CollectionEntry;
+import dev.ensisdev.lbauctionhouse.data.CollectionEntry;
+import dev.ensisdev.lbauctionhouse.data.CollectionEntry.UnclaimedEntry;
 import dev.ensisdev.lbauctionhouse.economy.AuctionEconomy;
 
 import org.bukkit.entity.Player;
@@ -17,10 +17,10 @@ import java.util.UUID;
  */
 public class ClaimService {
 
-    private final AuctionData data;
+    private final CollectionEntry data;
     private final AuctionEconomy economy;
 
-    public ClaimService(AuctionData data, AuctionEconomy economy) {
+    public ClaimService(CollectionEntry data, AuctionEconomy economy) {
         this.data = data;
         this.economy = economy;
     }
@@ -30,9 +30,9 @@ public class ClaimService {
      * @return kaç girdi teslim edildi
      */
     public int claimAll(Player player) {
-        List<CollectionEntry> entries = data.getUnclaimedCollection(player.getUniqueId());
+        List<UnclaimedEntry> entries = data.getUnclaimedCollection(player.getUniqueId());
         int claimed = 0;
-        for (CollectionEntry entry : entries) {
+        for (UnclaimedEntry entry : entries) {
             if (claimEntry(player, entry)) claimed++;
         }
         return claimed;
@@ -43,8 +43,8 @@ public class ClaimService {
      * @return teslim başarılı mı
      */
     public boolean claimEntry(Player player, int entryId) {
-        List<CollectionEntry> entries = data.getUnclaimedCollection(player.getUniqueId());
-        for (CollectionEntry entry : entries) {
+        List<UnclaimedEntry> entries = data.getUnclaimedCollection(player.getUniqueId());
+        for (UnclaimedEntry entry : entries) {
             if (entry.id() == entryId) {
                 return claimEntry(player, entry);
             }
@@ -52,7 +52,7 @@ public class ClaimService {
         return false;
     }
 
-    private boolean claimEntry(Player player, CollectionEntry entry) {
+    private boolean claimEntry(Player player, UnclaimedEntry entry) {
         UUID playerUUID = player.getUniqueId();
         switch (entry.type()) {
             case "ITEM" -> {
@@ -61,13 +61,22 @@ public class ClaimService {
                     data.removeFromCollection(entry.id());
                     return false;
                 }
-                player.getInventory().addItem(item);
+                // Envanter taşarsa addItem leftover döndürür.
+                // Eşya KAYBOLMASIN diye markClaimed çağrılmaz — girdi DB'de beklemeye devam eder.
+                var leftover = player.getInventory().addItem(item.clone());
+                if (!leftover.isEmpty()) {
+                    return false;
+                }
                 data.markClaimed(entry.id());
                 return true;
             }
             case "MONEY" -> {
                 if (entry.amount() > 0) {
-                    economy.deposit(playerUUID, entry.amount());
+                    boolean ok = economy.deposit(playerUUID, entry.amount());
+                    if (!ok) {
+                        // Para yatırılamadı — girdi DB'de kalsın, para kaybolmasın.
+                        return false;
+                    }
                 }
                 data.markClaimed(entry.id());
                 return true;
@@ -89,7 +98,7 @@ public class ClaimService {
     /**
      * Oyuncunun bekleyen tüm girdileri.
      */
-    public List<CollectionEntry> getUnclaimed(UUID playerUUID) {
+    public List<UnclaimedEntry> getUnclaimed(UUID playerUUID) {
         return data.getUnclaimedCollection(playerUUID);
     }
 }

@@ -25,7 +25,7 @@ public final class SmallCaps {
         MAP.put('i', "ɪ"); MAP.put('j', "ᴊ"); MAP.put('k', "ᴋ"); MAP.put('l', "ʟ");
         MAP.put('m', "ᴍ"); MAP.put('n', "ɴ"); MAP.put('o', "ᴏ"); MAP.put('p', "ᴘ");
         MAP.put('q', "ǫ"); MAP.put('r', "ʀ"); MAP.put('s', "ꜱ"); MAP.put('t', "ᴛ");
-        MAP.put('u', "ᴜ"); MAP.put('v', "ᴠ"); MAP.put('w', "ᴡ"); MAP.put('x', "ʀ");
+        MAP.put('u', "ᴜ"); MAP.put('v', "ᴠ"); MAP.put('w', "ᴡ"); MAP.put('x', "x");
         MAP.put('y', "ʏ"); MAP.put('z', "ᴢ");
     }
 

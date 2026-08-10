@@ -1,0 +1,46 @@
+# =====================================================================
+#  lbAuctionHouse — Özellik Aç/Kapa Yapılandırması
+#  --------------------------------------------------------------------
+#  Bu dosya, pluginin tüm ÖZELLİKLERİNİ (feature) tek tek kapatmanızı sağlar.
+#  Bir özellik kapatıldığında:
+#   * İlgili komut kayıt dışı kalır (örn. search kapalı → /ihale arama çalışmaz)
+#   * Tab-complete önerileri gizlenir
+#   * GUI butonları ve menü öğeleri tamamen kaldırılır (zombi buton kalmaz)
+#   * İlgili PlaceholderAPI alanları boş döner
+#
+#  true  = özellik AÇIK (varsayılan)
+#  false = özellik KAPALI
+#
+#  Yeniden yükleme: /ihaleadmin reload (veya /ihaleadmin yenile) — restart gerektirmez.
+#  Yapısal değişiklikler (ekonomi türü, cluster tipi, storage tipi) restart gerektirir.
+# =====================================================================
+
+# --- Oyuncu özellikleri ---
+favorites: true            # /ihale favorilerim, Favoriler GUI'si, ♥ toggle, PAPI
+search: true               # /ihale arama <kelime>, arama filtresi GUI butonları
+sort: true                 # /ihale siralama, sıralama filtresi GUI butonları
+categories: true           # Kategori menüsü (gui/categories.yml)
+bids: true                 # Teklif (bid) modu — /ihale teklif ve BidHistoryGUI
+negotiation: true          # Pazarlık (offer) modu — /ihale pazarlik, CmdNegotiate
+history: true              # /ihale gecmis ve HistoryGUI
+my-listings: true          # /ihale ilanlarim ve MyListingsGUI
+collection-box: true       # /ihale kutu ve CollectionBoxGUI (toplu teslim alma)
+trade: true                # Takas (trade) modu — /ihale takas
+player-listings: true      # Diğer oyuncuların ilanlarını listeleme GUI
+bundle-edit: true          # Bundle düzenleme GUI'si
+auto-renew: true           # İlan otomatik yenileme
+
+# --- Ana menü ---
+refresh-listings: true     # Ana menüdeki "İhaleleri Yenile" butonu
+confirmation: true         # Satın alma öncesi onay GUI'si (false → direkt satın al)
+
+# --- Ekonomi ---
+tax: true                  # Satış vergisi sistemi (false → vergi kesilmez)
+
+# --- Yönetim özellikleri ---
+admin-panel: true          # /ihaleadmin — yönetim paneli (kapatırsanız tüm admin GUI'si devre dışı kalır)
+ban-system: true           # /ihaleadmin ban/unban/banlist komutları
+webhook: true              # Admin eylemlerinde Discord webhook bildirimi
+
+# --- Dahili ---
+browse: true               # Ana menü (/ihale veya /auction) — kapatılması önerilmez

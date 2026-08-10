@@ -67,7 +67,7 @@ public class ChatInput {
                 if (!e.getPlayer().equals(player)) return;
                 e.setCancelled(true);
                 HandlerList.unregisterAll(this);
-                plugin.getServer().getScheduler().runTask(plugin, () -> {
+                plugin.getScheduler().runTaskForPlayer(player, () -> {
                     if (onComplete != null) onComplete.accept(player, e.getMessage());
                 });
             }

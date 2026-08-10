@@ -12,3 +12,7 @@ target/
 # OS
 .DS_Store
 Thumbs.db
+
+# Scratch / tools
+.codebuddy/
+GECERSIZ

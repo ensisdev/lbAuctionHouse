@@ -1,8 +1,9 @@
 package dev.ensisdev.lbauctionhouse;
 
 import dev.ensisdev.lbauctionhouse.config.AuctionConfig;
-import dev.ensisdev.lbauctionhouse.data.AuctionData;
+import dev.ensisdev.lbauctionhouse.data.CollectionEntry;
 import dev.ensisdev.lbauctionhouse.data.AuctionListing;
+import dev.ensisdev.lbauctionhouse.scheduler.SchedulerAdapter;
 import org.bukkit.Bukkit;
 import org.bukkit.ChatColor;
 import org.bukkit.entity.Player;
@@ -14,12 +15,12 @@ public class BroadcastService {
 
     private final LbAuctionHouse plugin;
     private final AuctionConfig config;
-    private final AuctionData data;
+    private final CollectionEntry data;
 
     private int lastListingIndex = -1;
-    private int broadcastTaskId = -1;
+    private SchedulerAdapter.RepeatingTask broadcastTask;
 
-    public BroadcastService(LbAuctionHouse plugin, AuctionConfig config, AuctionData data) {
+    public BroadcastService(LbAuctionHouse plugin, AuctionConfig config, CollectionEntry data) {
         this.plugin = plugin;
         this.config = config;
         this.data = data;
@@ -68,8 +69,8 @@ public class BroadcastService {
      */
     public void startBroadcastTask(int intervalSeconds) {
         stopBroadcastTask();
-        broadcastTaskId = Bukkit.getScheduler().scheduleSyncRepeatingTask(
-                plugin, this::broadcastPeriodicAdvertisements,
+        broadcastTask = plugin.getScheduler().runRepeatingTask(
+                this::broadcastPeriodicAdvertisements,
                 intervalSeconds * 20L, intervalSeconds * 20L);
     }
 
@@ -77,9 +78,9 @@ public class BroadcastService {
      * Periyodik reklam duyuru görevini durdurur.
      */
     public void stopBroadcastTask() {
-        if (broadcastTaskId != -1) {
-            Bukkit.getScheduler().cancelTask(broadcastTaskId);
-            broadcastTaskId = -1;
+        if (broadcastTask != null) {
+            broadcastTask.cancel();
+            broadcastTask = null;
         }
     }
 }

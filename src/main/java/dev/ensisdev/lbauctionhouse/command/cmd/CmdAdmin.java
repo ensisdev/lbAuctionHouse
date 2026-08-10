@@ -1,7 +1,9 @@
 package dev.ensisdev.lbauctionhouse.command.cmd;
 
+import dev.ensisdev.lbauctionhouse.command.cmd.CmdReload;
 import dev.ensisdev.lbauctionhouse.command.framework.AuctionCmd;
-import dev.ensisdev.lbauctionhouse.data.AuctionData;
+import dev.ensisdev.lbauctionhouse.config.FeatureRegistry;
+import dev.ensisdev.lbauctionhouse.data.CollectionEntry;
 import dev.ensisdev.lbauctionhouse.data.AuctionLog;
 
 import java.text.NumberFormat;
@@ -12,7 +14,8 @@ import java.util.Locale;
 
 /**
  * /auction admin — admin paneli.
- * Alt komutlar: logs, clear, stats, remove &lt;uuid&gt;
+ * Alt komutlar: logs, clear, stats, remove &lt;uuid&gt;, ban, unban, banlist,
+ *               inspect, gui, reload|yenile
  * <p>
  * Tüm mesajlar {@code messages.yml} üzerinden okunur.
  * Eğer dil anahtarı bulunamazsa varsayılan değerler gösterilir.
@@ -20,7 +23,7 @@ import java.util.Locale;
 public class CmdAdmin extends AuctionCmd {
 
     public CmdAdmin() {
-        super("admin", "lbsmpcore.auction.admin", true);
+        super("admin", "lbauctionhouse.admin", true);
         setAliases("adm", "yönet");
         setDescription("Admin paneli");
     }
@@ -28,7 +31,17 @@ public class CmdAdmin extends AuctionCmd {
     @Override
     protected void execute() {
         if (!hasArg(0)) {
+            // Argümansız → yönetim paneli GUI'sini aç (oyuncu ise)
+            if (!config.isFeatureEnabled(FeatureRegistry.Keys.ADMIN_PANEL)) {
+                sender.sendMessage("§cBu özellik devre dışı bırakıldı (features.yml → admin-panel).");
+                return;
+            }
+            if (player != null) {
+                manager.openAdminGUI(player);
+                return;
+            }
             msg("§6▪▪▪ ✦ Yönetim Paneli ✦ ▪▪▪");
+            msg("§7/ihaleadmin — GUI paneli");
             msg("§7/" + label + " stats — İstatistikler");
             msg("§7/" + label + " logs — Son işlemleri göster");
             msg("§7/" + label + " clear — Tüm ilanları temizle");
@@ -36,13 +49,25 @@ public class CmdAdmin extends AuctionCmd {
             msg("§7/" + label + " ban <oyuncu> [sebep] — Oyuncu yasakla");
             msg("§7/" + label + " unban <oyuncu> — Yasağı kaldır");
             msg("§7/" + label + " banlist — Yasaklı oyuncular");
+            msg("§7/" + label + " reload|yenile — Yapılandırmayı yeniden yükle");
             return;
         }
 
         // Admin alt-komut eşleşmeleri commands.yml / lang dosyasından çözülür.
         // Böylece sunucu sahibi admin alt komutlarını da değiştirebilir.
         String sub = arg(0).toLowerCase();
-        if (config.isAdminSub("stats", sub)) {
+        if (config.isAdminSub("gui", sub)) {
+            if (!config.isFeatureEnabled(FeatureRegistry.Keys.ADMIN_PANEL)) {
+                sender.sendMessage("§cBu özellik devre dışı bırakıldı (features.yml → admin-panel).");
+                return;
+            }
+            if (player != null) manager.openAdminGUI(player);
+        } else if (config.isAdminSub("reload", sub)) {
+            // /ihaleadmin yenile | /ihaleadmin reload — yapılandırmayı yenile
+            // CmdReload'un execute'ünü olduğu gibi tetikle (lojik çift kapılı)
+            new CmdReload().reloaded(this);
+            msg("admin.reloaded");
+        } else if (config.isAdminSub("stats", sub)) {
             showStats();
         } else if (config.isAdminSub("logs", sub)) {
             showLogs();
@@ -51,18 +76,30 @@ public class CmdAdmin extends AuctionCmd {
         } else if (config.isAdminSub("remove", sub)) {
             removeListing();
         } else if (config.isAdminSub("ban", sub)) {
+            if (!config.isFeatureEnabled(FeatureRegistry.Keys.BAN_SYSTEM)) {
+                sender.sendMessage("§cBu özellik devre dışı bırakıldı (features.yml → ban-system).");
+                return;
+            }
             if (!hasArg(1)) {
                 msg("§cKullanım: /" + label + " ban <oyuncu> [sebep]");
                 return;
             }
             banPlayer(arg(1), arg(2, "Sebep belirtilmedi"));
         } else if (config.isAdminSub("unban", sub)) {
+            if (!config.isFeatureEnabled(FeatureRegistry.Keys.BAN_SYSTEM)) {
+                sender.sendMessage("§cBu özellik devre dışı bırakıldı (features.yml → ban-system).");
+                return;
+            }
             if (!hasArg(1)) {
                 msg("§cKullanım: /" + label + " unban <oyuncu>");
                 return;
             }
             unbanPlayer(arg(1));
         } else if (config.isAdminSub("banlist", sub)) {
+            if (!config.isFeatureEnabled(FeatureRegistry.Keys.BAN_SYSTEM)) {
+                sender.sendMessage("§cBu özellik devre dışı bırakıldı (features.yml → ban-system).");
+                return;
+            }
             listBannedPlayers();
         } else if (config.isAdminSub("inspect", sub)) {
             inspectPlayer(hasArg(1) ? arg(1) : null);
@@ -73,7 +110,7 @@ public class CmdAdmin extends AuctionCmd {
 
     private void showStats() {
         var auctionData = manager.getData();
-        AuctionData.AuctionStats stats = auctionData.getStats();
+        CollectionEntry.AuctionStats stats = auctionData.getStats();
         NumberFormat nf = NumberFormat.getNumberInstance(Locale.US);
         nf.setMinimumFractionDigits(2);
         nf.setMaximumFractionDigits(2);
@@ -139,8 +176,12 @@ public class CmdAdmin extends AuctionCmd {
     }
 
     private void clearAll() {
-        int count = manager.clearAllListings();
-        msg("admin.cleared", "count", String.valueOf(count));
+        manager.clearAllListingsAsync().thenAccept(count ->
+                plugin.getScheduler().runTask(() -> {
+                    msg("admin.cleared", "count", String.valueOf(count));
+                    sendAdminWebhook("tüm ilanları temizledi", count + " ilan");
+                })
+        );
     }
 
     private void removeListing() {
@@ -152,6 +193,7 @@ public class CmdAdmin extends AuctionCmd {
             java.util.UUID uuid = java.util.UUID.fromString(arg(1));
             if (manager.removeListing(uuid)) {
                 msg("admin.removed");
+                sendAdminWebhook("ilanı kaldırdı", arg(1));
             } else {
                 msg("admin.not-found");
             }
@@ -171,6 +213,11 @@ public class CmdAdmin extends AuctionCmd {
         manager.getData().banPlayer(target.getUniqueId(), target.getName(),
                 sender.getName(), reason);
         msg("admin.ban.banned", "player", target.getName(), "reason", reason);
+        if (config.isDiscordWebhookEnabled()) {
+            String whUrl = config.getDiscordWebhookUrl();
+            plugin.getScheduler().runTaskAsynchronously(
+                    () -> dev.ensisdev.lbauctionhouse.util.DiscordWebhook.notifyBan(whUrl, sender.getName(), target.getName(), reason));
+        }
         if (target.isOnline()) {
             target.sendMessage(
                     messages.getPrefixed("admin.ban.you-were-banned", "reason", reason));
@@ -237,5 +284,13 @@ public class CmdAdmin extends AuctionCmd {
             msg("§7• " + listing.id() + " §8— §f" + name
                     + " §8· §6" + manager.getApi().getEconomyManager().format(listing.price()));
         }
+    }
+
+    /** Discord webhook üzerinden admin eylemi bildirimi (async). */
+    private void sendAdminWebhook(String action, String detail) {
+        if (!config.isDiscordWebhookEnabled()) return;
+        String whUrl = config.getDiscordWebhookUrl();
+        plugin.getScheduler().runTaskAsynchronously(
+                () -> dev.ensisdev.lbauctionhouse.util.DiscordWebhook.notifyAdminAction(whUrl, sender.getName(), action, detail));
     }
 }

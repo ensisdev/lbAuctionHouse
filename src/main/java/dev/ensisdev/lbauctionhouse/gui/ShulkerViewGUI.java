@@ -18,7 +18,7 @@ public class ShulkerViewGUI extends BaseMenu {
     private final Consumer<Player> onClose;
 
     public ShulkerViewGUI(ItemStack shulkerItem, Consumer<Player> onClose) {
-        super("shulker_view", "&8&l» &6&l"+ dev.ensisdev.lbauctionhouse.util.SmallCaps.toSmallCaps("SHULKER")+" &8&l«", 6);
+        super("shulker_view", "&8&l» <gradient:#FFB74D:#FFD54F>"+ dev.ensisdev.lbauctionhouse.util.SmallCaps.toSmallCaps("SHULKER")+"</gradient> &8&l«", 6);
         this.shulkerItem = shulkerItem;
         this.onClose = onClose;
     }

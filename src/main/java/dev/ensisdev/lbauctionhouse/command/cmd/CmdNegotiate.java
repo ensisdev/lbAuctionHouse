@@ -122,6 +122,7 @@ public class CmdNegotiate extends AuctionCmd {
             case PRICE_NOT_ALLOWED -> "price";
             case ACTIVE_LIMIT -> "limit";
             case ALREADY_OPEN -> "open";
+            case RATE_LIMITED -> "ratelimited";
             default -> "disabled";
         };
     }

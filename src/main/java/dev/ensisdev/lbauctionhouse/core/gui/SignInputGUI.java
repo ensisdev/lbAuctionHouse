@@ -1,30 +1,29 @@
 package dev.ensisdev.lbauctionhouse.core.gui;
 
 import dev.ensisdev.lbauctionhouse.LbAuctionHouse;
+import dev.ensisdev.lbauctionhouse.util.ColorUtil;
 
-import net.kyori.adventure.text.Component;
+import net.wesjd.anvilgui.AnvilGUI;
 
-import org.bukkit.Location;
-import org.bukkit.World;
+import org.bukkit.Material;
 import org.bukkit.entity.Player;
-import org.bukkit.event.EventHandler;
-import org.bukkit.event.HandlerList;
-import org.bukkit.event.Listener;
-import org.bukkit.event.player.PlayerQuitEvent;
-import org.bukkit.event.server.PluginDisableEvent;
+import org.bukkit.inventory.ItemStack;
+import org.bukkit.inventory.meta.ItemMeta;
 
+import java.util.Collections;
 import java.util.function.BiConsumer;
 import java.util.function.Consumer;
 
 /**
- * Tabela (Sign) arayüzü ile metin girişi.
+ * Örs (Anvil) arayüzü ile metin girişi.
  * <p>
- * Paper 1.20+ API kullanır, herhangi bir harici kütüphane gerektirmez.
- * Oyuncuya tabela açılır, yazdığı metin okunur.
+ * Eski tabela (Sign) tabanlı uygulamanın yerine AnvilGUI kütüphanesi kullanılır.
+ * Sol slota bir kağıt (PAPER) item'ı konur; oyuncu kağıdın ismini (input metnini)
+ * değiştirip çıktı slotuna (OUTPUT) tıkladığında yazılan isim geri çağrıya verilir.
+ * API'si ({@link #create}, {@link #lines}, {@link #onComplete}, {@link #onClose}, {@link #open})
+ * aynen korunur; çağıran sınıflar değişmeden çalışır.
  */
 public class SignInputGUI {
-
-    private static final int LINE = 0; // Hangi satır okunsun
 
     private final LbAuctionHouse plugin;
     private final Player player;
@@ -58,73 +57,81 @@ public class SignInputGUI {
     }
 
     public void open() {
-        World world = player.getWorld();
-        Location loc = player.getLocation().add(0, -5, 0); // Oyuncunun altında, görünmez
-        loc.getBlock().setType(org.bukkit.Material.OAK_SIGN, false);
+        // handled: metin işlendiğinde true olur. Böylece AnvilGUI'nin kapanma
+        // event'i (ResponseAction.close() sonrası tetiklenir) onClose callback'ini
+        // ikinci kez çağırmaz. ESC ile kapanışta ise handled=false olduğundan
+        // kullanıcının onClose callback'i normal şekilde çalışır.
+        boolean[] handled = {false};
 
-        try {
-            org.bukkit.block.Sign sign = (org.bukkit.block.Sign) loc.getBlock().getState();
-            for (int i = 0; i < Math.min(defaultLines.length, 4); i++) {
-                sign.line(i, Component.text(defaultLines[i] != null ? defaultLines[i] : ""));
-            }
-            sign.setEditable(true);
-            sign.update(true);
-
-            Listener listener = new Listener() {
-                @EventHandler
-                public void onSignChange(org.bukkit.event.block.SignChangeEvent e) {
-                    if (!e.getPlayer().equals(player)) return;
-                    // DİKKAT: Location.equals() yaw/pitch'i de karşılaştırır. Oyuncunun
-                    // yaw/pitch'i 0 değilse (bir yöne bakıyorsa) eşleşme HER ZAMAN başarısız
-                    // olurdu. Bu yüzden yalnızca world + blok koordinatları karşılaştırılır.
-                    if (!e.getBlock().getWorld().equals(loc.getWorld())) return;
-                    if (e.getBlock().getX() != loc.getBlockX()) return;
-                    if (e.getBlock().getY() != loc.getBlockY()) return;
-                    if (e.getBlock().getZ() != loc.getBlockZ()) return;
-                    cleanup();
-                    String text = e.getLine(LINE);
-                    if (text == null || text.trim().isEmpty()) {
-                        if (onClose != null) onClose.accept(player);
-                    } else {
-                        if (onComplete != null) onComplete.accept(player, text.trim());
-                    }
-                }
-
-                @EventHandler
-                public void onQuit(PlayerQuitEvent e) {
-                    if (e.getPlayer().equals(player)) cleanup();
-                }
-
-                void cleanup() {
-                    HandlerList.unregisterAll(this);
-                    loc.getBlock().setType(org.bukkit.Material.AIR, false);
-                }
-            };
-
-            plugin.getServer().getPluginManager().registerEvents(listener, plugin);
-            org.bukkit.block.Sign signBlock = (org.bukkit.block.Sign) loc.getBlock().getState();
-            player.openSign(signBlock);
-
-        } catch (Exception e) {
-            // Fallback: sohbet girişi
-            plugin.getLogger().warning("Sign GUI açılamadı: " + e.getMessage() + " — sohbet kullanılacak");
-            loc.getBlock().setType(org.bukkit.Material.AIR, false);
-            player.sendMessage("§eAranacak eşya adını sohbete yaz:");
-            plugin.getServer().getPluginManager().registerEvents(new Listener() {
-                @EventHandler
-                public void onChat(org.bukkit.event.player.AsyncPlayerChatEvent e) {
-                    if (!e.getPlayer().equals(player)) return;
-                    e.setCancelled(true);
-                    HandlerList.unregisterAll(this);
-                    plugin.getServer().getScheduler().runTask(plugin, () -> {
-                        if ("iptal".equalsIgnoreCase(e.getMessage().trim())) {
-                            if (onClose != null) onClose.accept(player);
-                        } else {
-                            if (onComplete != null) onComplete.accept(player, e.getMessage().trim());
-                        }
-                    });
-                }
-            }, plugin);
+        // Sol slot için kağıt item: Oyuncu bu kağıdın ismini değiştirerek giriş yapar.
+        ItemStack paper = new ItemStack(Material.PAPER);
+        ItemMeta meta = paper.getItemMeta();
+        if (meta != null) {
+            meta.setDisplayName(buildInitialText());
+            paper.setItemMeta(meta);
         }
+
+        new AnvilGUI.Builder()
+                .plugin(plugin)
+                .title(buildTitle())
+                .itemLeft(paper)
+                .text(buildInitialText())
+                .onClick((slot, snapshot) -> {
+                    if (slot != AnvilGUI.Slot.OUTPUT) {
+                        return Collections.emptyList();
+                    }
+                    String text = snapshot.getText();
+                    if (text == null || text.trim().isEmpty()) {
+                        handled[0] = true;
+                        if (onClose != null) onClose.accept(snapshot.getPlayer());
+                    } else {
+                        handled[0] = true;
+                        if (onComplete != null) onComplete.accept(snapshot.getPlayer(), text.trim());
+                    }
+                    return Collections.singletonList(AnvilGUI.ResponseAction.close());
+                })
+                .onClose(snapshot -> {
+                    if (!handled[0] && onClose != null) {
+                        onClose.accept(snapshot.getPlayer());
+                    }
+                })
+                .open(player);
+    }
+
+    /**
+     * Örs başlığını tablodaki yönlendirme satırlarından üretir.
+     * Ör. {@code ["", "~~~~~~~~~~~", "&#FFD54FFiyatı yazın", "&#8c8c8c( sayı )"]}
+     * → başlık: "Fiyatı yazın" (renkler uygulanmış).
+     */
+    private String buildTitle() {
+        if (defaultLines != null) {
+            // 3. satır (index 2) yönlendirme metnidir
+            if (defaultLines.length > 2 && defaultLines[2] != null && !defaultLines[2].trim().isEmpty()) {
+                return ColorUtil.colorize(defaultLines[2]);
+            }
+            // Fallback: ilk anlamlı satır
+            for (String line : defaultLines) {
+                if (line != null && !line.trim().isEmpty() && !line.trim().startsWith("~")) {
+                    return ColorUtil.colorize(line);
+                }
+            }
+        }
+        return "Metin girin";
+    }
+
+    /**
+     * Kağıt item'ın başlangıç ismini üretir: defaultLines'ın ilk anlamlı satırı
+     * (ör. "&7Bir şey yazın") renksiz haliyle kağıdın display name'i olur.
+     * Böylece oyuncu kağıdın üzerinde ne yazacağını görür ve direkt değiştirir.
+     */
+    private String buildInitialText() {
+        if (defaultLines != null) {
+            for (String line : defaultLines) {
+                if (line != null && !line.trim().isEmpty() && !line.trim().startsWith("~")) {
+                    return ColorUtil.colorize(line);
+                }
+            }
+        }
+        return "Bir şey yazın";
     }
 }

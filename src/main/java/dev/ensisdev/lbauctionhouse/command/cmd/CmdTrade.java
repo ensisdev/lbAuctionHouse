@@ -17,7 +17,7 @@ import org.bukkit.entity.Player;
 public class CmdTrade extends AuctionCmd {
 
     public CmdTrade() {
-        super("trade", "lbsmpcore.auction.trade", false);
+        super("trade", "lbauctionhouse.trade", false);
         setAliases("takas", "t");
         setUsage("<oyuncu|kabul|reddet|iptal>");
         setDescription("Oyuncular arası takas");

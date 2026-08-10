@@ -9,7 +9,7 @@ import dev.ensisdev.lbauctionhouse.command.framework.AuctionCmd;
 public class CmdSell extends AuctionCmd {
 
     public CmdSell() {
-        super("sell", "lbsmpcore.auction.sell", false);
+        super("sell", "lbauctionhouse.sell", false);
         setAliases("sat", "list");
         setUsage("<fiyat>");
         setDescription("Eşya sat");

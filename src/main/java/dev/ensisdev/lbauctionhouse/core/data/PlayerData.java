@@ -18,12 +18,6 @@ import java.util.logging.Logger;
 public class PlayerData {
 
     private static final String TABLE = "players";
-    private static final String COLUMNS =
-            "uuid TEXT PRIMARY KEY, " +
-            "last_name TEXT NOT NULL, " +
-            "first_joined TEXT NOT NULL DEFAULT (datetime('now')), " +
-            "last_seen TEXT NOT NULL DEFAULT (datetime('now')), " +
-            "playtime INTEGER NOT NULL DEFAULT 0";
 
     private final DataManager dataManager;
     private final Logger logger;
@@ -33,12 +27,28 @@ public class PlayerData {
         this.logger = logger;
     }
 
+    private boolean isMySQL() {
+        return dataManager.getAdapter() instanceof MySQLAdapter;
+    }
+
     /**
      * Oyuncu tablosunu oluşturur (eğer yoksa).
+     * Sütun tanımları veritabanı türüne göre seçilir.
      */
     public void initTable() {
+        String columns = isMySQL()
+                ? "uuid VARCHAR(36) PRIMARY KEY, " +
+                  "last_name VARCHAR(255) NOT NULL, " +
+                  "first_joined DATETIME NOT NULL DEFAULT NOW(), " +
+                  "last_seen DATETIME NOT NULL DEFAULT NOW(), " +
+                  "playtime INT NOT NULL DEFAULT 0"
+                : "uuid TEXT PRIMARY KEY, " +
+                  "last_name TEXT NOT NULL, " +
+                  "first_joined TEXT NOT NULL DEFAULT (datetime('now')), " +
+                  "last_seen TEXT NOT NULL DEFAULT (datetime('now')), " +
+                  "playtime INTEGER NOT NULL DEFAULT 0";
         try {
-            dataManager.getAdapter().createTableIfNotExists(TABLE, COLUMNS);
+            dataManager.getAdapter().createTableIfNotExists(TABLE, columns);
         } catch (SQLException e) {
             logger.log(Level.SEVERE, "players tablosu oluşturulamadı", e);
         }
@@ -49,11 +59,19 @@ public class PlayerData {
      */
     public void savePlayer(UUID uuid, String name) {
         try {
-            dataManager.getAdapter().execute(
-                "INSERT INTO " + TABLE + " (uuid, last_name, last_seen) VALUES (?, ?, datetime('now')) " +
-                "ON CONFLICT(uuid) DO UPDATE SET last_name = ?, last_seen = datetime('now')",
-                uuid.toString(), name, name
-            );
+            if (isMySQL()) {
+                dataManager.getAdapter().execute(
+                    "INSERT INTO " + TABLE + " (uuid, last_name, last_seen) VALUES (?, ?, NOW()) " +
+                    "ON DUPLICATE KEY UPDATE last_name = VALUES(last_name), last_seen = NOW()",
+                    uuid.toString(), name
+                );
+            } else {
+                dataManager.getAdapter().execute(
+                    "INSERT INTO " + TABLE + " (uuid, last_name, last_seen) VALUES (?, ?, datetime('now')) " +
+                    "ON CONFLICT(uuid) DO UPDATE SET last_name = ?, last_seen = datetime('now')",
+                    uuid.toString(), name, name
+                );
+            }
         } catch (SQLException e) {
             logger.log(Level.WARNING, "Oyuncu kaydedilemedi: " + uuid, e);
         }
@@ -64,8 +82,9 @@ public class PlayerData {
      */
     public void updateLastSeen(UUID uuid) {
         try {
+            String nowExpr = isMySQL() ? "NOW()" : "datetime('now')";
             dataManager.getAdapter().execute(
-                "UPDATE " + TABLE + " SET last_seen = datetime('now') WHERE uuid = ?",
+                "UPDATE " + TABLE + " SET last_seen = " + nowExpr + " WHERE uuid = ?",
                 uuid.toString()
             );
         } catch (SQLException e) {

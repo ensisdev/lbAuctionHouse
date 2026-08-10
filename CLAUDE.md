@@ -125,3 +125,27 @@ dev.ensisdev.lbauctionhouse/
 - Ekonomi işlemleri `core/economy/EconomyManager` üzerinden Vault.
 - Her config reload'u tüm dosyaları yeniden yükler (sunucu restart gerekmez).
 - HİÇBİR exception sessizce yutulmaz — onEnable ve tüm try/catch bloklarında TAM stack trace basılır.
+
+## Yeni Özellikler (Son Güncelleme)
+
+- **Favoriler:** listing-bazlı favori sistemi (`auction_favorites` tablosu).
+  Ana menüde slot 47 (`main-menu.yml` → `favorites`) → `FavoritesGUI`; ilana **Shift+Sağ Tık** ile ekle/çıkar;
+  `ItemInfoGUI` (16. slot) üzerinden de yönetilebilir. Komut: `/ihale favori`.
+- **Kişisel İşlem Geçmişi:** `HistoryGUI` (`auction_logs` tabanlı) — HEPSİ/SATIŞLARIM/ALIMLARIM filtresi.
+  Komut: `/ihale geçmiş`.
+- **Admin GUI:** `/ihaleadmin` (argümansız) veya `/ihaleadmin panel` → `AdminGUI`.
+  İstatistikler, KDV/Vergi Raporu (son 14 günlük döküm), İlan Yönetimi (onaylı silme), Yasak Yönetimi.
+- **Listing Fee:** `auction.listing-fee` (config.yml) — her listelemede kesilen sabit ön ücret.
+- **Pazarlık Rozeti:** teklif açık ilanlarda isimde 💬 rozet + lore ipucu.
+- **Çevrimdışı Satıcı Uyarısı:** join'de cevaplanmamış pazarlık teklifi ve yenilenebilir (süresi dolan) ilan hatırlatması.
+- **Onaylı Yenileme:** `/ihale ilanlarım` → slot 47 "Süresi Dolanlar" → sol tık → onay ile yeniden listeleme.
+- **Discord Webhook:** yeni ilan, admin eylemi, yasaklama, lootbox ve pazarlık kabulü bildirimleri eklendi.
+- **MySQL Uyumluluğu:** `AUTO_INCREMENT`/`VARCHAR` şema düzeltmeleri, `_migrations` MySQL override,
+  `INSERT OR IGNORE` → MySQL `INSERT IGNORE` ayrımı (wishlist/favorites).
+
+## Kaldırılan Özellikler
+
+- **Daily Rewards** (günlük ödüller) — config + kod tamamen kaldırıldı.
+- **Item Generator** (itemgen şablonları) — config + kod tamamen kaldırıldı.
+- **Sealed Bid** (gizli teklif) — DB kolonu ve model alanı kaldırıldı.
+- **bStats** — `settings.bstats-enabled` bloğu kaldırıldı (config-version: 5).

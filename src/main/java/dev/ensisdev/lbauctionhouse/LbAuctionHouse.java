@@ -13,11 +13,13 @@ import dev.ensisdev.lbauctionhouse.core.config.LanguageManager;
 import dev.ensisdev.lbauctionhouse.core.data.DataManager;
 import dev.ensisdev.lbauctionhouse.core.economy.EconomyManager;
 import dev.ensisdev.lbauctionhouse.core.gui.MenuManager;
-import dev.ensisdev.lbauctionhouse.data.AuctionData;
+import dev.ensisdev.lbauctionhouse.data.CollectionEntry;
 import dev.ensisdev.lbauctionhouse.economy.AuctionEconomy;
 import dev.ensisdev.lbauctionhouse.gui.GUILayoutLoader;
 import dev.ensisdev.lbauctionhouse.listener.PlayerListener;
 import dev.ensisdev.lbauctionhouse.placeholder.AuctionPlaceholders;
+import dev.ensisdev.lbauctionhouse.scheduler.SchedulerAdapter;
+import dev.ensisdev.lbauctionhouse.scheduler.SchedulerAdapters;
 import dev.ensisdev.lbauctionhouse.service.AntiDupeService;
 import dev.ensisdev.lbauctionhouse.service.ListingCacheService;
 import dev.ensisdev.lbauctionhouse.service.TradeService;
@@ -36,11 +38,7 @@ public class LbAuctionHouse extends JavaPlugin {
 
     private static LbAuctionHouse instance;
 
-    /**
-     * bStats plugin ID'si — https://bstats.org adresinde eklentiyi kaydedip
-     * verilen ID'yi buraya yazın (0 = istatistik gönderilmez).
-     */
-    private static final int BSTATS_PLUGIN_ID = 0;
+    private SchedulerAdapter schedulerAdapter;
 
     // Vendored core servisleri (lbAuctionHouse'dan bağımsız)
     private ConfigManager configManager;
@@ -53,7 +51,7 @@ public class LbAuctionHouse extends JavaPlugin {
     private AddonLogger addonLogger;
     private AuctionConfig auctionConfig;
     private AuctionMessages auctionMessages;
-    private AuctionData auctionData;
+    private CollectionEntry auctionData;
     private AuctionEconomy auctionEconomy;
     private AuctionManager auctionManager;
     private ClusterBridge clusterBridge;
@@ -64,11 +62,16 @@ public class LbAuctionHouse extends JavaPlugin {
     private TradeService tradeService;
     private AntiDupeService antiDupeService;
     private ListingCacheService listingCacheService;
+    private SchedulerAdapter.RepeatingTask cacheCleanupTask;
 
     @Override
     public void onEnable() {
         instance = this;
         getLogger().info("=== lbAuctionHouse başlatılıyor ===");
+
+        // 0) Scheduler adaptörü — Folia tespit edilir, uygun implementasyon seçilir
+        this.schedulerAdapter = SchedulerAdapters.create(this);
+        getLogger().info("Scheduler: " + (schedulerAdapter.isFolia() ? "Folia (region-based)" : "Bukkit/Paper (sync)"));
 
         // 0) İç servisler — bağımsız altyapı
         this.configManager = new ConfigManager(this);
@@ -84,24 +87,23 @@ public class LbAuctionHouse extends JavaPlugin {
         this.addonLogger = new AddonLogger("Auction", getLogger());
         addonLogger.info("İç servisler hazır (config/lang/data/economy/menu).");
 
-        // bStats metrikleri (opsiyonel; config.yml → settings.bstats-enabled)
-        try {
-            if (getConfig().getBoolean("settings.bstats-enabled", true) && BSTATS_PLUGIN_ID > 0) {
-                new org.bstats.bukkit.Metrics(this, BSTATS_PLUGIN_ID);
-                addonLogger.info("bStats metrikleri aktif (pluginId=" + BSTATS_PLUGIN_ID + ").");
-            }
-        } catch (Throwable t) {
-            getLogger().warning("bStats başlatılamadı: " + t.getMessage());
-        }
-
-        // Toplu paket (fıçı) PDC anahtarını başlat
-        dev.ensisdev.lbauctionhouse.util.BundleItems.init(this);
-
         try {
         // 1) Config — tüm yaml dosyalarını yükle
         this.auctionConfig = new AuctionConfig(this, coreAPI);
         auctionConfig.loadAll();
         addonLogger.info("[1/6] Config yüklendi.");
+
+        // Toplu paket (fıçı) PDC anahtarını başlat (auctionConfig gerektirir)
+        dev.ensisdev.lbauctionhouse.util.BundleItems.init(this);
+
+        // Discord webhook aktifse URL'i erken doğrula — yanlış/SSRF adresleri baştan uyarı verir
+        if (auctionConfig.isDiscordWebhookEnabled()) {
+            String whUrl = auctionConfig.getDiscordWebhookUrl();
+            if (!dev.ensisdev.lbauctionhouse.util.DiscordWebhook.isValidWebhookUrl(whUrl)) {
+                addonLogger.warn("Discord webhook URL'i geçersiz veya boş! Bildirimler gönderilmeyecek. "
+                        + "Beklenen format: https://discord.com/api/webhooks/<id>/<token>");
+            }
+        }
 
         // 2) Messages — LanguageManager'a kaydet
         this.auctionMessages = new AuctionMessages(this, coreAPI);
@@ -109,7 +111,7 @@ public class LbAuctionHouse extends JavaPlugin {
         addonLogger.info("[2/6] Messages kaydedildi.");
 
         // 3) Data — tabloları oluştur
-        this.auctionData = new AuctionData(this, coreAPI);
+        this.auctionData = new CollectionEntry(this, coreAPI);
         auctionData.initTables();
         addonLogger.info("[3/6] Data katmanı hazır.");
 
@@ -120,8 +122,14 @@ public class LbAuctionHouse extends JavaPlugin {
         // 5) Cluster — tek sunucu veya Redis
         String clusterMode = getConfig().getString("cluster.mode", "local");
         if ("redis".equalsIgnoreCase(clusterMode)) {
-            this.clusterBridge = new RedisClusterBridge(this, auctionData, addonLogger,
-                    getConfig().getConfigurationSection("cluster.redis"));
+            var redisSection = getConfig().getConfigurationSection("cluster.redis");
+            if (redisSection == null) {
+                addonLogger.warn("cluster.mode=redis ancak cluster.redis bölümü yok! "
+                        + "Tek sunucu moduna geçiliyor. config.yml'i kontrol edin.");
+                this.clusterBridge = new LocalClusterBridge(addonLogger);
+            } else {
+                this.clusterBridge = new RedisClusterBridge(this, auctionData, addonLogger, redisSection);
+            }
         } else {
             this.clusterBridge = new LocalClusterBridge(addonLogger);
         }
@@ -133,9 +141,21 @@ public class LbAuctionHouse extends JavaPlugin {
         int guiCount = guiLayoutLoader.preloadAll();
         addonLogger.info("[6/7] GUI layout'ları yüklendi (" + guiCount + " dosya).");
 
-        // 7) Anti-dupe + cache servisleri
-        this.antiDupeService = new AntiDupeService(auctionConfig, auctionData, addonLogger);
+        // 7) Anti-dupe + cache servisleri (cluster modunda çapraz sunucu kilidi için bridge verilir)
+        this.antiDupeService = new AntiDupeService(auctionConfig, auctionData, addonLogger, clusterBridge);
         this.listingCacheService = new ListingCacheService(auctionData, addonLogger);
+
+        // Cluster senkronizasyonu → yerel cache bozma: diğer sunucudaki değişiklikler
+        // bu sunucunun ListingCacheService'inde stale veri bırakmasın.
+        // (Her kanalda tüm cache bozulur — sıralama fiyat/teklif bazlı olduğundan
+        // tek ilanın güncellenmesi bile aktif listeyi değiştirebilir.)
+        clusterBridge.setCacheInvalidator((channel, listingId) -> listingCacheService.invalidateAll());
+
+        // Periyodik cache temizliği — TTL'si dolan girişleri kalıcı olarak düşür
+        // (temizlik yapılmazsa playerCountCache/listingCache vb. zamanla şişer → bellek sızıntısı)
+        this.cacheCleanupTask = schedulerAdapter.runRepeatingTask(
+                listingCacheService::cleanup,
+                1200L, 1200L); // her 60 saniyede bir
         addonLogger.info("[7/8] AntiDupeService + ListingCacheService hazır.");
 
         // 8) AuctionManager — merkezi iş mantığı
@@ -150,15 +170,14 @@ public class LbAuctionHouse extends JavaPlugin {
             addonLogger.info("PlaceholderAPI entegrasyonu aktif.");
         }
 
-        // Süresi geçmiş kiralamaları kontrol et (restart sonrası)
-        Bukkit.getScheduler().runTaskLater(this, () -> {
-            var expired = auctionData.getExpiredRentals();
+        // Süresi geçmiş kiralamaları kontrol et (restart sonrası) — asenkron, ana thread bloklanmaz
+        auctionData.getExpiredRentalsAsync().thenAccept(expired -> {
             for (var rental : expired) {
-                auctionData.addToCollection(rental.sellerUUID(), "ITEM", rental.item(), 0, rental.id());
-                auctionData.deleteListing(rental.id());
+                auctionData.addToCollectionAsync(rental.sellerUUID(), "ITEM", rental.item(), 0, rental.id());
+                auctionData.deleteListingAsync(rental.id());
             }
             if (!expired.isEmpty()) addonLogger.info(expired.size() + " süresi dolmuş kiralama iade edildi.");
-        }, 100L);
+        });
 
         // Komutlar — CommandMap + ayrı sınıflar
         this.auctionCmdManager = new AuctionCmdManager(this, auctionManager,
@@ -199,10 +218,12 @@ public class LbAuctionHouse extends JavaPlugin {
             addonLogger.info("=== lbAuctionHouse kapatılıyor ===");
         }
         if (broadcastService != null) broadcastService.stopBroadcastTask();
+        if (cacheCleanupTask != null) cacheCleanupTask.cancel();
         if (antiDupeService != null) antiDupeService.shutdown();
         if (listingCacheService != null) listingCacheService.shutdown();
         if (auctionManager != null) auctionManager.shutdown();
         if (menuManager != null) menuManager.closeAll();
+        if (clusterBridge != null) clusterBridge.disable(); // Redis pool + subscriber kapatılır
         if (dataManager != null) dataManager.shutdown();
         if (addonLogger != null) {
             addonLogger.info("=== lbAuctionHouse kapatıldı ===");
@@ -212,9 +233,13 @@ public class LbAuctionHouse extends JavaPlugin {
 
     private void cleanupAfterFailedStart() {
         try { if (broadcastService != null) broadcastService.stopBroadcastTask(); } catch (Throwable ignored) {}
+        try { if (cacheCleanupTask != null) cacheCleanupTask.cancel(); } catch (Throwable ignored) {}
         try { if (antiDupeService != null) antiDupeService.shutdown(); } catch (Throwable ignored) {}
         try { if (listingCacheService != null) listingCacheService.shutdown(); } catch (Throwable ignored) {}
         try { if (auctionManager != null) auctionManager.shutdown(); } catch (Throwable ignored) {}
+        try { if (menuManager != null) menuManager.closeAll(); } catch (Throwable ignored) {}
+        try { if (clusterBridge != null) clusterBridge.disable(); } catch (Throwable ignored) {}
+        try { if (dataManager != null) dataManager.shutdown(); } catch (Throwable ignored) {}
         try {
             if (playerListener != null) {
                 org.bukkit.event.HandlerList.getHandlerLists().forEach(hl -> hl.unregister(playerListener));
@@ -226,6 +251,11 @@ public class LbAuctionHouse extends JavaPlugin {
 
     public static LbAuctionHouse getInstance() {
         return instance;
+    }
+
+    /** Scheduler soyutlaması — tüm zamanlanmış görevler buradan geçer (Bukkit + Folia uyumlu). */
+    public SchedulerAdapter getScheduler() {
+        return schedulerAdapter;
     }
 
     // ---- Vendored core accessors (AuctionAPI / BaseMenu kullanır) ----
@@ -251,7 +281,7 @@ public class LbAuctionHouse extends JavaPlugin {
 
     public AuctionConfig getAuctionConfig() { return auctionConfig; }
     public AuctionMessages getAuctionMessages() { return auctionMessages; }
-    public AuctionData getAuctionData() { return auctionData; }
+    public CollectionEntry getAuctionData() { return auctionData; }
     public AuctionEconomy getAuctionEconomy() { return auctionEconomy; }
     public AuctionManager getAuctionManager() { return auctionManager; }
     public GUILayoutLoader getGuiLayoutLoader() { return guiLayoutLoader; }

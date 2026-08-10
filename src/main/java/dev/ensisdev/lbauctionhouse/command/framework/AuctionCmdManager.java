@@ -4,6 +4,7 @@ import dev.ensisdev.lbauctionhouse.LbAuctionHouse;
 import dev.ensisdev.lbauctionhouse.AuctionManager;
 import dev.ensisdev.lbauctionhouse.config.AuctionConfig;
 import dev.ensisdev.lbauctionhouse.config.AuctionMessages;
+import dev.ensisdev.lbauctionhouse.config.FeatureRegistry;
 import dev.ensisdev.lbauctionhouse.command.cmd.*;
 import dev.ensisdev.lbauctionhouse.core.addon.AddonLogger;
 
@@ -65,8 +66,8 @@ public class AuctionCmdManager implements CommandExecutor, TabCompleter {
     private final AddonLogger logger;
 
     private final List<AuctionCmd> subCommands = new ArrayList<>();
+    private AdminCommandExecutor adminExecutor;
     private final Map<UUID, Map<String, Long>> cooldowns = new HashMap<>();
-    private static final long COOLDOWN_MS = 500;
     private long lastCooldownCleanup = 0;
 
     public AuctionCmdManager(LbAuctionHouse plugin, AuctionManager manager,
@@ -81,27 +82,56 @@ public class AuctionCmdManager implements CommandExecutor, TabCompleter {
 
     /**
      * Tüm alt komutları kaydeder ve ana komutu CommandMap'e ekler.
+     * <p>
+     * Her alt komut bir {@link FeatureRegistry.Keys feature anahtarına} bağlanır.
+     * {@code features.yml}'de ilgili özellik {@code false} ise o komut hiç kaydedilmez.
      */
     public void register() {
-        // Tüm alt komutları oluştur — CmdAdmin artık ayrı bir komuttur (/ihaleadmin)
-        registerSub(new CmdBrowse());
-        registerSub(new CmdSell());
-        registerSub(new CmdMylistings());
-        registerSub(new CmdCollect());
-        registerSub(new CmdRemove());
-        registerSub(new CmdReload());
-        registerSub(new CmdStats());
-        registerSub(new CmdBan());
-        registerSub(new CmdSearch());
-        registerSub(new CmdTrade());
-        registerSub(new CmdView());
-        registerSub(new CmdNegotiate());
+        // Tüm alt komutları oluştur — her biri bir özellik anahtarına bağlı
+        registerSubCommands();
 
         // Ana komut: language file'dan (seçili dil)
         registerMainCommand();
 
         // Yönetim komutu: ana komuttan BAĞIMSIZ ayrı komut (örn. /ihaleadmin)
         registerAdminCommand();
+    }
+
+    /**
+     * Tüm alt komutları (feature gate'lere göre) yeniden oluşturur.
+     * <p>
+     * Önce listeyi temizler, ardından features.yml'deki güncel duruma göre
+     * komutları yeniden ekler. Hem {@link #register()} hem de
+     * {@link #reloadCommands()} buradan geçer — böylece /auction reload ile
+     * kapatılan/açılan özelliklerin komutları da anında görünür/gizlenir
+     * (sunucu restart'ı gerekmez).
+     */
+    private void registerSubCommands() {
+        subCommands.clear();
+        registerSub(new CmdBrowse()
+                .setFeatureKey(FeatureRegistry.Keys.BROWSE));
+        registerSub(new CmdSell());   // sat — temel fonksiyon, feature gate yok
+        registerSub(new CmdMylistings()
+                .setFeatureKey(FeatureRegistry.Keys.MY_LISTINGS));
+        registerSub(new CmdCollect()
+                .setFeatureKey(FeatureRegistry.Keys.COLLECTION_BOX));
+        registerSub(new CmdRemove());  // remove — temel fonksiyon (idari işlem)
+        registerSub(new CmdReload());  // reload — temel fonksiyon (idari işlem)
+        registerSub(new CmdStats());   // stats — temel fonksiyon (idari işlem)
+        registerSub(new CmdBan()
+                .setFeatureKey(FeatureRegistry.Keys.BAN_SYSTEM));
+        registerSub(new CmdSearch()
+                .setFeatureKey(FeatureRegistry.Keys.SEARCH));
+        registerSub(new CmdTrade()
+                .setFeatureKey(FeatureRegistry.Keys.TRADE));
+        registerSub(new CmdView()
+                .setFeatureKey(FeatureRegistry.Keys.PLAYER_LISTINGS));
+        registerSub(new CmdNegotiate()
+                .setFeatureKey(FeatureRegistry.Keys.NEGOTIATION));
+        registerSub(new CmdFavorites()
+                .setFeatureKey(FeatureRegistry.Keys.FAVORITES));
+        registerSub(new CmdHistory()
+                .setFeatureKey(FeatureRegistry.Keys.HISTORY));
     }
 
     /**
@@ -113,7 +143,7 @@ public class AuctionCmdManager implements CommandExecutor, TabCompleter {
         List<String> aliases = new ArrayList<>(config.getAdminAliases());
         if (aliases.isEmpty()) aliases.add("ahadmin");
 
-        AdminCommandExecutor adminExecutor = new AdminCommandExecutor(
+        this.adminExecutor = new AdminCommandExecutor(
                 plugin, manager, config, messages, logger);
         registerCustomPluginCommand(adminCmd, aliases, adminExecutor, adminExecutor);
         logger.info("Yönetim komutu: /" + adminCmd + " (aliases: " + aliases + ").");
@@ -207,8 +237,18 @@ public class AuctionCmdManager implements CommandExecutor, TabCompleter {
 
     /**
      * Seçili dil dosyasındaki aliasları alt komuta uygular.
+     * <p>
+     * Eğer bu alt komut bir {@link AuctionCmd#setFeatureKey(String) feature anahtarına} bağlıysa
+     * ve features.yml'de o özellik {@code false} ise komut hiç kaydedilmez —
+     * listeye eklenmediği için dispatch ve tab-complete otomatik olarak gizlenir
+     * (zombi komut kalmaz).
      */
     private void registerSub(AuctionCmd cmd) {
+        // Feature gate — kapaliysa sessizce atla (hiç log yok; her reload spam olur)
+        String fk = cmd.getFeatureKey();
+        if (fk != null && !config.isFeatureEnabled(fk)) {
+            return;
+        }
         cmd.inject(plugin, manager, config, messages, logger);
         // Birincil (yerelleştirilmiş) ad — listedeki ilk öğe (örn. "sat")
         cmd.setDisplayName(config.getLangSubCommand(cmd.getName()));
@@ -225,6 +265,10 @@ public class AuctionCmdManager implements CommandExecutor, TabCompleter {
      * Ana komut aliaslarını güncelle (tam yeniden kayıt için restart gerekir).
      */
     public void reloadCommands() {
+        // Feature gate değişikliklerini uygula — kapatılan özelliklerin komutları
+        // listeden çıkarılır, yeni açılanlar eklenir (restart gerekmez).
+        registerSubCommands();
+
         // PluginCommand aliaslarını güncelle
         PluginCommand cmd = plugin.getCommand("auction");
         if (cmd != null) {
@@ -255,6 +299,11 @@ public class AuctionCmdManager implements CommandExecutor, TabCompleter {
 
         String subName = args[0].toLowerCase();
 
+        // Yönetim: /auction admin <alt-komut> → AdminCommandExecutor'a yönlendir
+        if (adminExecutor != null && isAdminCommandLabel(subName)) {
+            return adminExecutor.onCommand(sender, command, label, trimArgs(args));
+        }
+
         // Alt komut ara (isim + alias karşılaştır)
         for (AuctionCmd sub : subCommands) {
             if (matches(sub, subName)) {
@@ -276,18 +325,21 @@ public class AuctionCmdManager implements CommandExecutor, TabCompleter {
             return true;
         }
 
-        // Rate limiting (500ms cooldown) + periyodik cleanup
+        // Rate limiting (config: limits.command-cooldown-ms) + periyodik cleanup
         if (sender instanceof Player p) {
-            long now = System.currentTimeMillis();
-            if (now - lastCooldownCleanup > 60_000) {
-                lastCooldownCleanup = now;
-                cooldowns.values().forEach(m -> m.values().removeIf(t -> now - t > 60_000));
-                cooldowns.entrySet().removeIf(e -> e.getValue().isEmpty());
+            long cdMs = config.getCommandCooldownMs();
+            if (cdMs > 0) {
+                long now = System.currentTimeMillis();
+                if (now - lastCooldownCleanup > 60_000) {
+                    lastCooldownCleanup = now;
+                    cooldowns.values().forEach(m -> m.values().removeIf(t -> now - t > 60_000));
+                    cooldowns.entrySet().removeIf(e -> e.getValue().isEmpty());
+                }
+                Map<String, Long> pc = cooldowns.computeIfAbsent(p.getUniqueId(), k -> new HashMap<>());
+                Long last = pc.get(sub.getName());
+                if (last != null && (now - last) < cdMs) return true;
+                pc.put(sub.getName(), now);
             }
-            Map<String, Long> pc = cooldowns.computeIfAbsent(p.getUniqueId(), k -> new HashMap<>());
-            Long last = pc.get(sub.getName());
-            if (last != null && (now - last) < 500) return true;
-            pc.put(sub.getName(), now);
         }
 
         // Permission check
@@ -312,67 +364,33 @@ public class AuctionCmdManager implements CommandExecutor, TabCompleter {
                                        @NotNull String alias, @NotNull String[] args) {
         try {
         if (args.length == 1) {
-            return subCommands.stream()
+            List<String> completions = subCommands.stream()
                     .filter(s -> s.getPermission().isEmpty() || sender.hasPermission(s.getPermission()))
                     .map(AuctionCmd::getDisplayName)  // yerelleştirilmiş birincil adlar
                     .filter(s -> s.toLowerCase().startsWith(args[0].toLowerCase()))
                     .collect(Collectors.toList());
+            // Yönetim komutu da anasayfadan tamamlansın (yetkisi olanlara)
+            if (sender.hasPermission("lbauctionhouse.admin")) {
+                String adminName = config.getAdminCommand();
+                if (adminName.toLowerCase().startsWith(args[0].toLowerCase())) {
+                    completions.add(adminName);
+                }
+            }
+            return completions;
         }
 
-        if (args.length == 2) {
-            String sub = args[0].toLowerCase();
-            // admin <alt-komut> için seçili dildeki aliasları tamamla
-            if (isSubName("admin", sub)) {
-                return getAdminSubCommands().stream()
-                        .filter(s -> s.startsWith(args[1].toLowerCase()))
-                        .collect(Collectors.toList());
-            }
-            // remove <uuid> için aktif ilan UUID'lerini öner (limit 20)
-            if (isSubName("remove", sub) && sender.hasPermission("lbsmpcore.auction.admin")) {
-                return manager.getData().getActiveListings().stream()
-                        .map(l -> l.id().toString())
-                        .filter(s -> s.startsWith(args[1].toLowerCase()))
-                        .limit(20)
-                        .collect(Collectors.toList());
-            }
+        // Yönetim: /auction admin <alt-komut> ... → AdminCommandExecutor'a devret
+        if (adminExecutor != null && isAdminCommandLabel(args[0].toLowerCase())) {
+            return adminExecutor.onTabComplete(sender, command, alias, Arrays.copyOfRange(args, 1, args.length));
         }
 
-        // admin logs <limit> — sayı öner
-        if (args.length == 3 && isSubName("admin", args[0].toLowerCase()) && matchAdminSub("logs", args[1])) {
-            return List.of("10", "20", "50", "100").stream()
-                    .filter(s -> s.startsWith(args[2].toLowerCase()))
+        // remove <uuid> için aktif ilan UUID'lerini öner (limit 20)
+        if (args.length == 2 && isSubName("remove", args[0].toLowerCase()) && sender.hasPermission("lbauctionhouse.admin")) {
+            return manager.getData().getActiveListings().stream()
+                    .map(l -> l.id().toString())
+                    .filter(s -> s.startsWith(args[1].toLowerCase()))
+                    .limit(20)
                     .collect(Collectors.toList());
-        }
-
-        // admin remove <uuid> — UUID öner (limit 20)
-        if (args.length == 3 && isSubName("admin", args[0].toLowerCase()) && matchAdminSub("remove", args[1])) {
-            if (sender.hasPermission("lbsmpcore.auction.admin")) {
-                return manager.getData().getActiveListings().stream()
-                        .map(l -> l.id().toString())
-                        .filter(s -> s.startsWith(args[2].toLowerCase()))
-                        .limit(20)
-                        .collect(Collectors.toList());
-            }
-        }
-
-        // admin ban <oyuncu> — çevrimiçi oyuncu adları öner
-        if (args.length == 3 && isSubName("admin", args[0].toLowerCase()) && matchAdminSub("ban", args[1])) {
-            if (sender.hasPermission("lbsmpcore.auction.admin")) {
-                return org.bukkit.Bukkit.getOnlinePlayers().stream()
-                        .map(org.bukkit.entity.Player::getName)
-                        .filter(s -> s.toLowerCase().startsWith(args[2].toLowerCase()))
-                        .collect(Collectors.toList());
-            }
-        }
-
-        // admin unban <oyuncu/UUID> — çevrimiçi oyuncu adları öner
-        if (args.length == 3 && isSubName("admin", args[0].toLowerCase()) && matchAdminSub("unban", args[1])) {
-            if (sender.hasPermission("lbsmpcore.auction.admin")) {
-                return org.bukkit.Bukkit.getOnlinePlayers().stream()
-                        .map(org.bukkit.entity.Player::getName)
-                        .filter(s -> s.toLowerCase().startsWith(args[2].toLowerCase()))
-                        .collect(Collectors.toList());
-            }
         }
 
         return List.of();
@@ -385,24 +403,16 @@ public class AuctionCmdManager implements CommandExecutor, TabCompleter {
     }
 
     /**
-     * Tüm admin alt-komut isimlerini + aliaslarını döndürür.
-     * Değerler commands.yml / lang dosyasından çözülür (AuctionConfig).
+     * Girilen ilk argümanın yönetim komutu (isim + aliaslar) olup olmadığını kontrol eder.
+     * "admin" (iç isim) de kabul edilir — eski söz dizimiyle uyumluluk.
      */
-    private List<String> getAdminSubCommands() {
-        List<String> result = new ArrayList<>();
-        for (String key : List.of("stats", "logs", "clear", "remove", "ban", "unban", "banlist")) {
-            result.addAll(config.getAdminSubAliases(key));
+    private boolean isAdminCommandLabel(String input) {
+        if (input.equalsIgnoreCase("admin")) return true;
+        if (config.getAdminCommand().equalsIgnoreCase(input)) return true;
+        for (String alias : config.getAdminAliases()) {
+            if (alias.equalsIgnoreCase(input)) return true;
         }
-        return result;
-    }
-
-    /**
-     * Bir admin alt-komut adının beklenen değerle eşleşip eşleşmediğini kontrol eder.
-     * @param expected beklenen ana isim (ör: "logs", "remove")
-     * @param input   kullanıcının girdiği değer (alias da olabilir)
-     */
-    private boolean matchAdminSub(String expected, String input) {
-        return config.isAdminSub(expected, input);
+        return false;
     }
 
     private boolean isSubName(String name, String input) {

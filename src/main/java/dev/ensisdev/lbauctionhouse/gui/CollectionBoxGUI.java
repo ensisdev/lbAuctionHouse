@@ -2,7 +2,7 @@ package dev.ensisdev.lbauctionhouse.gui;
 
 import dev.ensisdev.lbauctionhouse.AuctionManager;
 import dev.ensisdev.lbauctionhouse.config.AuctionConfig;
-import dev.ensisdev.lbauctionhouse.data.AuctionData;
+import dev.ensisdev.lbauctionhouse.data.CollectionEntry;
 import dev.ensisdev.lbauctionhouse.economy.AuctionEconomy;
 import dev.ensisdev.lbauctionhouse.core.gui.BaseMenu;
 import dev.ensisdev.lbauctionhouse.core.gui.MenuItem;
@@ -21,22 +21,25 @@ public class CollectionBoxGUI extends BaseMenu {
 
     private final AuctionManager manager;
     private final AuctionConfig config;
-    private final AuctionData data;
+    private final CollectionEntry data;
     private final AuctionEconomy economy;
     private final GUILayoutLoader.GUILayout layout;
 
     private Player currentPlayer;
-    private List<AuctionData.CollectionEntry> entries;
+    private List<CollectionEntry.UnclaimedEntry> entries;
 
     public CollectionBoxGUI(AuctionManager manager, AuctionConfig config,
-                            AuctionData data, AuctionEconomy economy,
+                            CollectionEntry data, AuctionEconomy economy,
                             GUILayoutLoader loader) {
-        super("auction_collection", "&8&l» &6&l"+ dev.ensisdev.lbauctionhouse.util.SmallCaps.toSmallCaps("KOLİM")+" &8&l«", 4);
+        super("auction_collection", "&8&l» <gradient:#FFB74D:#FFD54F>"+ dev.ensisdev.lbauctionhouse.util.SmallCaps.toSmallCaps("KOLİM")+"</gradient> &8&l«", 4);
         this.manager = manager;
         this.config = config;
         this.data = data;
         this.economy = economy;
         this.layout = loader.load("collection-box.yml");
+        if (layout != null && layout.title() != null && !layout.title().isEmpty()) {
+            setDynamicTitle(layout.title());
+        }
     }
 
     public void open(Player player) {
@@ -49,33 +52,24 @@ public class CollectionBoxGUI extends BaseMenu {
     protected void onOpen(Player player) {
         clear();
 
-        // Border
-        if (layout.border() != null) {
-            for (int slot : layout.border().slots()) {
-                setItem(slot, MenuItem.builder(layout.border().material())
-                        .name(layout.border().name()).build());
-            }
-        }
+        // Border (tam özelleştirme)
+        applyBorder(layout.border());
 
-        // Navigation
+        // Navigation items (tam özelleştirme — yml'den amount/glow/hide-flags/cmd)
         for (var nav : layout.navItems()) {
-            var builder = MenuItem.builder(nav.material()).name(nav.name());
-            for (String line : nav.lore()) builder.lore(line);
-            setItem(nav.slot(), builder.build());
+            // claim-all aşağıda applyClaimAllButton() tarafından tek kez çizilir
+            // (kutu boşsa buton gizlenir; burada çizmek zombi buton oluştururdu).
+            if ("claim-all".equalsIgnoreCase(nav.id())) continue;
+            setItem(nav.slot(), navBuilder(nav).build());
         }
 
-        // Claim All butonu (slot 35)
-        if (!entries.isEmpty()) {
-            setItem(35, MenuItem.builder(Material.HOPPER)
-                    .name("&a&l✔ Hepsini Al")
-                    .lore("&7Tüm bekleyen ödülleri al")
-                    .onClick(e -> claimAll())
-                    .build());
-        }
+        // Claim All butonu (slot yml'den: id=claim-all)
+        applyClaimAllButton();
 
         // Content
         if (entries.isEmpty()) {
             player.sendMessage(manager.getApi().getLanguageManager().getPrefixed("auction.collection.empty"));
+            applyBackgroundFill(layout.backgroundFill());
             return;
         }
 
@@ -86,19 +80,48 @@ public class CollectionBoxGUI extends BaseMenu {
             final int index = i;
 
             var builder = MenuItem.builder(Material.CHEST)
-                    .name("&6Bekleyen Ödül #" + (i + 1))
+                    .name("&#FFD54F&lʙᴇᴋʟᴇʏᴇɴ ᴏᴅᴜʟ #" + (i + 1))
+                    .lore("&#8c8c8c• &#FFD54FTıkla &#F5F5F5— ödülü al")
                     .onClick(e -> claim(entryId, index));
 
             if (entry.type().equals("ITEM") && entry.item() != null) {
                 builder = MenuItem.builder(entry.item().clone())
-                        .name("&e" + dev.ensisdev.lbauctionhouse.util.ItemNames.displayName(entry.item()))
+                        .name("&#F5F5F5" + dev.ensisdev.lbauctionhouse.util.ItemNames.displayName(entry.item()))
+                        .lore("&#8c8c8c• &#FFD54FTıkla &#F5F5F5— ödülü al")
                         .onClick(e -> claim(entryId, index));
             } else if (entry.type().equals("MONEY")) {
-                builder.lore("&7Miktar: &6" + economy.format(entry.amount()));
+                builder.lore("&#8c8c8cMiktar: &#FFAA00" + economy.format(entry.amount()));
             }
 
             setItem(slots.get(i), builder.build());
         }
+
+        // Arka plan dolgusu
+        applyBackgroundFill(layout.backgroundFill());
+    }
+
+    /**
+     * Claim-All butonunun görseli yml'den okunur: {@code navigation.id: claim-all}.
+     * Tanımlanmadıysa slot 35 + hardcoded fallback uygulanır (geriye uyumluluk).
+     */
+    private void applyClaimAllButton() {
+        if (entries.isEmpty()) return;
+        if (layout.navItems() != null) {
+            for (var nav : layout.navItems()) {
+                if ("claim-all".equalsIgnoreCase(nav.id())) {
+                    var b = navBuilder(nav);
+                    b.onClick(e -> claimAll());
+                    setItem(nav.slot(), b.build());
+                    return;
+                }
+            }
+        }
+        // Fallback: slot 35 hardcoded
+        setItem(35, MenuItem.builder(Material.HOPPER)
+                .name("&#55FF55&l✔ ʜᴇᴘꜱɪɴɪ ᴀʟ")
+                .lore("&#8c8c8c• &#55FF55Tıkla &#F5F5F5— tüm bekleyen ödülleri al")
+                .onClick(e -> claimAll())
+                .build());
     }
 
     @Override
@@ -106,9 +129,40 @@ public class CollectionBoxGUI extends BaseMenu {
 
     @Override
     protected void onClick(InventoryClickEvent event, MenuItem item) {
-        if (event.getSlot() == 31) { // close/back
-            close(currentPlayer);
-            manager.openMainMenu(currentPlayer);
+        Player player = (Player) event.getWhoClicked();
+        int slot = event.getSlot();
+        boolean right = event.isRightClick();
+
+        // Navigation item aksiyonu (config'den okur)
+        var nav = findNavBySlot(slot);
+        if (nav != null) {
+            String action = right ? nav.rightClickAction() : nav.leftClickAction();
+            if (handleNavAction(player, nav, action)) return;
+        }
+    }
+
+    /** Slot'a karşılık gelen navigation item'ı döndürür. */
+    private GUILayoutLoader.NavItem findNavBySlot(int slot) {
+        if (layout.navItems() == null) return null;
+        for (var n : layout.navItems()) if (n.slot() == slot) return n;
+        return null;
+    }
+
+    /** Navigation aksiyonlarını işler (yaml-drivent layout). */
+    private boolean handleNavAction(Player player, GUILayoutLoader.NavItem nav, String action) {
+        if (action == null || action.isEmpty()) return false;
+        String norm = action.trim().toLowerCase().replace('_', '-');
+        switch (norm) {
+            case "close", "back" -> {
+                close(player);
+                manager.openMainMenu(player);
+                return true;
+            }
+            case "claim-all" -> {
+                claimAll();
+                return true;
+            }
+            default -> { return false; }
         }
     }
 

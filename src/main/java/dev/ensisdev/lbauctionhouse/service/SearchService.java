@@ -1,6 +1,6 @@
 package dev.ensisdev.lbauctionhouse.service;
 
-import dev.ensisdev.lbauctionhouse.data.AuctionData;
+import dev.ensisdev.lbauctionhouse.data.CollectionEntry;
 import dev.ensisdev.lbauctionhouse.data.AuctionListing;
 import dev.ensisdev.lbauctionhouse.data.SearchFilter;
 import dev.ensisdev.lbauctionhouse.LbAuctionHouse;
@@ -18,7 +18,7 @@ public class SearchService {
 
     private final LbAuctionHouse plugin;
     private final AuctionManager manager;
-    private final AuctionData data;
+    private final CollectionEntry data;
     private final Logger logger;
 
     public SearchService(LbAuctionHouse plugin, AuctionManager manager) {

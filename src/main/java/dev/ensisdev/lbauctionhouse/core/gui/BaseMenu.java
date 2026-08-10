@@ -1,6 +1,7 @@
 package dev.ensisdev.lbauctionhouse.core.gui;
 
 import dev.ensisdev.lbauctionhouse.LbAuctionHouse;
+import dev.ensisdev.lbauctionhouse.util.ColorUtil;
 import net.kyori.adventure.text.Component;
 import net.kyori.adventure.text.serializer.legacy.LegacyComponentSerializer;
 import org.bukkit.Bukkit;
@@ -20,16 +21,6 @@ import java.util.UUID;
  * Alt sınıflar {@link #onOpen(Player)}, {@link #onClose(Player)} ve
  * {@link #onClick(InventoryClickEvent, MenuItem)} metodlarını implemente eder.
  * Menü içindeki slot'lara {@link #setItem(int, MenuItem)} ile item yerleştirilir.
- * <p>
- * Kullanım:
- * <pre>
- * BaseMenu menu = new BaseMenu("my_menu", "&8My Menu", 3) {
- *     protected void onOpen(Player p) {
- *         setItem(13, MenuItem.builder(Material.DIAMOND).name("Hi").build());
- *     }
- * };
- * menu.open(player);
- * </pre>
  */
 public abstract class BaseMenu {
 
@@ -51,7 +42,7 @@ public abstract class BaseMenu {
 
     /**
      * GUI başlığını bir sonraki açılıştan önce değiştirir (dinamik başlıklar için).
-     * {@code &} renk kodları desteklenir.
+     * {@code &} renk kodları, {@code &#RRGGBB} hex ve {@code <gradient:...>} desteklenir.
      */
     protected void setDynamicTitle(String newTitle) {
         this.title = deserializeTitle(newTitle);
@@ -59,7 +50,7 @@ public abstract class BaseMenu {
 
     private static Component deserializeTitle(String title) {
         return LegacyComponentSerializer.legacySection()
-                .deserialize(title.replace('&', net.md_5.bungee.api.ChatColor.COLOR_CHAR));
+                .deserialize(ColorUtil.colorize(title));
     }
 
     // ---- Public API ----
@@ -71,7 +62,6 @@ public abstract class BaseMenu {
         Inventory inv = Bukkit.createInventory(player, size, title);
         onOpen(player);
 
-        // Item'ları envantere yerleştir
         for (Map.Entry<Integer, MenuItem> entry : items.entrySet()) {
             inv.setItem(entry.getKey(), entry.getValue().getItem());
         }
@@ -79,8 +69,6 @@ public abstract class BaseMenu {
         player.openInventory(inv);
         openInventories.put(player.getUniqueId(), inv);
 
-        // Doğrudan LbAuctionHouse.getInstance() üzerinden MenuManager'a eriş
-        // Bu yöntem classloader sorunu yaşamaz
         LbAuctionHouse core = LbAuctionHouse.getInstance();
         MenuManager mm = core != null ? core.getMenuManager() : null;
         if (mm != null) {
@@ -111,10 +99,6 @@ public abstract class BaseMenu {
 
     /**
      * Açık envanteri {@code items} haritasına göre YENİDEN doldurur.
-     * <p>
-     * {code setItem}/{@code clear} yalnızca iç haritayı değiştirir; oyuncunun
-     * ekranda gördüğü envanteri güncellemek için bu metodun çağrılması gerekir.
-     * (GUI yeniden açılmadan miktar/fiyat gibi dinamik içerikler güncellenir.)
      */
     public void refresh(Player player) {
         Inventory inv = openInventories.get(player.getUniqueId());
@@ -204,18 +188,13 @@ public abstract class BaseMenu {
     /**
      * Alt envanter (oyuncunun kendi envanteri) tıklamalarının {@link #onClick}'e
      * iletilip iletilmeyeceği.
-     * <p>
-     * Varsayılan {@code false} — diğer menülerin alt envanter tıklamasından
-     * etkilenmemesi için. Envanterden eşya alınması gereken menüler (örn: SellGUI)
-     * bunu {@code true} yapar.
      */
     protected boolean allowBottomClicks() {
         return false;
     }
 
     /**
-     * Alt envanter tıklamasını menüye iletir. (MenuManager tarafından çağrılır;
-     * yalnızca {@link #allowBottomClicks()} true olan menüler için.)
+     * Alt envanter tıklamasını menüye iletir.
      */
     void dispatchBottomClick(InventoryClickEvent event) {
         event.setCancelled(true);
@@ -234,6 +213,62 @@ public abstract class BaseMenu {
                 manager.untrack(player.getUniqueId());
             }
         }
+    }
+
+    // ---- Helpers ----
+
+    /**
+     * Bir {@link dev.ensisdev.lbauctionhouse.gui.GUILayoutLoader.BorderConfig} içindeki tüm
+     * özelleştirmeleri (material/texture, name, amount, custom-model-data, glow, hide-flags)
+     * envanterdeki ilgili slotlara uygular.
+     */
+    protected void applyBorder(dev.ensisdev.lbauctionhouse.gui.GUILayoutLoader.BorderConfig border) {
+        if (border == null) return;
+        for (int slot : border.slots()) {
+            MenuItem.Builder builder = MenuItem.Builder.of(border.material(), border.texture())
+                    .name(border.name())
+                    .amount(border.amount())
+                    .customModelData(border.customModelData());
+            if (border.glow()) builder.glow(true);
+            if (border.hideFlags()) builder.hideFlags(true);
+            setItem(slot, builder.build());
+        }
+    }
+
+    /**
+     * Tüm boş slotları {@code backgroundFill} ile doldurur. Tanımlanmamışsa no-op.
+     * Border / content / nav item slot'larına dokunmaz çünkü {@link MenuItem} sonradan
+     * gelen değerlerle otomatik override edilir.
+     */
+    protected void applyBackgroundFill(dev.ensisdev.lbauctionhouse.gui.GUILayoutLoader.BackgroundFillConfig backgroundFill) {
+        if (backgroundFill == null) return;
+        MenuItem.Builder builder = MenuItem.Builder.of(backgroundFill.material(), backgroundFill.texture())
+                .name(backgroundFill.name())
+                .amount(backgroundFill.amount())
+                .customModelData(backgroundFill.customModelData());
+        if (backgroundFill.glow()) builder.glow(true);
+        if (backgroundFill.hideFlags()) builder.hideFlags(true);
+        for (int i = 0; i < size; i++) {
+            // Sadece henüz set edilmemiş slotları doldurur (border/nav/content öncelikli kalır)
+            if (!items.containsKey(i)) {
+                items.put(i, builder.build());
+            }
+        }
+    }
+
+    /**
+     * Bir {@link dev.ensisdev.lbauctionhouse.gui.GUILayoutLoader.NavItem} için Builder'a tüm
+     * özelleştirme alanlarını uygular.
+     */
+    protected MenuItem.Builder navBuilder(dev.ensisdev.lbauctionhouse.gui.GUILayoutLoader.NavItem nav) {
+        MenuItem.Builder builder = MenuItem.Builder.of(nav.material(), nav.texture())
+                .name(nav.name())
+                .amount(nav.amount())
+                .customModelData(nav.customModelData());
+        for (String lore : nav.lore()) builder.lore(lore);
+        if (nav.glow()) builder.glow(true);
+        if (nav.hideFlags()) builder.hideFlags(true);
+        return builder;
     }
 
     // ---- Abstract hooks ----

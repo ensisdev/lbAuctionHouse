@@ -27,13 +27,13 @@ import java.util.logging.Logger;
  * <p>
  * {@code auction_listings} ve {@code auction_collection} tablolarını yönetir.
  */
-public class AuctionData {
+public class CollectionEntry {
 
     private final LbAuctionHouse plugin;
     private final DataManager dataManager;
     private final Logger logger;
 
-    public AuctionData(LbAuctionHouse plugin, AuctionAPI api) {
+    public CollectionEntry(LbAuctionHouse plugin, AuctionAPI api) {
         this.plugin = plugin;
         this.dataManager = api.getDataManager();
         this.logger = api.getLogger();
@@ -53,20 +53,25 @@ public class AuctionData {
             // MySQL'de TEXT 64KB ile sınırlıdır — NBT/skill içeren büyük item'lar için LONGTEXT (4GB) gerekir.
             // SQLite'ta TEXT sınırsızdır, aynı kalır.
             String itemDataCol = isMySQL() ? "LONGTEXT" : "TEXT";
+            // MySQL uyumluluğu: MySQL'de TEXT kolonu PRIMARY KEY/INDEX olamaz, AUTOINCREMENT yoktur.
+            // SQLite'ta VARCHAR ve AUTO_INCREMENT de sorunsuz çalışır — ortak tipler kullanılır.
+            String idCol = isMySQL() ? "VARCHAR(36) PRIMARY KEY" : "TEXT PRIMARY KEY";
+            String strCol = isMySQL() ? "VARCHAR(255)" : "TEXT";
+            String autoInc = isMySQL() ? "AUTO_INCREMENT" : "AUTOINCREMENT";
             adapter.createTableIfNotExists("auction_listings",
-                    "id TEXT PRIMARY KEY, " +
-                    "seller_uuid TEXT NOT NULL, " +
-                    "seller_name TEXT NOT NULL, " +
+                    "id " + idCol + ", " +
+                    "seller_uuid " + strCol + " NOT NULL, " +
+                    "seller_name " + strCol + " NOT NULL, " +
                     "item_data " + itemDataCol + " NOT NULL, " +
-                    "display_name TEXT DEFAULT '', " +
+                    "display_name " + strCol + " DEFAULT '', " +
                     "price REAL NOT NULL, " +
                     "starting_bid REAL DEFAULT 0, " +
-                    "type TEXT NOT NULL DEFAULT 'BIN', " +
+                    "type " + strCol + " NOT NULL DEFAULT 'BIN', " +
                     "listed_at INTEGER NOT NULL, " +
                     "expires_at INTEGER NOT NULL, " +
                     "sold INTEGER NOT NULL DEFAULT 0, " +
-                    "buyer_name TEXT, " +
-                    "buyer_uuid TEXT, " +
+                    "buyer_name " + strCol + ", " +
+                    "buyer_uuid " + strCol + ", " +
                     "rental_ends_at INTEGER DEFAULT 0, " +
                     "renew_count INTEGER DEFAULT 0, " +
                     "lore_text TEXT DEFAULT '', " +
@@ -83,7 +88,7 @@ public class AuctionData {
             try { adapter.execute("ALTER TABLE auction_listings ADD COLUMN type TEXT NOT NULL DEFAULT 'BIN'"); } catch (Exception ignored) {}
             try { adapter.execute("ALTER TABLE auction_listings ADD COLUMN material TEXT DEFAULT ''"); } catch (Exception ignored) {}
             try { adapter.execute("ALTER TABLE auction_listings ADD COLUMN bin_price REAL DEFAULT 0"); } catch (Exception ignored) {}
-            try { adapter.execute("ALTER TABLE auction_listings ADD COLUMN sealed INTEGER DEFAULT 0"); } catch (Exception ignored) {}
+
             try { adapter.execute("ALTER TABLE auction_listings ADD COLUMN flash_sale_ends_at INTEGER DEFAULT 0"); } catch (Exception ignored) {}
             try { adapter.execute("ALTER TABLE auction_listings ADD COLUMN original_price REAL DEFAULT 0"); } catch (Exception ignored) {}
             try { adapter.execute("ALTER TABLE auction_listings ADD COLUMN expired INTEGER DEFAULT 0"); } catch (Exception ignored) {}
@@ -96,62 +101,69 @@ public class AuctionData {
             }
 
             adapter.createTableIfNotExists("auction_banned_players",
-                    "uuid TEXT PRIMARY KEY, " +
-                    "name TEXT NOT NULL, " +
+                    "uuid " + idCol + ", " +
+                    "name " + strCol + " NOT NULL, " +
                     "banned_by TEXT, " +
                     "reason TEXT DEFAULT '', " +
                     "banned_at INTEGER NOT NULL");
 
             adapter.createTableIfNotExists("auction_logs",
-                    "id INTEGER PRIMARY KEY AUTOINCREMENT, " +
-                    "action TEXT NOT NULL, " +
-                    "seller_uuid TEXT, " +
-                    "seller_name TEXT, " +
-                    "buyer_uuid TEXT, " +
-                    "buyer_name TEXT, " +
+                    "id INTEGER PRIMARY KEY " + autoInc + ", " +
+                    "action " + strCol + " NOT NULL, " +
+                    "seller_uuid " + strCol + ", " +
+                    "seller_name " + strCol + ", " +
+                    "buyer_uuid " + strCol + ", " +
+                    "buyer_name " + strCol + ", " +
                     "item_data " + itemDataCol + ", " +
                     "price REAL, " +
                     "tax REAL DEFAULT 0, " +
                     "timestamp INTEGER NOT NULL, " +
-                    "listing_id TEXT");
+                    "listing_id " + strCol);
 
             adapter.createTableIfNotExists("auction_bids",
-                    "id INTEGER PRIMARY KEY AUTOINCREMENT, " +
-                    "listing_id TEXT NOT NULL, " +
-                    "bidder_uuid TEXT NOT NULL, " +
-                    "bidder_name TEXT NOT NULL, " +
+                    "id INTEGER PRIMARY KEY " + autoInc + ", " +
+                    "listing_id " + strCol + " NOT NULL, " +
+                    "bidder_uuid " + strCol + " NOT NULL, " +
+                    "bidder_name " + strCol + " NOT NULL, " +
                     "amount REAL NOT NULL, " +
                     "timestamp INTEGER NOT NULL");
 
             adapter.createTableIfNotExists("auction_collection",
-                    "id INTEGER PRIMARY KEY AUTOINCREMENT, " +
-                    "player_uuid TEXT NOT NULL, " +
-                    "type TEXT NOT NULL, " +
+                    "id INTEGER PRIMARY KEY " + autoInc + ", " +
+                    "player_uuid " + strCol + " NOT NULL, " +
+                    "type " + strCol + " NOT NULL, " +
                     "item_data " + itemDataCol + ", " +
                     "amount REAL, " +
-                    "listing_id TEXT, " +
+                    "listing_id " + strCol + ", " +
                     "claimed INTEGER NOT NULL DEFAULT 0, " +
                     "created_at INTEGER NOT NULL");
 
             adapter.createTableIfNotExists("auction_wishlists",
-                    "id INTEGER PRIMARY KEY AUTOINCREMENT, " +
-                    "player_uuid TEXT NOT NULL, " +
-                    "material TEXT NOT NULL, " +
+                    "id INTEGER PRIMARY KEY " + autoInc + ", " +
+                    "player_uuid " + strCol + " NOT NULL, " +
+                    "material " + strCol + " NOT NULL, " +
                     "created_at INTEGER NOT NULL, " +
                     "UNIQUE(player_uuid, material)");
 
+            adapter.createTableIfNotExists("auction_favorites",
+                    "id INTEGER PRIMARY KEY " + autoInc + ", " +
+                    "player_uuid " + strCol + " NOT NULL, " +
+                    "listing_id " + strCol + " NOT NULL, " +
+                    "created_at INTEGER NOT NULL, " +
+                    "UNIQUE(player_uuid, listing_id)");
+
             adapter.createTableIfNotExists("auction_autobids",
-                    "id INTEGER PRIMARY KEY AUTOINCREMENT, " +
-                    "listing_id TEXT NOT NULL, " +
-                    "player_uuid TEXT NOT NULL, " +
-                    "player_name TEXT NOT NULL, " +
+                    "id INTEGER PRIMARY KEY " + autoInc + ", " +
+                    "listing_id " + strCol + " NOT NULL, " +
+                    "player_uuid " + strCol + " NOT NULL, " +
+                    "player_name " + strCol + " NOT NULL, " +
                     "max_amount REAL NOT NULL, " +
                     "increment REAL NOT NULL DEFAULT 10, " +
                     "active INTEGER NOT NULL DEFAULT 1, " +
                     "UNIQUE(listing_id, player_uuid)");
 
             adapter.createTableIfNotExists("auction_player_options",
-                    "player_uuid TEXT PRIMARY KEY, " +
+                    "player_uuid " + idCol + ", " +
                     "notify_on_action INTEGER NOT NULL DEFAULT 1, " +
                     "confirm_on_buy INTEGER NOT NULL DEFAULT 1, " +
                     "show_broadcasts INTEGER NOT NULL DEFAULT 1, " +
@@ -172,6 +184,8 @@ public class AuctionData {
             createIndexIfNotExists(adapter, "auction_logs", "idx_logs_action", "action");
             createIndexIfNotExists(adapter, "auction_autobids", "idx_autobids_listing", "listing_id");
             createIndexIfNotExists(adapter, "auction_wishlists", "idx_wishlists_player", "player_uuid");
+            createIndexIfNotExists(adapter, "auction_favorites", "idx_favorites_player", "player_uuid");
+            createIndexIfNotExists(adapter, "auction_favorites", "idx_favorites_listing", "listing_id");
 
             logger.info("Veritabanı tabloları oluşturuldu.");
         } catch (SQLException e) {
@@ -181,14 +195,26 @@ public class AuctionData {
 
     /**
      * İndeks yoksa oluşturur (mevcut index'e dokunmaz).
+     * <p>
+     * SQLite "CREATE INDEX IF NOT EXISTS" destekler; MySQL 8.0 desteklemez
+     * (yalnızca MariaDB destekler), bu yüzden MySQL'de düz "CREATE INDEX"
+     * denenir ve "Duplicate key name" hatası sessizce yutulur — böylece indeks
+     * ilk çalıştırmada oluşur, tekrarlanan başlatmalarda mevcut olana dokunulmaz.
      */
     private void createIndexIfNotExists(StorageAdapter adapter, String table, String indexName, String column) {
         try {
-            // SQLite destekli "CREATE INDEX IF NOT EXISTS"
-            adapter.execute("CREATE INDEX IF NOT EXISTS " + indexName + " ON " + table + " (" + column + ")");
+            if (isMySQL()) {
+                adapter.execute("CREATE INDEX " + indexName + " ON " + table + " (" + column + ")");
+            } else {
+                adapter.execute("CREATE INDEX IF NOT EXISTS " + indexName + " ON " + table + " (" + column + ")");
+            }
         } catch (SQLException e) {
-            // Bazı veritabanlarında IF NOT EXISTS desteklenmeyebilir — hata varsa yut
-            logger.warning("İndeks oluşturulamadı " + indexName + ": " + e.getMessage());
+            String msg = e.getMessage() == null ? "" : e.getMessage().toLowerCase();
+            if (isMySQL() && (msg.contains("duplicate") || msg.contains("already exists"))) {
+                // MySQL'de indeks zaten mevcut — normal durum, loglama gerekmez
+            } else {
+                logger.warning("İndeks oluşturulamadı " + indexName + ": " + e.getMessage());
+            }
         }
     }
 
@@ -200,7 +226,7 @@ public class AuctionData {
         try {
             dataManager.getAdapter().execute(
                 "INSERT INTO auction_listings (id, seller_uuid, seller_name, item_data, display_name, price, starting_bid, type, listed_at, expires_at, sold, rental_ends_at, material, flash_sale_ends_at, original_price, bin_price, advertised, lore_text, enchant_text, offers_enabled) " +
-                "VALUES (?,?,?,?,?,?,?,?,?,?,0,?,?,?,?,?,?,?,?,?)",
+                "VALUES (?,?,?,?,?,?,?,?,?,?,0,0,?,?,?,?,?,?,?,?)",
                 listing.id().toString(),
                 listing.sellerUUID().toString(),
                 listing.sellerName(),
@@ -213,14 +239,14 @@ public class AuctionData {
                 listing.type(),
                 listing.listedAt(),
                 listing.expiresAt(),
-                0,
                 listing.item().getType().name(),
                 listing.flashSaleEndsAt(),
                 listing.originalPrice(),
                 listing.binPrice(),
                 listing.isAdvertised() ? 1 : 0,
                 extractLoreText(listing.item()),
-                extractEnchantText(listing.item())
+                extractEnchantText(listing.item()),
+                listing.offersEnabled() ? 1 : 0
             );
         } catch (SQLException e) {
             logger.log(Level.SEVERE, "İlan ekleme hatası", e);
@@ -317,6 +343,21 @@ public class AuctionData {
 
     public List<AuctionListing> getActiveListings() {
         return getListings("SELECT * FROM auction_listings WHERE sold = 0 AND expired = 0");
+    }
+
+    /**
+     * Aktif ilanları arka planda çeker (ana thread'i bloklamaz).
+     */
+    public CompletableFuture<List<AuctionListing>> getActiveListingsAsync() {
+        return dataManager.async().queryListAsync("SELECT * FROM auction_listings WHERE sold = 0 AND expired = 0")
+                .thenApply(rows -> {
+                    List<AuctionListing> listings = new ArrayList<>();
+                    for (var row : rows) {
+                        AuctionListing listing = rowToListing(row);
+                        if (listing != null) listings.add(listing);
+                    }
+                    return listings;
+                });
     }
 
     /**
@@ -572,8 +613,8 @@ public class AuctionData {
         }
     }
 
-    public List<CollectionEntry> getUnclaimedCollection(UUID playerUUID) {
-        List<CollectionEntry> entries = new ArrayList<>();
+    public List<UnclaimedEntry> getUnclaimedCollection(UUID playerUUID) {
+        List<UnclaimedEntry> entries = new ArrayList<>();
         try {
             var results = dataManager.getAdapter().queryList(
                 "SELECT * FROM auction_collection WHERE player_uuid = ? AND claimed = 0 ORDER BY created_at",
@@ -584,7 +625,7 @@ public class AuctionData {
                         ? deserializeItem((String) row.get("item_data")) : null;
                 double amount = row.get("amount") != null ? ((Number) row.get("amount")).doubleValue() : 0;
                 int id = ((Number) row.get("id")).intValue();
-                entries.add(new CollectionEntry(id, type, item, amount));
+                entries.add(new UnclaimedEntry(id, type, item, amount));
             }
         } catch (SQLException e) {
             logger.log(Level.WARNING, "Koleksiyon sorgulama hatası", e);
@@ -705,6 +746,23 @@ public class AuctionData {
         return getListings("SELECT * FROM auction_listings WHERE type = 'RENT' AND rental_ends_at > 0 AND rental_ends_at <= ?", now);
     }
 
+    /**
+     * Süresi dolmuş kiralamaları arka planda çeker (ana thread'i bloklamaz).
+     */
+    public CompletableFuture<List<AuctionListing>> getExpiredRentalsAsync() {
+        long now = System.currentTimeMillis();
+        return dataManager.async().queryListAsync(
+                "SELECT * FROM auction_listings WHERE type = 'RENT' AND rental_ends_at > 0 AND rental_ends_at <= ?", now)
+                .thenApply(rows -> {
+                    List<AuctionListing> rentals = new ArrayList<>();
+                    for (var row : rows) {
+                        AuctionListing listing = rowToListing(row);
+                        if (listing != null) rentals.add(listing);
+                    }
+                    return rentals;
+                });
+    }
+
     // ----------------------------------------------------------------
     // Log Sistemi
     // ----------------------------------------------------------------
@@ -737,21 +795,28 @@ public class AuctionData {
         try (Connection conn = dataManager.getAdapter().getConnection();
              PreparedStatement stmt = conn.prepareStatement(sql)) {
             conn.setAutoCommit(false);
-            for (LogBatchEntry e : entries) {
-                stmt.setString(1, e.action);
-                stmt.setString(2, e.sellerUUID);
-                stmt.setString(3, e.sellerName);
-                stmt.setString(4, e.buyerUUID);
-                stmt.setString(5, e.buyerName);
-                stmt.setString(6, e.itemData);
-                stmt.setDouble(7, e.price);
-                stmt.setDouble(8, e.tax);
-                stmt.setLong(9, now);
-                stmt.setString(10, e.listingId);
-                stmt.addBatch();
+            try {
+                for (LogBatchEntry e : entries) {
+                    stmt.setString(1, e.action);
+                    stmt.setString(2, e.sellerUUID);
+                    stmt.setString(3, e.sellerName);
+                    stmt.setString(4, e.buyerUUID);
+                    stmt.setString(5, e.buyerName);
+                    stmt.setString(6, e.itemData);
+                    stmt.setDouble(7, e.price);
+                    stmt.setDouble(8, e.tax);
+                    stmt.setLong(9, now);
+                    stmt.setString(10, e.listingId);
+                    stmt.addBatch();
+                }
+                stmt.executeBatch();
+                conn.commit();
+            } catch (SQLException ex) {
+                conn.rollback();
+                throw ex;
+            } finally {
+                conn.setAutoCommit(true);
             }
-            stmt.executeBatch();
-            conn.setAutoCommit(true);
         } catch (SQLException ex) {
             logger.log(Level.WARNING, "Toplu log ekleme hatası (" + entries.size() + " kayıt)", ex);
         }
@@ -823,8 +888,11 @@ public class AuctionData {
 
     public void setAutoBid(UUID listingId, UUID playerUUID, String playerName, double maxAmount, double increment) {
         try {
-            dataManager.getAdapter().execute(
-                "INSERT OR REPLACE INTO auction_autobids (listing_id, player_uuid, player_name, max_amount, increment, active) VALUES (?,?,?,?,?,1)",
+            String sql = isMySQL()
+                    ? "INSERT INTO auction_autobids (listing_id, player_uuid, player_name, max_amount, increment, active) VALUES (?,?,?,?,?,1) " +
+                      "ON DUPLICATE KEY UPDATE player_name = VALUES(player_name), max_amount = VALUES(max_amount), increment = VALUES(increment), active = 1"
+                    : "INSERT OR REPLACE INTO auction_autobids (listing_id, player_uuid, player_name, max_amount, increment, active) VALUES (?,?,?,?,?,1)";
+            dataManager.getAdapter().execute(sql,
                 listingId.toString(), playerUUID.toString(), playerName, maxAmount, increment);
         } catch (SQLException e) {
             logger.log(Level.WARNING, "Auto-bid ekleme hatası", e);
@@ -885,9 +953,11 @@ public class AuctionData {
 
     public void addWishlist(UUID playerUUID, String materialName) {
         try {
-            dataManager.getAdapter().execute(
-                "INSERT OR IGNORE INTO auction_wishlists (player_uuid, material, created_at) VALUES (?,?,?)",
-                playerUUID.toString(), materialName, System.currentTimeMillis());
+            String sql = isMySQL()
+                    ? "INSERT IGNORE INTO auction_wishlists (player_uuid, material, created_at) VALUES (?,?,?)"
+                    : "INSERT OR IGNORE INTO auction_wishlists (player_uuid, material, created_at) VALUES (?,?,?)";
+            dataManager.getAdapter().execute(sql,
+                    playerUUID.toString(), materialName, System.currentTimeMillis());
         } catch (SQLException e) {
             logger.log(Level.WARNING, "Wishlist ekleme hatası", e);
         }
@@ -938,6 +1008,69 @@ public class AuctionData {
             for (var row : rows) result.add(UUID.fromString((String) row.get("player_uuid")));
         } catch (SQLException e) {
             logger.log(Level.WARNING, "Wishlist izleyici sorgulama hatası", e);
+        }
+        return result;
+    }
+
+    // ----------------------------------------------------------------
+    // Favoriler (listing bazlı)
+    // ----------------------------------------------------------------
+
+    public void addFavorite(UUID playerUUID, UUID listingId) {
+        try {
+            String sql = isMySQL()
+                    ? "INSERT IGNORE INTO auction_favorites (player_uuid, listing_id, created_at) VALUES (?,?,?)"
+                    : "INSERT OR IGNORE INTO auction_favorites (player_uuid, listing_id, created_at) VALUES (?,?,?)";
+            dataManager.getAdapter().execute(sql,
+                    playerUUID.toString(), listingId.toString(), System.currentTimeMillis());
+        } catch (SQLException e) {
+            logger.log(Level.WARNING, "Favori ekleme hatası", e);
+        }
+    }
+
+    public void removeFavorite(UUID playerUUID, UUID listingId) {
+        try {
+            dataManager.getAdapter().execute(
+                "DELETE FROM auction_favorites WHERE player_uuid = ? AND listing_id = ?",
+                playerUUID.toString(), listingId.toString());
+        } catch (SQLException e) {
+            logger.log(Level.WARNING, "Favori silme hatası", e);
+        }
+    }
+
+    public boolean isFavorite(UUID playerUUID, UUID listingId) {
+        try {
+            var rows = dataManager.getAdapter().queryList(
+                "SELECT 1 FROM auction_favorites WHERE player_uuid = ? AND listing_id = ?",
+                playerUUID.toString(), listingId.toString());
+            return !rows.isEmpty();
+        } catch (SQLException e) {
+            return false;
+        }
+    }
+
+    /** Oyuncunun favori ilan ID'lerini en yeni önce döndürür. */
+    public List<UUID> getFavoriteListingIds(UUID playerUUID) {
+        List<UUID> result = new ArrayList<>();
+        try {
+            var rows = dataManager.getAdapter().queryList(
+                "SELECT listing_id FROM auction_favorites WHERE player_uuid = ? ORDER BY created_at DESC",
+                playerUUID.toString());
+            for (var row : rows) result.add(UUID.fromString((String) row.get("listing_id")));
+        } catch (SQLException e) {
+            logger.log(Level.WARNING, "Favori ID sorgulama hatası", e);
+        }
+        return result;
+    }
+
+    /** Oyuncunun favori ilanlarını (hâlâ aktif olanlar) döndürür. */
+    public List<AuctionListing> getFavoriteListings(UUID playerUUID) {
+        List<AuctionListing> result = new ArrayList<>();
+        for (UUID id : getFavoriteListingIds(playerUUID)) {
+            AuctionListing listing = getListing(id);
+            if (listing != null && !listing.sold() && !listing.expired()) {
+                result.add(listing);
+            }
         }
         return result;
     }
@@ -1005,6 +1138,33 @@ public class AuctionData {
                 "UPDATE auction_listings SET expires_at = ? WHERE id = ?", newExpiry, listingId.toString());
         } catch (SQLException e) {
             logger.log(Level.WARNING, "Süre uzatma hatası", e);
+        }
+    }
+
+    /**
+     * Süresi dolmuş bir ilanı yeniden aktif eder (onaylı yenileme).
+     */
+    public void relistListing(UUID listingId, long newExpiresAt) {
+        try {
+            dataManager.getAdapter().execute(
+                "UPDATE auction_listings SET expired = 0, expires_at = ? WHERE id = ?",
+                newExpiresAt, listingId.toString());
+        } catch (SQLException e) {
+            logger.log(Level.WARNING, "Yeniden listeleme hatası", e);
+        }
+    }
+
+    /**
+     * Belirli bir ilana ait bekleyen koleksiyon girdisini kaldırır.
+     * (Onaylı yenilemede eşya ilan üzerinden tekrar satışa çıkar.)
+     */
+    public void removeCollectionByListing(UUID listingId) {
+        try {
+            dataManager.getAdapter().execute(
+                "DELETE FROM auction_collection WHERE listing_id = ? AND claimed = 0",
+                listingId.toString());
+        } catch (SQLException e) {
+            logger.log(Level.WARNING, "Koleksiyon girdisi temizleme hatası", e);
         }
     }
 
@@ -1092,8 +1252,11 @@ public class AuctionData {
      */
     public void setPlayerOptions(UUID playerUUID, PlayerOptions options) {
         try {
-            dataManager.getAdapter().execute(
-                "INSERT OR REPLACE INTO auction_player_options (player_uuid, notify_on_action, confirm_on_buy, show_broadcasts, updated_at) VALUES (?,?,?,?,?)",
+            String sql = isMySQL()
+                    ? "INSERT INTO auction_player_options (player_uuid, notify_on_action, confirm_on_buy, show_broadcasts, updated_at) VALUES (?,?,?,?,?) " +
+                      "ON DUPLICATE KEY UPDATE notify_on_action = VALUES(notify_on_action), confirm_on_buy = VALUES(confirm_on_buy), show_broadcasts = VALUES(show_broadcasts), updated_at = VALUES(updated_at)"
+                    : "INSERT OR REPLACE INTO auction_player_options (player_uuid, notify_on_action, confirm_on_buy, show_broadcasts, updated_at) VALUES (?,?,?,?,?)";
+            dataManager.getAdapter().execute(sql,
                 playerUUID.toString(),
                 options.notifyOnAction() ? 1 : 0,
                 options.confirmOnBuy() ? 1 : 0,
@@ -1115,9 +1278,12 @@ public class AuctionData {
             default -> throw new IllegalArgumentException("Bilinmeyen tercih anahtarı: " + key);
         };
         try {
-            dataManager.getAdapter().execute(
-                "INSERT INTO auction_player_options (player_uuid, notify_on_action, confirm_on_buy, show_broadcasts, updated_at) VALUES (?,1,1,1,?) " +
-                "ON CONFLICT(player_uuid) DO UPDATE SET " + column + " = ?, updated_at = ?",
+            String sql = isMySQL()
+                    ? "INSERT INTO auction_player_options (player_uuid, notify_on_action, confirm_on_buy, show_broadcasts, updated_at) VALUES (?,1,1,1,?) " +
+                      "ON DUPLICATE KEY UPDATE " + column + " = ?, updated_at = ?"
+                    : "INSERT INTO auction_player_options (player_uuid, notify_on_action, confirm_on_buy, show_broadcasts, updated_at) VALUES (?,1,1,1,?) " +
+                      "ON CONFLICT(player_uuid) DO UPDATE SET " + column + " = ?, updated_at = ?";
+            dataManager.getAdapter().execute(sql,
                 playerUUID.toString(), System.currentTimeMillis(),
                 value ? 1 : 0, System.currentTimeMillis());
         } catch (SQLException e) {
@@ -1220,8 +1386,11 @@ public class AuctionData {
 
     public void banPlayer(UUID uuid, String name, String bannedBy, String reason) {
         try {
-            dataManager.getAdapter().execute(
-                "INSERT OR REPLACE INTO auction_banned_players (uuid, name, banned_by, reason, banned_at) VALUES (?,?,?,?,?)",
+            String sql = isMySQL()
+                    ? "INSERT INTO auction_banned_players (uuid, name, banned_by, reason, banned_at) VALUES (?,?,?,?,?) " +
+                      "ON DUPLICATE KEY UPDATE name = VALUES(name), banned_by = VALUES(banned_by), reason = VALUES(reason), banned_at = VALUES(banned_at)"
+                    : "INSERT OR REPLACE INTO auction_banned_players (uuid, name, banned_by, reason, banned_at) VALUES (?,?,?,?,?)";
+            dataManager.getAdapter().execute(sql,
                 uuid.toString(), name, bannedBy, reason, System.currentTimeMillis());
         } catch (SQLException e) {
             logger.log(Level.WARNING, "Oyuncu ban hatası", e);
@@ -1308,6 +1477,45 @@ public class AuctionData {
             int totalBids
     ) {}
 
+    /**
+     * Gün bazlı vergi dökümü — son N gün (eski → yeni, boş günler dahil).
+     * Vergi tutarı: price * (tax / 100.0)
+     */
+    public List<DailyTax> getDailyTax(int days) {
+        long dayMillis = 86_400_000L;
+        long cutoff = System.currentTimeMillis() - (long) days * dayMillis;
+        List<DailyTax> result = new ArrayList<>();
+        try {
+            var rows = dataManager.getAdapter().queryList(
+                "SELECT timestamp, price, tax FROM auction_logs WHERE action = 'PURCHASE' AND timestamp >= ?", cutoff);
+
+            Map<Long, double[]> byDay = new TreeMap<>();
+            for (var row : rows) {
+                long ts = ((Number) row.get("timestamp")).longValue();
+                long dayStart = ts - (ts % dayMillis);
+                double price = row.get("price") != null ? ((Number) row.get("price")).doubleValue() : 0;
+                double tax = row.get("tax") != null ? ((Number) row.get("tax")).doubleValue() : 0;
+                double taxAmount = price * (tax / 100.0);
+                double[] agg = byDay.computeIfAbsent(dayStart, k -> new double[2]);
+                agg[0]++;           // satış adedi
+                agg[1] += taxAmount; // toplam vergi
+            }
+
+            long todayStart = System.currentTimeMillis() - (System.currentTimeMillis() % dayMillis);
+            for (int i = days - 1; i >= 0; i--) {
+                long dayStart = todayStart - (long) i * dayMillis;
+                double[] agg = byDay.getOrDefault(dayStart, new double[2]);
+                result.add(new DailyTax(dayStart, (int) agg[0], agg[1]));
+            }
+        } catch (SQLException e) {
+            logger.log(Level.WARNING, "Günlük vergi sorgulama hatası", e);
+        }
+        return result;
+    }
+
+    /** Belirli bir günün vergi özeti. */
+    public record DailyTax(long dayStart, int sales, double tax) {}
+
     public List<AuctionLog> getLogsByPlayer(String uuid, int limit) {
         return queryLogs(
             "SELECT * FROM auction_logs WHERE seller_uuid = ? OR buyer_uuid = ? ORDER BY timestamp DESC LIMIT ?",
@@ -1368,7 +1576,6 @@ public class AuctionData {
             double originalPrice = row.get("original_price") != null ? ((Number) row.get("original_price")).doubleValue() : 0;
             boolean expired = row.get("expired") != null && ((Number) row.get("expired")).intValue() == 1;
             double binPrice = row.get("bin_price") != null ? ((Number) row.get("bin_price")).doubleValue() : 0;
-            boolean sealed = row.get("sealed") != null && ((Number) row.get("sealed")).intValue() == 1;
             boolean advertised = row.get("advertised") != null && ((Number) row.get("advertised")).intValue() == 1;
             boolean offersEnabled = row.get("offers_enabled") != null && ((Number) row.get("offers_enabled")).intValue() == 1;
             return new AuctionListing(
@@ -1388,7 +1595,6 @@ public class AuctionData {
                 originalPrice,
                 expired,
                 binPrice,
-                sealed,
                 advertised,
                 offersEnabled
             );
@@ -1398,5 +1604,8 @@ public class AuctionData {
         }
     }
 
-    public record CollectionEntry(int id, String type, ItemStack item, double amount) {}
+    /**
+     * Bekleyen koleksiyon (claim edilmemiş) girdisi — eşya veya para.
+     */
+    public record UnclaimedEntry(int id, String type, ItemStack item, double amount) {}
 }

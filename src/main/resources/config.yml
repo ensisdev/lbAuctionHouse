@@ -1,13 +1,7 @@
 # lbSmpCore-Auction Configuration
 # All settings are configurable — no hardcoded values
 # Bu Plugin "EnsisDev" Tarafından Aktif Olarak Geliştirilmektedir
-config-version: 4
-
-# Genel ayarlar
-settings:
-  # bStats anonim istatistikleri (https://bstats.org)
-  # LbAuctionHouse plugin kaydı yapılıp BSTATS_PLUGIN_ID doldurulunca çalışır.
-  bstats-enabled: true
+config-version: 5
 
 addon-display-name: "İhale"
 
@@ -40,12 +34,15 @@ storage:
 lang: tr
 
 economy:
-  # Economy type: vault (default) or points
+  # Economy type: vault (default), points or exp
   type: vault
 
 auction:
   # Tax/commission rate (percentage, deducted from seller)
   tax-rate: 5.0
+
+  # Sabit ilan ön ücreti — her listelemede kesilir (0 = ücretsiz)
+  listing-fee: 0.0
 
   # Auto-extend: when a bid arrives within the last <threshold-seconds>,
   # extend the listing by <seconds> (like eBay style).
@@ -71,8 +68,10 @@ auction:
     48: 3.0
     72: 4.0
 
-  # Max active listings per player (permission overrides: lbsmpcore.auction.limit.<N>)
-  max-listings-per-player: 10
+  # Max active listings per player (default, when no permission grants a higher limit)
+  # Permission ile yükseltilebilir: lbauctionhouse.auctionlimit.<N>
+  # Örnek: normal oyuncu 5, VIP oyuncuya lbauctionhouse.auctionlimit.10 verin → 10 ilan
+  max-listings-per-player: 5
 
   # Whether to show a confirmation GUI before buying
   confirm-on-buy: true
@@ -208,78 +207,33 @@ cooldown:
     enabled: true
     # Minimum interval between identical item operations (ms)
     item-operation-ms: 500
+  # Rate-limit for negotiation offers (ms) — aynı oyuncunun ardışık teklifleri arası minimum süre
+  negotiation:
+    offer-ms: 750
 
-# Daily Rewards (Günlük ödüller)
-daily-rewards:
-  enabled: true
-  # Streak bonus multiplier (consecutive days)
-  streak-bonus: true
-  streak-max-days: 7
-  rewards:
-    1:
-      money: 1000.0
-      items:
-        DIAMOND: 5
-    2:
-      money: 1500.0
-      items:
-        DIAMOND: 8
-    3:
-      money: 2000.0
-      items:
-        DIAMOND: 10
-        EMERALD: 5
-    7:
-      money: 10000.0
-      items:
-        DIAMOND: 32
-        NETHERITE_INGOT: 2
-
-# Custom Item Generator (Özel item üretici)
-# Players can generate custom-named items from templates
-item-generator:
-  enabled: true
-  # Cooldown between generations (seconds)
-  cooldown-seconds: 60
-  # Templates available in /auction itemgen menu
-  templates:
-    - id: "hero_sword"
-      name: "&6Kahraman Kılıcı"
-      material: DIAMOND_SWORD
-      lore:
-        - "&7Efsanevi bir kılıç"
-        - "&e+5 Hasar"
-      enchantments:
-        SHARPNESS: 5
-        UNBREAKING: 3
-      cost: 5000.0
-      permission: "lbsmpcore.auction.itemgen.hero_sword"
-    - id: "miner_pickaxe"
-      name: "&bMadenci Kazması"
-      material: DIAMOND_PICKAXE
-      lore:
-        - "&7Hızlı kazma"
-        - "&e+3 Hız"
-      enchantments:
-        EFFICIENCY: 5
-        UNBREAKING: 3
-      cost: 4000.0
-      permission: ""
+# Genel limitler
+limits:
+  # Bir bundle (paket) envanterine paketlenebilecek maksimum eşya sayısı
+  bundle-items: 45
+  # Oyuncu başına geçmiş (history) kaydında gösterilecek maksimum log sayısı
+  history-logs: 200
+  # Aynı komutun ardışık çağrıları arası minimum süre (ms) — 0 = devre dışı
+  command-cooldown-ms: 500
 
 # Sorting settings
 sorting:
   enabled: true
   options:
-    - "&7Fiyat ↑"
-    - "&7Fiyat ↓"
-    - "&7Süre ↑"
-    - "&7Süre ↓"
-    - "&7En Yeni"
-    - "&7En Eski"
-    - "&7Satıcı A-Z"
-    - "&7Satıcı Z-A"
-    - "&7İsim A-Z"
-    - "&7İsim Z-A"
+    - "&#FFD54Fꜰɪʏᴀᴛ ↑"
+    - "&#FFD54Fꜰɪʏᴀᴛ ↓"
+    - "&#FFD54Fꜱᴜʀᴇ ↑"
+    - "&#FFD54Fꜱᴜʀᴇ ↓"
+    - "&#FFD54Fᴇɴ ʏᴇɴɪ"
+    - "&#FFD54Fᴇɴ ᴇꜱᴋɪ"
+    - "&#FFD54Fꜱᴀᴛɪᴄɪ ᴀ-ᴢ"
+    - "&#FFD54Fꜱᴀᴛɪᴄɪ ᴢ-ᴀ"
+    - "&#FFD54Fɪꜱɪᴍ ᴀ-ᴢ"
+    - "&#FFD54Fɪꜱɪᴍ ᴢ-ᴀ"
 
 # ───────────────────────────────────────────────
 # Discord Webhook bildirimleri (opsiyonel)

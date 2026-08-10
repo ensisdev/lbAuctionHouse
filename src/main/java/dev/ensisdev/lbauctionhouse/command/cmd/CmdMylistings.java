@@ -9,7 +9,7 @@ import dev.ensisdev.lbauctionhouse.command.framework.AuctionCmd;
 public class CmdMylistings extends AuctionCmd {
 
     public CmdMylistings() {
-        super("mylistings", "lbsmpcore.auction.use", false);
+        super("mylistings", "lbauctionhouse.use", false);
         setAliases("my", "ilanlarim", "ilanlarım");
         setDescription("İlanlarım");
     }

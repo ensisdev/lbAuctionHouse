@@ -1,6 +1,6 @@
 package dev.ensisdev.lbauctionhouse.service;
 
-import dev.ensisdev.lbauctionhouse.data.AuctionData;
+import dev.ensisdev.lbauctionhouse.data.CollectionEntry;
 import dev.ensisdev.lbauctionhouse.data.AuctionListing;
 import dev.ensisdev.lbauctionhouse.core.addon.AddonLogger;
 
@@ -49,23 +49,23 @@ public class ListingCacheService {
     private volatile CacheEntry<Integer> activeCountCache;
 
     /** Satıcı istatistikleri (oyuncu bazlı) — TTL 15s (ItemInfoGUI) */
-    private final Map<UUID, CacheEntry<AuctionData.PlayerStats>> playerStatsCache = new ConcurrentHashMap<>();
+    private final Map<UUID, CacheEntry<CollectionEntry.PlayerStats>> playerStatsCache = new ConcurrentHashMap<>();
 
     /** Oyuncu bakiyesi — TTL 3s (ItemInfoGUI) */
     private final Map<UUID, CacheEntry<Double>> balanceCache = new ConcurrentHashMap<>();
 
-    private final AuctionData data;
+    private final CollectionEntry data;
     private final AddonLogger logger;
     private final long activeListingsTtlMillis;
     private final long playerCountTtlMillis;
     private final long listingTtlMillis;
     private final long unclaimedTtlMillis;
 
-    public ListingCacheService(AuctionData data, AddonLogger logger) {
+    public ListingCacheService(CollectionEntry data, AddonLogger logger) {
         this(data, logger, 5000L, 5000L, 3000L, 5000L);
     }
 
-    public ListingCacheService(AuctionData data, AddonLogger logger,
+    public ListingCacheService(CollectionEntry data, AddonLogger logger,
                                long activeListingsTtlMillis,
                                long playerCountTtlMillis,
                                long listingTtlMillis,
@@ -154,12 +154,12 @@ public class ListingCacheService {
      * Satıcı istatistiklerini cache'den okur (TTL 15s) — ItemInfoGUI açılışlarında
      * her seferinde 2 SQL sorgusu çekmemek için.
      */
-    public AuctionData.PlayerStats getPlayerStats(UUID playerUuid) {
-        CacheEntry<AuctionData.PlayerStats> cached = playerStatsCache.get(playerUuid);
+    public CollectionEntry.PlayerStats getPlayerStats(UUID playerUuid) {
+        CacheEntry<CollectionEntry.PlayerStats> cached = playerStatsCache.get(playerUuid);
         if (cached != null && !cached.isExpired()) {
             return cached.value();
         }
-        AuctionData.PlayerStats fresh = data.getPlayerStats(playerUuid);
+        CollectionEntry.PlayerStats fresh = data.getPlayerStats(playerUuid);
         playerStatsCache.put(playerUuid, new CacheEntry<>(fresh, System.currentTimeMillis() + 15_000L));
         return fresh;
     }

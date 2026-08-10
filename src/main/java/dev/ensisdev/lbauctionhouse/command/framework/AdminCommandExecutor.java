@@ -29,7 +29,7 @@ import java.util.stream.Collectors;
 public class AdminCommandExecutor implements CommandExecutor, TabCompleter {
 
     private static final List<String> ADMIN_KEYS = List.of(
-            "stats", "logs", "clear", "remove", "ban", "unban", "banlist", "inspect");
+            "stats", "logs", "clear", "remove", "ban", "unban", "banlist", "inspect", "gui", "reload");
 
     private final CmdAdmin cmdAdmin;
     private final AuctionConfig config;
@@ -49,8 +49,14 @@ public class AdminCommandExecutor implements CommandExecutor, TabCompleter {
     @Override
     public boolean onCommand(@NotNull CommandSender sender, @NotNull Command command,
                              @NotNull String label, @NotNull String[] args) {
-        if (!sender.hasPermission("lbsmpcore.auction.admin")) {
+        if (!sender.hasPermission("lbauctionhouse.admin")) {
             sender.sendMessage("§cYetkin yok!");
+            return true;
+        }
+
+        // Argümansız → yönetim paneli GUI'sini aç
+        if (args.length == 0 && sender instanceof Player p) {
+            manager.openAdminGUI(p);
             return true;
         }
 
@@ -66,7 +72,7 @@ public class AdminCommandExecutor implements CommandExecutor, TabCompleter {
     public List<String> onTabComplete(@NotNull CommandSender sender, @NotNull Command command,
                                       @NotNull String alias, @NotNull String[] args) {
         try {
-            if (!sender.hasPermission("lbsmpcore.auction.admin")) return List.of();
+            if (!sender.hasPermission("lbauctionhouse.admin")) return List.of();
 
             if (args.length == 1) {
                 return allAdminSubNames().stream()

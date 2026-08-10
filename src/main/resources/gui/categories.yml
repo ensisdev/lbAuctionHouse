@@ -1,12 +1,26 @@
-# Auction Categories
-# Each category defines an icon, display name, and material list
-# Items that match any material in the list will appear in that category
-# Items that don't match any category go to "Other"
+# ============================================================
+# 📚 İHALE KATEGORİLERİ (auction categories)
+# Her kategori bir ikon, görünür ad ve materyal listesi tanımlar.
+# Listedeki herhangi bir materyalle eşleşen eşya o kategoriye düşer.
+# Hiçbir kategoriye uymayan eşyalar "Diğer"e gider.
+#
+# Her kategori alanı:
+#   name:            & renk kodu destekli görünür ad
+#   icon:            ItemStack.material (örn: GRASS_BLOCK)
+#   texture:         (opsiyonel) PLAYER_HEAD için base64 skin
+#   glow:            true | false (Enchantment.UNBREAKING ile parlasın)
+#   hide-flags:      true | false (ItemFlag'leri gizle)
+#   sort-priority:   küçük = önce
+#   materials:       Material enum değerlerinin listesi
+# ============================================================
 
 categories:
   blocks:
     name: "&6Bloklar"
     icon: GRASS_BLOCK
+    texture: ""
+    glow: false
+    hide-flags: false
     sort-priority: 10
     materials:
       - STONE
@@ -36,6 +50,9 @@ categories:
   ores:
     name: "&bMadencilik"
     icon: DIAMOND_ORE
+    texture: ""
+    glow: false
+    hide-flags: false
     sort-priority: 20
     materials:
       - COAL_ORE
@@ -71,6 +88,9 @@ categories:
   weapons:
     name: "&cSilahlar"
     icon: DIAMOND_SWORD
+    texture: ""
+    glow: false
+    hide-flags: false
     sort-priority: 30
     materials:
       - WOODEN_SWORD
@@ -93,6 +113,9 @@ categories:
   tools:
     name: "&eAletler"
     icon: DIAMOND_PICKAXE
+    texture: ""
+    glow: false
+    hide-flags: false
     sort-priority: 40
     materials:
       - WOODEN_PICKAXE
@@ -120,6 +143,9 @@ categories:
   armor:
     name: "&aZırhlar"
     icon: DIAMOND_CHESTPLATE
+    texture: ""
+    glow: false
+    hide-flags: false
     sort-priority: 50
     materials:
       - LEATHER_HELMET
@@ -152,6 +178,9 @@ categories:
   food:
     name: "&dYiyecekler"
     icon: COOKED_BEEF
+    texture: ""
+    glow: false
+    hide-flags: false
     sort-priority: 60
     materials:
       - APPLE
@@ -181,6 +210,9 @@ categories:
   potions:
     name: "&dİksirler"
     icon: POTION
+    texture: ""
+    glow: false
+    hide-flags: false
     sort-priority: 70
     materials:
       - POTION
@@ -193,6 +225,9 @@ categories:
   enchants:
     name: "&5Büyüler"
     icon: ENCHANTED_BOOK
+    texture: ""
+    glow: false
+    hide-flags: false
     sort-priority: 80
     materials:
       - ENCHANTED_BOOK
@@ -207,6 +242,9 @@ categories:
   redstone:
     name: "&cRedstone"
     icon: REDSTONE
+    texture: ""
+    glow: false
+    hide-flags: false
     sort-priority: 90
     materials:
       - REDSTONE
@@ -242,6 +280,9 @@ categories:
   farming:
     name: "&aÇiftçilik"
     icon: WHEAT
+    texture: ""
+    glow: false
+    hide-flags: false
     sort-priority: 100
     materials:
       - WHEAT
@@ -275,6 +316,9 @@ categories:
   mobdrops:
     name: "&8Canavar"
     icon: ROTTEN_FLESH
+    texture: ""
+    glow: false
+    hide-flags: false
     sort-priority: 110
     materials:
       - ROTTEN_FLESH
@@ -288,10 +332,3 @@ categories:
       - PHANTOM_MEMBRANE
       - PRISMARINE_SHARD
       - PRISMARINE_CRYSTALS
-      - NAUTILUS_SHELL
-      - HEART_OF_THE_SEA
-      - MAGMA_CREAM
-      - WITHER_SKELETON_SKULL
-      - TOTEM_OF_UNDYING
-      - DRAGON_EGG
-      - ENDER_CHEST

@@ -8,13 +8,11 @@ import dev.ensisdev.lbauctionhouse.core.gui.BaseMenu;
 import dev.ensisdev.lbauctionhouse.core.gui.MenuItem;
 import dev.ensisdev.lbauctionhouse.core.gui.SignInputGUI;
 
-import org.bukkit.Bukkit;
 import org.bukkit.Material;
 import org.bukkit.entity.Player;
 import org.bukkit.event.inventory.InventoryClickEvent;
 import org.bukkit.inventory.ItemStack;
 
-import java.util.List;
 import java.util.function.Consumer;
 
 public class SellGUI extends BaseMenu {
@@ -42,10 +40,11 @@ public class SellGUI extends BaseMenu {
     private double selectedPrice = -1;
     private boolean advertised = false;
     private boolean offersEnabled = false;   // pazarlık/teklif açık mı
+    private boolean suppressingReturn = false; // programatik kapanışta eşya iadesini bastır
     private Consumer<Boolean> onComplete;
 
     public SellGUI(LbAuctionHouse addon, LbAuctionHouse corePlugin, AuctionManager manager, AuctionConfig config) {
-        super("auction_sell", "&8&l» &6&l" + dev.ensisdev.lbauctionhouse.util.SmallCaps.toSmallCaps("EŞYA SAT") + " &8&l«", 4);
+        super("auction_sell", "&8&l» <gradient:#FFB74D:#FFD54F>" + dev.ensisdev.lbauctionhouse.util.SmallCaps.toSmallCaps("EŞYA SAT") + "</gradient> &8&l«", 4);
         this.addon = addon;
         this.corePlugin = corePlugin;
         this.manager = manager;
@@ -83,63 +82,64 @@ public class SellGUI extends BaseMenu {
     @Override
     protected void onOpen(Player player) {
         clear();
-        fillEmpty(MenuItem.builder(Material.GRAY_STAINED_GLASS_PANE).name(" ").build());
+        fillEmpty(MenuItem.builder(Material.BLACK_STAINED_GLASS_PANE).name(" ").build());
 
         // Eşya koyma slotu — sürükle veya tıkla
         if (selectedItem != null) {
             ItemStack display = selectedItem.clone();
             display.setAmount(selectedQuantity);
             setItem(INPUT_SLOT, MenuItem.builder(display)
-                    .name("&6&lEşya: &f" + dev.ensisdev.lbauctionhouse.util.ItemNames.displayName(selectedItem))
-                    .lore("&7Miktar: &f" + selectedQuantity)
-                    .lore("&7Sol tık — eşyayı çıkar")
+                    .name("&#FFD54F&lᴇꜱyᴀ: &#F5F5F5" + dev.ensisdev.lbauctionhouse.util.ItemNames.displayName(selectedItem))
+                    .lore("&#8c8c8c• &#FFD54FMiktar &#F5F5F5— " + selectedQuantity)
+                    .lore("&#8c8c8c• &#FF5555Sol Tık &#F5F5F5— eşyayı çıkar")
                     .build());
         } else {
             setItem(INPUT_SLOT, MenuItem.builder(Material.ENDER_CHEST)
-                    .name("&6&lEşyanı Koy")
-                    .lore("&7Satmak istediğin eşyayı", "&7buraya sürükle veya tıkla")
+                    .name("&#FFD54F&lᴇꜱyᴀɴɪ ᴋᴏʏ")
+                    .lore("&#8c8c8c• &#F5F5F5Satmak istediğin eşyayı")
+                    .lore("&#8c8c8c  buraya sürükle veya tıkla")
                     .build());
         }
 
         // Toplu paket (fıçı) butonu — birden fazla eşyayı tek pakette sat
         setItem(BUNDLE_SLOT, MenuItem.builder(Material.BARREL)
-                .name("&6&lToplu Paket (Fıçı)")
-                .lore("&7Birden fazla eşyayı tek pakette sat")
-                .lore("&7Tıkla — eşyaları fıçıya koy")
+                .name("&#FFB74D&lᴛᴏᴘʟᴜ ᴘᴀᴋᴇᴛ (ꜰɪᴄɪ)")
+                .lore("&#8c8c8c• &#F5F5F5Birden fazla eşyayı tek pakette sat")
+                .lore("&#8c8c8c• &#FFB74DTıkla &#F5F5F5— eşyaları fıçıya koy")
                 .build());
 
         // Miktar kontrolleri
         if (selectedItem != null) {
             setItem(QTY_DOWN_SLOT, MenuItem.builder(Material.RED_STAINED_GLASS_PANE)
-                    .name("&c-1")
-                    .lore("&7Miktarı azalt")
+                    .name("&#FF5555&l-1")
+                    .lore("&#8c8c8c• &#FF5555Tıkla &#F5F5F5— miktarı azalt")
                     .build());
             setItem(QTY_UP_SLOT, MenuItem.builder(Material.GREEN_STAINED_GLASS_PANE)
-                    .name("&a+1")
-                    .lore("&7Miktarı artır")
+                    .name("&#55FF55&l+1")
+                    .lore("&#8c8c8c• &#55FF55Tıkla &#F5F5F5— miktarı artır")
                     .build());
             setItem(QTY_ALL_SLOT, MenuItem.builder(Material.GOLD_NUGGET)
-                    .name("&6Hepsini Sat: &e" + maxQuantity)
-                    .lore("&7Tıkla — maksimum miktar")
+                    .name("&#FFD54F&lʜᴇᴘꜱɪɴɪ ꜱᴀᴛ: &#FFAA00" + maxQuantity)
+                    .lore("&#8c8c8c• &#FFD54FTıkla &#F5F5F5— maksimum miktar")
                     .build());
         }
 
         // Reklam toggle
         if (config.isAdvertiseEnabled()) {
             setItem(ADVERTISE_SLOT, MenuItem.builder(advertised ? Material.BLAZE_POWDER : Material.GUNPOWDER)
-                    .name(advertised ? "&6&lReklam: &aAÇIK" : "&6&lReklam: &cKAPALI")
-                    .lore("&7Tıkla — reklamlı ilan")
-                    .lore("&7Tüm oyunculara duyurulur")
-                    .lore("&6Ücret: &e" + String.format("%,.0f", config.getAdvertiseFee()) + "₺")
+                    .name(advertised ? "&#FFD54F&lʀᴇᴋʟᴀᴍ: &#55FF55&lᴀᴄɪᴋ" : "&#FFD54F&lʀᴇᴋʟᴀᴍ: &#FF5555&lᴋᴀᴘᴀʟɪ")
+                    .lore("&#8c8c8c• &#FFD54FTıkla &#F5F5F5— reklamlı ilan")
+                    .lore("&#8c8c8c• &#F5F5F5Tüm oyunculara duyurulur")
+                    .lore("&#8c8c8cÜcret: &#FFAA00" + String.format("%,.0f", config.getAdvertiseFee()) + "₺")
                     .build());
         }
 
         // Teklif (Pazarlık) toggle
         if (config.isNegotiationEnabled()) {
             setItem(OFFERS_SLOT, MenuItem.builder(offersEnabled ? Material.EMERALD : Material.COAL)
-                    .name(offersEnabled ? "&9&lTeklif: &aAÇIK" : "&9&lTeklif: &cKAPALI")
-                    .lore("&7Tıkla — pazarlık teklifi aç/kapat")
-                    .lore("&7Açıkken alıcılar bu ilana fiyat teklifi gönderebilir")
+                    .name(offersEnabled ? "&#2CCED2&lᴛᴇᴋʟɪꜰ: &#55FF55&lᴀᴄɪᴋ" : "&#2CCED2&lᴛᴇᴋʟɪꜰ: &#FF5555&lᴋᴀᴘᴀʟɪ")
+                    .lore("&#8c8c8c• &#2CCED2Tıkla &#F5F5F5— pazarlık teklifi aç/kapat")
+                    .lore("&#8c8c8c• &#F5F5F5Açıkken alıcılar bu ilana fiyat teklifi gönderebilir")
                     .build());
         }
 
@@ -148,19 +148,25 @@ public class SellGUI extends BaseMenu {
 
         // Onayla
         setItem(CONFIRM_SLOT, MenuItem.builder(Material.LIME_WOOL)
-                .name("&a&l✔ Satışa Çıkar")
-                .lore("&7Eşyayı ihaleye koy")
+                .name("&#55FF55&l✔ ꜱᴀᴛɪꜱᴀ ᴄɪᴋᴀʀ")
+                .lore("&#8c8c8c• &#55FF55Tıkla &#F5F5F5— eşyayı ihaleye koy")
                 .build());
 
         // İptal
         setItem(CANCEL_SLOT, MenuItem.builder(Material.RED_WOOL)
-                .name("&c&l✖ İptal")
-                .lore("&7Geri dön")
+                .name("&#FF5555&l✖ ɪᴘᴛᴀʟ")
+                .lore("&#8c8c8c• &#FF5555Tıkla &#F5F5F5— geri dön")
                 .build());
     }
 
     @Override
-    protected void onClose(Player player) {}
+    protected void onClose(Player player) {
+        // Oyuncu GUI'yi ESC ile kapatırsa seçilen eşyayı envantere geri ver
+        // (normal item için; bundle içindeki eşyalar zaten envanterde durur)
+        if (!suppressingReturn) {
+            returnItemToInventory();
+        }
+    }
 
     @Override
     protected void onClick(InventoryClickEvent event, MenuItem item) {
@@ -170,7 +176,8 @@ public class SellGUI extends BaseMenu {
             ItemStack clicked = event.getCurrentItem();
             if (clicked != null && !clicked.getType().isAir()) {
                 event.setCancelled(true);
-                placeItemFromInventory(clicked);
+                int bottomSlot = event.getRawSlot() - event.getView().getTopInventory().getSize();
+                placeItemFromInventory(clicked, bottomSlot);
             }
             return;
         }
@@ -198,7 +205,8 @@ public class SellGUI extends BaseMenu {
         // Toplu paket (fıçı) — eşya seçimi yapılmışsa fıçıya geç
         if (slot == BUNDLE_SLOT) {
             // Tıklama event'i bitmeden envanter değiştirme → 1 tick ertele
-            Bukkit.getScheduler().runTaskLater(corePlugin, this::openBundleEditor, 1L);
+            // (Folia'da bu işlem oyuncunun kendi region'ında koşmalıdır)
+            corePlugin.getScheduler().runTaskLaterForPlayer(currentPlayer, this::openBundleEditor, 1L);
             return;
         }
 
@@ -275,24 +283,27 @@ public class SellGUI extends BaseMenu {
 
             boolean ok = manager.listItem(currentPlayer, sellItem, totalPrice, config.getExpireHours(), advertised, offersEnabled);
             if (ok) {
-                // Oyuncunun envanterinden eşyayı düş (paketse içindeki her eşyayı)
-                removeFromInventory(currentPlayer, sellItem);
+                // Normal item tıklama anında envanterden düşülmüştü.
+                // Sadece bundle (fıçı) için içindeki eşyaları envanterden düş.
+                if (BundleItems.isBundle(sellItem)) {
+                    removeFromInventory(currentPlayer, sellItem);
+                }
+                this.selectedItem = null;
                 sendMsg("sell.success", "price", String.format("%,.0f", totalPrice));
                 if (onComplete != null) onComplete.accept(true);
                 close(currentPlayer);
             } else {
+                // İlan oluşturulamadı → eşyayı envantere geri ver
+                returnItemToInventory();
                 sendMsg("sell.failed");
+                updateDisplay();
             }
             return;
         }
 
         // İptal
         if (slot == CANCEL_SLOT) {
-            if (selectedItem != null) {
-                ItemStack giveBack = selectedItem.clone();
-                giveBack.setAmount(selectedQuantity);
-                currentPlayer.getInventory().addItem(giveBack);
-            }
+            returnItemToInventory();
             if (onComplete != null) onComplete.accept(false);
             close(currentPlayer);
             manager.openMainMenu(currentPlayer);
@@ -348,10 +359,12 @@ public class SellGUI extends BaseMenu {
 
     /** Fıçı (toplu paket) düzenleyicisini açar. */
     private void openBundleEditor() {
+        suppressingReturn = true;
         close(currentPlayer);
+        suppressingReturn = false;
         new BundleEditGUI().open(currentPlayer, bundleItems -> {
             // Paket hazır → satış GUI'sine dön
-            this.selectedItem = BundleItems.createBundle(bundleItems, "&6&lToplu Paket");
+            this.selectedItem = BundleItems.createBundle(bundleItems, "&#FFB74D&lToplu Paket");
             this.maxQuantity = 1;
             this.selectedQuantity = 1;
             this.selectedPrice = -1;
@@ -365,14 +378,21 @@ public class SellGUI extends BaseMenu {
 
     /**
      * Eşyayı oyuncunun envanterinden satış slotuna koyar (tıklayınca).
-     * Varsayılan miktar tüm destedir; adet kontrolleriyle azaltılabilir.
+     * Dupe önleme: eşya tıklama anında envanterden DÜŞÜLÜR ve
+     * iptal/ESC/listItem hatasında geri verilir.
+     *
+     * @param clicked    tıklanan eşya
+     * @param bottomSlot tıklanan eşyanın alt envanterdeki slotu (0-based)
      */
-    private void placeItemFromInventory(ItemStack clicked) {
+    private void placeItemFromInventory(ItemStack clicked, int bottomSlot) {
+        // Önceki seçim varsa onu geri ver
+        returnItemToInventory();
         this.selectedItem = clicked.clone();
-        // Maksimum miktar = envanterdeki TOPLAM adet (başka slotlardakiler dahil).
-        this.maxQuantity = countInInventory(currentPlayer, clicked.getType());
-        // Varsayılan miktar = tıklanan destenin miktarı.
+        // Maksimum miktar = tıklanan destenin miktarı (güvenli: yalnızca düşülen eşyalar)
+        this.maxQuantity = clicked.getAmount();
         this.selectedQuantity = clicked.getAmount();
+        // Dupe önleme: eşyayı envanterden düş
+        currentPlayer.getInventory().setItem(bottomSlot, null);
         if (selectedPrice <= 0) {
             startPriceInput();
         } else {
@@ -384,8 +404,10 @@ public class SellGUI extends BaseMenu {
      * İmleçteki eşyayı satış slotuna koyar (sürükleme yöntemi).
      */
     private void placeItemFromCursor(ItemStack cursor, InventoryClickEvent event) {
+        // Önceki seçim varsa onu geri ver
+        returnItemToInventory();
         this.selectedItem = cursor.clone();
-        this.maxQuantity = countInInventory(currentPlayer, cursor.getType());
+        this.maxQuantity = cursor.getAmount();
         this.selectedQuantity = cursor.getAmount();
         event.getView().setCursor(null);
         if (selectedPrice <= 0) {
@@ -396,20 +418,37 @@ public class SellGUI extends BaseMenu {
     }
 
     /**
+     * Seçilen eşyayı (normal item) envantere geri verir.
+     * Bundle (fıçı) için no-op — paketin içindeki eşyalar envanterde durur.
+     */
+    private void returnItemToInventory() {
+        if (selectedItem == null) return;
+        if (!BundleItems.isBundle(selectedItem)) {
+            ItemStack giveBack = selectedItem.clone();
+            giveBack.setAmount(selectedQuantity);
+            currentPlayer.getInventory().addItem(giveBack);
+        }
+        selectedItem = null;
+        selectedQuantity = 1;
+    }
+
+    /**
      * Fiyat girişini tıklama event'i BİTTİKTEN sonra (1 tick sonra) açar.
      * Event içinde envanter kapatmak/açmak sorun çıkarabilir.
      */
     private void startPriceInput() {
-        Bukkit.getScheduler().runTaskLater(corePlugin, this::openPriceInput, 1L);
+        corePlugin.getScheduler().runTaskLaterForPlayer(currentPlayer, this::openPriceInput, 1L);
     }
 
     /**
      * Tabela ile fiyat girişi. Bitince GUI state KORUNARAK yeniden açılır.
      */
     private void openPriceInput() {
+        suppressingReturn = true;
         close(currentPlayer);
+        suppressingReturn = false;
         SignInputGUI.create(corePlugin, currentPlayer)
-                .lines("", "~~~~~~~~~~~", "&6Fiyatı yazın", "&7( sayı )")
+                .lines("", "~~~~~~~~~~~", "&#FFD54FFiyatı yazın", "&#8c8c8c( sayı )")
                 .onComplete((p, text) -> {
                     try {
                         selectedPrice = Double.parseDouble(text.trim());
@@ -445,16 +484,16 @@ public class SellGUI extends BaseMenu {
         // TEK fiyat — adet başı değil. Fiyat, ilanın tamamı içindir.
         String priceText = selectedPrice > 0
                 ? String.format("%,.0f₺", selectedPrice)
-                : "§7Belirlenmedi";
+                : "&#FF5555&lʙᴇʟɪʀʟᴇɴᴍᴇᴅɪ";
         MenuItem priceItem = MenuItem.builder(Material.GOLD_NUGGET)
-                .name("&6Fiyat: " + priceText)
-                .lore("&7Tıkla — fiyat belirle")
+                .name("&#FFD54F&lꜰɪʏᴀᴛ: &#FFAA00" + priceText)
+                .lore("&#8c8c8c• &#FFD54FTıkla &#F5F5F5— fiyat belirle")
                 .build();
         setItem(PRICE_SLOT, priceItem);
 
         double bal = manager.getApi().getEconomyManager().getBalance(currentPlayer.getUniqueId());
         setItem(24, MenuItem.builder(Material.SUNFLOWER)
-                .name("&eBakiye: &6" + String.format("%,.0f₺", bal))
+                .name("&#F5F5F5&lʙᴀᴋɪʏᴇ: &#FFAA00" + String.format("%,.0f₺", bal))
                 .build());
     }
 }

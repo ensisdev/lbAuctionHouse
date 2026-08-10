@@ -52,6 +52,22 @@ public class PlayerListener implements Listener {
                     "count", String.valueOf(unclaimed),
                     "command", config.getLangMainCommand()));
         }
+
+        // Bekleyen pazarlık teklifleri — çevrimdışı satıcı hatırlatması
+        int pendingOffers = manager.getNegotiation().getPendingOfferCount(player.getUniqueId());
+        if (pendingOffers > 0) {
+            player.sendMessage(messages.getPrefixed("pazarlik.pending-offers",
+                    "count", String.valueOf(pendingOffers),
+                    "command", config.getLangMainCommand()));
+        }
+
+        // Yenilenebilir (süresi dolmuş) ilanlar — onaylı yenileme hatırlatması
+        int expiredCount = manager.getData().getExpiredListingsByPlayer(player.getUniqueId()).size();
+        if (expiredCount > 0) {
+            player.sendMessage(messages.getPrefixed("auction.listing.expired-notify",
+                    "count", String.valueOf(expiredCount),
+                    "command", config.getLangMainCommand()));
+        }
     }
 
     @EventHandler
@@ -108,10 +124,13 @@ public class PlayerListener implements Listener {
         if (slot >= 0 && slot < maxSlots) {
             ItemStack cursor = event.getCursor();
             if (cursor != null && cursor.getType() != Material.AIR) {
-                // İmleçteki eşyayı koy
+                // İmleçteki eşyayı koy (imleçten 1 adet aktarılır; slot doluysa eski eşya iade edilir)
                 ItemStack placed = cursor.clone();
                 placed.setAmount(1);
-                session.updateSlot(player, slot, placed);
+                ItemStack displaced = session.updateSlot(player, slot, placed);
+                if (displaced != null) {
+                    player.getInventory().addItem(displaced);
+                }
                 if (cursor.getAmount() > 1) {
                     cursor.setAmount(cursor.getAmount() - 1);
                     event.setCursor(cursor);
@@ -120,11 +139,12 @@ public class PlayerListener implements Listener {
                 }
                 refreshPlayerView(player);
             } else if (event.getCurrentItem() != null && event.getCurrentItem().getType() != Material.AIR) {
-                // Slot'taki eşyayı geri al
-                ItemStack taken = event.getCurrentItem().clone();
-                session.updateSlot(player, slot, null);
-                event.setCurrentItem(null);
-                player.getInventory().addItem(taken);
+                // Slot'taki eşyayı geri al (tek iade — dupe önlenir)
+                ItemStack taken = session.updateSlot(player, slot, null);
+                if (taken != null) {
+                    event.setCurrentItem(null);
+                    player.getInventory().addItem(taken);
+                }
                 refreshPlayerView(player);
             }
             return;
@@ -149,9 +169,11 @@ public class PlayerListener implements Listener {
         String title = event.getView().getTitle();
         if (title == null || !title.startsWith("§8§lTakas")) return;
 
-        // Diğer oyuncu hala GUI'deyse oturumu kapat
-        if (!session.isClosed()) {
-            tradeService.closeSession(player);
+        // Oturumu her zaman temizle (swap sonrası da map'ten düşer — sızıntı önlenir)
+        // closeSession idempotent'tir: closed bayrağı çift iadeyi engeller.
+        boolean wasClosed = session.isClosed();
+        tradeService.closeSession(player);
+        if (!wasClosed) {
             player.sendMessage("§cTakas GUI'sini kapattın — takas iptal edildi.");
         }
     }

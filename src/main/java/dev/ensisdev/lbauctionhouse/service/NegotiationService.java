@@ -4,7 +4,7 @@ import dev.ensisdev.lbauctionhouse.AuctionManager;
 import dev.ensisdev.lbauctionhouse.LbAuctionHouse;
 import dev.ensisdev.lbauctionhouse.config.AuctionConfig;
 import dev.ensisdev.lbauctionhouse.core.config.LanguageManager;
-import dev.ensisdev.lbauctionhouse.data.AuctionData;
+import dev.ensisdev.lbauctionhouse.data.CollectionEntry;
 import dev.ensisdev.lbauctionhouse.data.AuctionListing;
 import dev.ensisdev.lbauctionhouse.util.ItemNames;
 
@@ -34,12 +34,13 @@ public class NegotiationService {
     private final LbAuctionHouse plugin;
     private final AuctionManager manager;
     private final AuctionConfig config;
-    private final AuctionData data;
+    private final CollectionEntry data;
     private final LanguageManager lang;
 
     private final Map<UUID, Negotiation> offers = new ConcurrentHashMap<>();
     private final Map<UUID, List<UUID>> buyerActive = new ConcurrentHashMap<>();
     private final Map<String, BlockInfo> blocks = new ConcurrentHashMap<>();
+    private final Map<UUID, Long> lastOfferSent = new ConcurrentHashMap<>();
 
     public NegotiationService(LbAuctionHouse plugin, AuctionManager manager) {
         this.plugin = plugin;
@@ -68,7 +69,7 @@ public class NegotiationService {
         boolean blocked(long now) { return blockUntil > now; }
     }
 
-    public enum SendResult { OK, OFFERS_DISABLED, SOLD, SELF, BLOCKED, PRICE_NOT_ALLOWED, ACTIVE_LIMIT, ALREADY_OPEN }
+    public enum SendResult { OK, OFFERS_DISABLED, SOLD, SELF, BLOCKED, PRICE_NOT_ALLOWED, ACTIVE_LIMIT, ALREADY_OPEN, RATE_LIMITED }
     public enum ReplyResult { OK, NOT_FOUND, NOT_YOURS, NOT_OPEN, SOLD }
 
     public SendResult sendOffer(Player buyer, AuctionListing listing, double price) {
@@ -80,6 +81,7 @@ public class NegotiationService {
         if (!offerPriceAllowed(listing, price)) return SendResult.PRICE_NOT_ALLOWED;
         if (activeCount(buyer.getUniqueId()) >= config.getMaxActiveOffersPerPlayer()) return SendResult.ACTIVE_LIMIT;
         if (hasOpenOfferOnListing(listing.id(), buyer.getUniqueId())) return SendResult.ALREADY_OPEN;
+        if (!consumeOfferRateLimit(buyer.getUniqueId())) return SendResult.RATE_LIMITED;
 
         Negotiation offer = new Negotiation(UUID.randomUUID(), listing.id(),
                 buyer.getUniqueId(), buyer.getName(), listing.sellerUUID(),
@@ -90,6 +92,23 @@ public class NegotiationService {
         notifySellerOffer(offer, listing);
         buyer.sendMessage(l("pazarlik.offer-sent", "price", fmt(price), "listing", itemName(listing)));
         return SendResult.OK;
+    }
+
+    /**
+     * Aynı oyuncunun ardışık teklif gönderimleri arasına rate-limit koyar
+     * (config: cooldown.negotiation.offer-ms, varsayılan 750ms).
+     *
+     * @return true — teklif gönderilebilir; false — çok hızlı (rate-limit)
+     */
+    private boolean consumeOfferRateLimit(UUID playerUuid) {
+        int cdMs = Math.max(0, config.getNegotiationOfferCooldownMs());
+        if (cdMs == 0) return true;
+        long now = System.currentTimeMillis();
+        Long prev = lastOfferSent.putIfAbsent(playerUuid, now);
+        if (prev == null) return true;
+        if (now - prev < cdMs) return false;
+        lastOfferSent.put(playerUuid, now);
+        return true;
     }
 
     public boolean offerPriceAllowed(AuctionListing listing, double price) {
@@ -104,6 +123,7 @@ public class NegotiationService {
         if (listingSold(base.listingId())) return ReplyResult.SOLD;
         replacePrice(base, Status.ACCEPTED);
         sendConfirmToBuyer(base);
+        sendOfferAcceptedWebhook(base);
         return ReplyResult.OK;
     }
 
@@ -153,6 +173,7 @@ public class NegotiationService {
         if (listingSold(o.listingId())) return ReplyResult.SOLD;
         replacePrice(o, Status.ACCEPTED);
         sendConfirmToBuyer(o);
+        sendOfferAcceptedWebhook(o);
         return ReplyResult.OK;
     }
 
@@ -173,7 +194,13 @@ public class NegotiationService {
     }
     public void complete(UUID offerId) {
         Negotiation o = offers.remove(offerId);
-        if (o != null) buyerActive.getOrDefault(o.buyerUuid(), List.of()).remove(offerId);
+        if (o != null) {
+            List<UUID> active = buyerActive.get(o.buyerUuid());
+            if (active != null) {
+                active.remove(offerId);
+                if (active.isEmpty()) buyerActive.remove(o.buyerUuid());
+            }
+        }
     }
     public boolean isBlocked(UUID buyer, UUID seller) {
         BlockInfo b = blocks.get(key(buyer, seller));
@@ -255,5 +282,35 @@ public class NegotiationService {
         buyer.sendMessage(l("pazarlik.confirm-invite", "price", fmt(o.price()))
                 .append(Component.text(" "))
                 .append(btn("§a[Satın Al ✓]", "/" + config.getLangMainCommand() + " teklif satin " + o.id())));
+    }
+
+    /** Kabul edilen teklifi Discord'a bildirir (async). */
+    private void sendOfferAcceptedWebhook(Negotiation o) {
+        if (!config.isDiscordWebhookEnabled()) return;
+        String whUrl = config.getDiscordWebhookUrl();
+        AuctionListing listing = data.getListing(o.listingId());
+        String itemName = listing != null ? itemName(listing) : "?";
+        String sellerName = listing != null ? listing.sellerName() : "?";
+        plugin.getScheduler().runTaskAsynchronously(
+                () -> dev.ensisdev.lbauctionhouse.util.DiscordWebhook.notifyOfferAccepted(
+                        whUrl, o.buyerName(), sellerName, itemName, o.price()));
+    }
+
+    /** Satıcının cevaplanmamış (açık) teklif sayısı — join uyarısı için. */
+    public int getPendingOfferCount(UUID sellerUuid) {
+        int count = 0;
+        for (Negotiation o : offers.values()) {
+            if (o.isOpen() && o.sellerUuid().equals(sellerUuid)) count++;
+        }
+        return count;
+    }
+
+    /** Satıcının cevaplanmamış tekliflerinin listesi. */
+    public List<Negotiation> getPendingOffers(UUID sellerUuid) {
+        List<Negotiation> result = new ArrayList<>();
+        for (Negotiation o : offers.values()) {
+            if (o.isOpen() && o.sellerUuid().equals(sellerUuid)) result.add(o);
+        }
+        return result;
     }
 }

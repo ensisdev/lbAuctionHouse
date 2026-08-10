@@ -32,7 +32,7 @@ public class BundleEditGUI extends BaseMenu {
     private Runnable onCancel;
 
     public BundleEditGUI() {
-        super("auction_bundle", "&8&l» &6&l"+ dev.ensisdev.lbauctionhouse.util.SmallCaps.toSmallCaps("TOPLU PAKET")+" &8&l«", 6);
+        super("auction_bundle", "&8&l» <gradient:#FFB74D:#FFD54F>"+ dev.ensisdev.lbauctionhouse.util.SmallCaps.toSmallCaps("TOPLU PAKET")+"</gradient> &8&l«", 6);
     }
 
     public void open(Player player, Consumer<List<ItemStack>> onComplete, Runnable onCancel) {
@@ -46,26 +46,26 @@ public class BundleEditGUI extends BaseMenu {
     @Override
     protected void onOpen(Player player) {
         clear();
-        fillEmpty(MenuItem.builder(Material.GRAY_STAINED_GLASS_PANE).name(" ").build());
+        fillEmpty(MenuItem.builder(Material.BLACK_STAINED_GLASS_PANE).name(" ").build());
 
         for (int i = 0; i < items.size() && i <= GRID_END; i++) {
             setItem(i, MenuItem.builder(items.get(i).clone()).build());
         }
 
         setItem(DONE_SLOT, MenuItem.builder(Material.LIME_WOOL)
-                .name("&a&l✔ Tamam — Paketle")
-                .lore("&7Eşyaları paketleyip sat")
+                .name("&#55FF55&l✔ ᴛᴀᴍᴀᴍ — ᴘᴀᴋᴇᴛʟᴇ")
+                .lore("&#8c8c8c• &#55FF55Tıkla &#F5F5F5— eşyaları paketleyip sat")
                 .build());
         setItem(CANCEL_SLOT, MenuItem.builder(Material.RED_WOOL)
-                .name("&c&l✖ İptal")
-                .lore("&7Satış GUI'sine dön")
+                .name("&#FF5555&l✖ ɪᴘᴛᴀʟ")
+                .lore("&#8c8c8c• &#FF5555Tıkla &#F5F5F5— satış GUI'sine dön")
                 .build());
         setItem(INFO_SLOT, MenuItem.builder(Material.BOOK)
-                .name("&eToplu Paket")
-                .lore("&7Envanterinden eşyaları tıkla,")
-                .lore("&7buraya eklensinler.", "")
-                .lore("&f" + items.size() + "/" + (GRID_END + 1) + " eşya", "")
-                .lore("&7Eklendi: " + items.stream().mapToInt(ItemStack::getAmount).sum() + " adet")
+                .name("&#FFD54F&lᴛᴏᴘʟᴜ ᴘᴀᴋᴇᴛ")
+                .lore("&#8c8c8c• &#F5F5F5Envanterinden eşyaları tıkla,")
+                .lore("&#8c8c8c  buraya eklensinler.", "")
+                .lore("&#F5F5F5" + items.size() + "/" + (GRID_END + 1) + " eşya", "")
+                .lore("&#8c8c8cEklendi: &#FFD54F" + items.stream().mapToInt(ItemStack::getAmount).sum() + " adet")
                 .build());
     }
 
