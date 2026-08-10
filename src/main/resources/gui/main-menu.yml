@@ -65,7 +65,7 @@ navigation:
   previous-page:
     slot: 45
     material: ARROW
-    texture: ""
+    texture: "eyJ0ZXh0dXJlcyI6eyJTS0lOIjp7InVybCI6Imh0dHA6Ly90ZXh0dXJlcy5taW5lY3JhZnQubmV0L3RleHR1cmUvY2RjOWU0ZGNmYTQyMjFhMWZhZGMxYjViMmIxMWQ4YmVlYjU3ODc5YWYxYzQyMzYyMTQyYmFlMWVkZDUifX19"
     name: "&c&l◀ ᴏɴᴄᴇᴋɪ"
     lore:
       - "&#8c8c8c•  &#55FF55Sol Tık &#8c8c8c— önceki sayfaya dön"
@@ -79,7 +79,7 @@ navigation:
   next-page:
     slot: 53
     material: ARROW
-    texture: ""
+    texture: "eyJ0ZXh0dXJlcyI6eyJTS0lOIjp7InVybCI6Imh0dHA6Ly90ZXh0dXJlcy5taW5lY3JhZnQubmV0L3RleHR1cmUvOTU2YTM2MTg0NTllNDNiMjg3YjIyYjdlMjM1ZWM2OTk1OTQ1NDZjNmZjZDZkYzg0YmZjYTRjZjMwYWI5MzExIn19fQ=="
     name: "&a&lꜱᴏɴʀᴀᴋɪ ▶"
     lore:
       - "&#8c8c8c•  &#55FF55Sol Tık &#8c8c8c— sonraki sayfaya geç"
@@ -93,7 +93,7 @@ navigation:
   back:
     slot: 49
     material: BARRIER
-    texture: ""
+    texture: "eyJ0ZXh0dXJlcyI6eyJTS0lOIjp7InVybCI6Imh0dHA6Ly90ZXh0dXJlcy5taW5lY3JhZnQubmV0L3RleHR1cmUvYmViNTg4YjIxYTZmOThhZDFmZjRlMDg1YzU1MmRjYjA1MGVmYzljYWI0MjdmNDYwNDhmMThmYzgwMzQ3NWY3In19fQ=="
     name: "&c&l✖ ɢᴇʀɪ"
     lore:
       - "&#8c8c8c•  &#FF5555Sol Tık &#8c8c8c— ana menüyü kapat"
@@ -107,7 +107,7 @@ navigation:
   my-listings:
     slot: 46
     material: CHEST
-    texture: ""
+    texture: "eyJ0ZXh0dXJlcyI6eyJTS0lOIjp7InVybCI6Imh0dHA6Ly90ZXh0dXJlcy5taW5lY3JhZnQubmV0L3RleHR1cmUvZDQ2NzUxNThjMDc2N2VlNTA4YzUyZDUyNDI2Y2VmM2EyYzJiMjliN2U0ODdjOTI5NTNhMzgyM2Y1NjFkMDZhZiJ9fX0="
     name: "&e&l📋 ɪʟᴀɴʟᴀʀɪᴍ"
     lore:
       - "&#8c8c8c•  &#55FF55Sol Tık &#8c8c8c— aktif ilanlarını yönet"
@@ -121,7 +121,7 @@ navigation:
   collection-box:
     slot: 52
     material: HOPPER
-    texture: ""
+    texture: "eyJ0ZXh0dXJlcyI6eyJTS0lOIjp7InVybCI6Imh0dHA6Ly90ZXh0dXJlcy5taW5lY3JhZnQubmV0L3RleHR1cmUvYjY2M2ExNzg2Mzg0MDBmMTZjNzA3M2M2M2ZlZjEzNTcyZmFiOWI2ZjQyZGY5ZWEwMzljM2IzZjY3NzNmYWY5NCJ9fX0="
     name: "&a&l📦 ᴏᴅᴜʟ ᴋᴜᴛᴜꜱᴜ"
     lore:
       - "&#8c8c8c•  &#55FF55Sol Tık &#8c8c8c— bekleyen ödülleri topla"
@@ -135,7 +135,7 @@ navigation:
   refresh:
     slot: 5
     material: LIME_DYE
-    texture: ""
+    texture: "eyJ0ZXh0dXJlcyI6eyJTS0lOIjp7InVybCI6Imh0dHA6Ly90ZXh0dXJlcy5taW5lY3JhZnQubmV0L3RleHR1cmUvMTFkNzIwY2QzOWRmM2JlNzRiMGNhYzc1ZTM5MzdmMDA4NWEzNzgyNDc0M2NhZDYzMzBkYzlmNDY2NmE0NTEwZCJ9fX0="
     name: "&a&l🔄 ʏᴇɴɪʟᴇ"
     lore:
       - "&#8c8c8c•  &#55FF55Sol Tık &#8c8c8c— listeyi tazele"
@@ -149,7 +149,7 @@ navigation:
   search:
     slot: 48
     material: COMPASS
-    texture: ""
+    texture: "eyJ0ZXh0dXJlcyI6eyJTS0lOIjp7InVybCI6Imh0dHA6Ly90ZXh0dXJlcy5taW5lY3JhZnQubmV0L3RleHR1cmUvYWY0NTI4OWM4YjEzNDZmYjI2NDRlMDhjMGM1NmYwOTZmMDExMjkxZjE5MDRkZDJlNTI2MTA5ZGNmMDlmMWM1MCJ9fX0="
     name: "&d&l🔍 ᴀʀᴀᴍᴀ"
     lore:
       - "&#8c8c8c•  &#55FF55Sol Tık &#8c8c8c— eşya ara"
@@ -189,7 +189,7 @@ search:
 sort:
   slot: 51
   material: HOPPER
-  texture: ""
+  texture: "eyJ0ZXh0dXJlcyI6eyJTS0lOIjp7InVybCI6Imh0dHA6Ly90ZXh0dXJlcy5taW5lY3JhZnQubmV0L3RleHR1cmUvOGViODFlZjg5MDIzNzk2NTBiYTc5ZjQ1NzIzZDZiOWM4ODgzODhhMDBmYzRlMTkyZjM0NTRmZTE5Mzg4MmVlMSJ9fX0="
   name: "&2&l🗂 SIRALA"           # NOT: Ad kodda dinamik üretilir → geçerli mod adı + " ( Tıkla )"
   lore:
     - "&#8c8c8c•  &#55FF55Sol / Sağ Tık &#8c8c8c— sıralamayı değiştir"

@@ -29,7 +29,7 @@ navigation:
   confirm:
     slot: 11
     material: LIME_CONCRETE
-    texture: ""
+    texture: "eyJ0ZXh0dXJlcyI6eyJTS0lOIjp7InVybCI6Imh0dHA6Ly90ZXh0dXJlcy5taW5lY3JhZnQubmV0L3RleHR1cmUvNDMxMmNhNDYzMmRlZjVmZmFmMmViMGQ5ZDdjYzdiNTVhNTBjNGUzOTIwZDkwMzcyYWFiMTQwNzgxZjVkZmJjNCJ9fX0="
     name: "&a&l✔ ᴏɴᴀʏʟᴀ"
     lore:
       - "&#8c8c8c•  &#55FF55Sol Tık &#8c8c8c— satın almayı onayla"
@@ -43,7 +43,7 @@ navigation:
   cancel:
     slot: 15
     material: RED_CONCRETE
-    texture: ""
+    texture: "eyJ0ZXh0dXJlcyI6eyJTS0lOIjp7InVybCI6Imh0dHA6Ly90ZXh0dXJlcy5taW5lY3JhZnQubmV0L3RleHR1cmUvYmViNTg4YjIxYTZmOThhZDFmZjRlMDg1YzU1MmRjYjA1MGVmYzljYWI0MjdmNDYwNDhmMThmYzgwMzQ3NWY3In19fQ=="
     name: "&c&l✖ ɪᴘᴛᴀʟ"
     lore:
       - "&#8c8c8c•  &#FF5555Sol Tık &#8c8c8c— iptal et ve ayrıl"

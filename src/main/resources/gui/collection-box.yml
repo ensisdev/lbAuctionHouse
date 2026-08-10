@@ -28,7 +28,7 @@ navigation:
   close:
     slot: 27
     material: BARRIER
-    texture: ""
+    texture: "eyJ0ZXh0dXJlcyI6eyJTS0lOIjp7InVybCI6Imh0dHA6Ly90ZXh0dXJlcy5taW5lY3JhZnQubmV0L3RleHR1cmUvYmViNTg4YjIxYTZmOThhZDFmZjRlMDg1YzU1MmRjYjA1MGVmYzljYWI0MjdmNDYwNDhmMThmYzgwMzQ3NWY3In19fQ=="
     name: "&c&l✖ ᴋᴀᴘᴀᴛ"
     lore:
       - "&#8c8c8c•  &#FF5555Sol Tık &#8c8c8c— kapat"
@@ -42,7 +42,7 @@ navigation:
   claim-all:
     slot: 35
     material: HOPPER
-    texture: ""
+    texture: "eyJ0ZXh0dXJlcyI6eyJTS0lOIjp7InVybCI6Imh0dHA6Ly90ZXh0dXJlcy5taW5lY3JhZnQubmV0L3RleHR1cmUvYjMxMWU4NDIyNDk3NDUxMTMzMzM4NzhmZDVhOGQ4ZWIyMjgwYmNiYWI3Njg5ZTQ3M2YxNjY5NjIzYTExYzk5NyJ9fX0="
     name: "&a&l✔ ʜᴇᴘꜱɪɴɪ ᴀʟ"
     lore:
       - "&#8c8c8c•  &#55FF55Sol Tık &#8c8c8c— tüm bekleyen ödülleri topla"
