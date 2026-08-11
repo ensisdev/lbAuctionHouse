@@ -1,20 +1,21 @@
 # ============================================================
-# 📚 İHALE KATEGORİLERİ (auction categories)
-# Her kategori bir ikon, görünür ad ve materyal listesi tanımlar.
-# Listedeki herhangi bir materyalle eşleşen eşya o kategoriye düşer.
-# Hiçbir kategoriye uymayan eşyalar "Diğer"e gider.
+# 🗂 EŞYA TÜRLERİ (item types)
+# Her tür bir ikon, görünür ad ve materyal listesi tanımlar.
+# Listedeki herhangi bir materyalle eşleşen eşyanın türü o tür olur.
+# Hiçbir türe uymayan eşyalar lore'da "Diğer" olarak gösterilir
+# ve tür filtresinde "Diğer" altında toplanır.
 #
-# Her kategori alanı:
+# Her tür alanı:
 #   name:            & renk kodu destekli görünür ad
 #   icon:            ItemStack.material (örn: GRASS_BLOCK)
 #   texture:         (opsiyonel) PLAYER_HEAD için base64 skin
 #   glow:            true | false (Enchantment.UNBREAKING ile parlasın)
 #   hide-flags:      true | false (ItemFlag'leri gizle)
-#   sort-priority:   küçük = önce
+#   sort-priority:   küçük = önce (menüde ve eşleştirmede)
 #   materials:       Material enum değerlerinin listesi
 # ============================================================
 
-categories:
+types:
   blocks:
     name: "&6Bloklar"
     icon: GRASS_BLOCK
@@ -332,3 +333,5 @@ categories:
       - PHANTOM_MEMBRANE
       - PRISMARINE_SHARD
       - PRISMARINE_CRYSTALS
+
+

@@ -19,7 +19,6 @@
 favorites: true            # /ihale favorilerim, Favoriler GUI'si, ♥ toggle, PAPI
 search: true               # /ihale arama <kelime>, arama filtresi GUI butonları
 sort: true                 # /ihale siralama, sıralama filtresi GUI butonları
-categories: true           # Kategori menüsü (gui/categories.yml)
 bids: true                 # Teklif (bid) modu — /ihale teklif ve BidHistoryGUI
 negotiation: true          # Pazarlık (offer) modu — /ihale pazarlik, CmdNegotiate
 history: true              # /ihale gecmis ve HistoryGUI

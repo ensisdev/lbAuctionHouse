@@ -50,6 +50,8 @@ public class MainMenuGUI extends BaseMenu {
      * N = config'deki sıralama seçeneği sayısı.
      */
     private int filterMode = 0;
+    /** Aktif tür filtresi — {@code null}=Tümü, {@code ""}=Diğer, aksi tür ID'si. */
+    private String currentType;
     /** Async sayfa çekişlerinde eski isteklerin render edilmemesi için sayaç. */
     private volatile long pageToken = 0;
 
@@ -83,6 +85,7 @@ public class MainMenuGUI extends BaseMenu {
         // Taze açılışta arama/filtre sıfırlanır (paylaşılan GUI örneği çok oyunculu kullanılır).
         this.currentSearch = null;
         this.filterMode = 0;
+        this.currentType = null;
         this.currentPage = 0;
         this.pageData = null;
         applyTitle();
@@ -96,8 +99,23 @@ public class MainMenuGUI extends BaseMenu {
     public void openWithSearch(Player player, String query) {
         this.currentSearch = query;
         this.filterMode = 0;
+        this.currentType = null;
         this.currentPage = 0;
         this.pageData = null;
+        super.open(player);
+    }
+
+    /**
+     * Ana menüyü belirli bir tür filtresiyle açar.
+     * {@code typeId} {@code null} = Tümü, {@code ""} = Diğer, aksi tür ID'si.
+     */
+    public void openWithTypeFilter(Player player, String typeId) {
+        this.currentSearch = null;
+        this.filterMode = 0;
+        this.currentType = typeId;
+        this.currentPage = 0;
+        this.pageData = null;
+        applyTitle();
         super.open(player);
     }
 
@@ -166,7 +184,17 @@ public class MainMenuGUI extends BaseMenu {
             boolean offActive = filterMode == N + offset;
             builder.lore((offActive ? "&#2CCED2&l• " : "&#8c8c8c• ") + (offActive ? "&#2CCED2&l" : "&#F5F5F5") + "💬 " + dev.ensisdev.lbauctionhouse.util.SmallCaps.toSmallCaps("Teklifli"));
         }
-        builder.lore("&#8c8c8c— Tıkla — sırala/filtrele");
+        // Aktif tür filtresi
+        if (currentType == null) {
+            builder.lore("&#8c8c8c•  &#FFD54Fᴛüʀ  &#8c8c8c— &#8c8c8cTümü");
+        } else if (currentType.isEmpty()) {
+            builder.lore("&#8c8c8c•  &#FFD54Fᴛüʀ  &#8c8c8c— &#F5F5F5Diğer");
+        } else {
+            var activeT = config.getTypeById(currentType);
+            String tName = activeT != null ? activeT.name() : currentType;
+            builder.lore("&#2CCED2&l•  &#FFD54Fᴛüʀ  &#8c8c8c— &#F5F5F5" + tName);
+        }
+        builder.lore("&#8c8c8c— Sol Tık sırala · Sağ Tık tür filtrele");
         setItem(s.slot(), builder.build());
     }
 
@@ -230,9 +258,16 @@ public class MainMenuGUI extends BaseMenu {
 
         // Tek huni: sıralama + Favorilerim + Teklifli filtreleri
         if (layout.sort() != null && slot == layout.sort().slot() && config.isSortEnabled()) {
-            cycleMode();
-            currentPage = 0;
-            schedulePage(0);
+            if (right) {
+                // Sağ tık → tür filtre menüsü (guide-benzeri seçim)
+                close(player);
+                new TypeFilterGUI(config, (p, typeId) -> openWithTypeFilter(p, typeId)).open(player);
+            } else {
+                // Sol tık → sıralama modlarını döndür
+                cycleMode();
+                currentPage = 0;
+                schedulePage(0);
+            }
             return;
         }
 
@@ -477,6 +512,16 @@ public class MainMenuGUI extends BaseMenu {
             filtered.removeIf(l -> !l.offersEnabled());
         }
 
+        // Tür filtresi
+        if (currentType != null) {
+            if (currentType.isEmpty()) {
+                // "Diğer": hiçbir türe uymayan eşyalar
+                filtered.removeIf(l -> config.resolveTypeId(l.item()) != null);
+            } else {
+                filtered.removeIf(l -> !currentType.equals(config.resolveTypeId(l.item())));
+            }
+        }
+
         applySort(filtered, sortIndex);
 
         int total = filtered.size();
@@ -571,7 +616,8 @@ public class MainMenuGUI extends BaseMenu {
                 .replace("%seller%", listing.sellerName())
                 .replace("%price%", economy.format(listing.price()))
                 .replace("%time_left%", formatTimeLeft(listing.getTimeLeft()))
-                .replace("%amount%", String.valueOf(listing.item().getAmount()));
+                .replace("%amount%", String.valueOf(listing.item().getAmount()))
+                .replace("%type%", config.resolveTypeName(listing.item()));
     }
 
     private String formatTimeLeft(long ms) {

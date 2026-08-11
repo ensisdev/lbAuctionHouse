@@ -28,7 +28,7 @@ import java.util.logging.Logger;
  *   <li>config.yml — genel ayarlar, vergi, süre, limitler, blacklist</li>
  *   <li>commands.yml — komut adları ve aliaslar</li>
  *   <li>sounds.yml — GUI ses efektleri</li>
- *   <li>gui/categories.yml — kategori tanımları</li>
+ *   <li>type.yml — eşya türü tanımları</li>
  * </ul>
  */
 public class AuctionConfig {
@@ -40,7 +40,7 @@ public class AuctionConfig {
     private FileConfiguration config;
     private FileConfiguration commands;
     private FileConfiguration sounds;
-    private FileConfiguration categories;
+    private FileConfiguration types;
     private FileConfiguration lang;
     /** features.yml → özellik aç/kapa kayıt defteri (runtime güncellenebilir). */
     private FeatureRegistry features;
@@ -76,7 +76,7 @@ public class AuctionConfig {
         loadCommands();   // komut dili (command-lang) loadLanguage'dan ÖNCE yüklenmeli
         loadLanguage();
         loadSounds();
-        loadCategories();
+        loadTypes();
         loadFeatures();   // features.yml — komut ve GUI feature gate'leri için
     }
 
@@ -179,8 +179,8 @@ public class AuctionConfig {
         this.sounds = loadYaml("sounds.yml");
     }
 
-    private void loadCategories() {
-        this.categories = loadYaml("gui/categories.yml");
+    private void loadTypes() {
+        this.types = loadYaml("type.yml");
     }
 
     /**
@@ -194,7 +194,6 @@ public class AuctionConfig {
             defaults.put(FeatureRegistry.Keys.FAVORITES, true);
             defaults.put(FeatureRegistry.Keys.SEARCH, true);
             defaults.put(FeatureRegistry.Keys.SORT, true);
-            defaults.put(FeatureRegistry.Keys.CATEGORIES, true);
             defaults.put(FeatureRegistry.Keys.BIDS, true);
             defaults.put(FeatureRegistry.Keys.NEGOTIATION, true);
             defaults.put(FeatureRegistry.Keys.HISTORY, true);
@@ -767,19 +766,22 @@ public class AuctionConfig {
     public record SoundConfig(Sound sound, float volume, float pitch) {}
 
     // ----------------------------------------------------------------
-    // Kategoriler (gui/categories.yml)
+    // Türler (type.yml) — eşya türü tanımları ve eşleştirme
     // ----------------------------------------------------------------
 
-    public List<Category> getCategories() {
-        List<Category> result = new ArrayList<>();
-        ConfigurationSection sec = categories.getConfigurationSection("categories");
+    /**
+     * type.yml'deki eşya türlerini sort-priority'ye göre sıralı döndürür.
+     */
+    public List<ItemType> getTypes() {
+        List<ItemType> result = new ArrayList<>();
+        ConfigurationSection sec = types.getConfigurationSection("types");
         if (sec == null) return result;
 
         for (String key : sec.getKeys(false)) {
-            ConfigurationSection cat = sec.getConfigurationSection(key);
-            if (cat == null) continue;
+            ConfigurationSection type = sec.getConfigurationSection(key);
+            if (type == null) continue;
             try {
-                String iconStr = cat.getString("icon", "GRASS_BLOCK");
+                String iconStr = type.getString("icon", "GRASS_BLOCK");
                 Material icon;
                 try {
                     icon = Material.valueOf(iconStr.toUpperCase());
@@ -787,17 +789,17 @@ public class AuctionConfig {
                     icon = Material.GRASS_BLOCK;
                 }
                 List<Material> materials = new ArrayList<>();
-                for (String m : cat.getStringList("materials")) {
+                for (String m : type.getStringList("materials")) {
                     try { materials.add(Material.valueOf(m.toUpperCase())); }
                     catch (IllegalArgumentException ignored) {}
                 }
-                int sortPriority = cat.getInt("sort-priority", 50);
-                String texture = cat.getString("texture", "");
-                boolean glow = cat.getBoolean("glow", false);
-                boolean hideFlags = cat.getBoolean("hide-flags", false);
-                result.add(new Category(key, cat.getString("name", key), icon, texture, materials, sortPriority, glow, hideFlags));
+                int sortPriority = type.getInt("sort-priority", 50);
+                String texture = type.getString("texture", "");
+                boolean glow = type.getBoolean("glow", false);
+                boolean hideFlags = type.getBoolean("hide-flags", false);
+                result.add(new ItemType(key, type.getString("name", key), icon, texture, materials, sortPriority, glow, hideFlags));
             } catch (Exception e) {
-                logger.warning("Kategori yüklenemedi: " + key + " — " + e.getMessage());
+                logger.warning("Eşya türü yüklenemedi: " + key + " — " + e.getMessage());
             }
         }
 
@@ -805,19 +807,42 @@ public class AuctionConfig {
         return result;
     }
 
+    /** Tür ID'sine göre eşya türünü döndürür; yoksa {@code null}. */
+    public ItemType getTypeById(String id) {
+        if (id == null || id.isBlank()) return null;
+        for (ItemType t : getTypes()) {
+            if (t.id().equals(id)) return t;
+        }
+        return null;
+    }
+
     /**
-     * Kategori tanımı — ikon materyali, görünür ad ve materyal listesi.
+     * Bir eşyanın materyaline göre tür ID'sini döndürür.
+     * Hiçbir türe uymuyorsa {@code null} ("Diğer").
+     */
+    public String resolveTypeId(org.bukkit.inventory.ItemStack item) {
+        if (item == null) return null;
+        for (ItemType t : getTypes()) {
+            if (t.materials().contains(item.getType())) return t.id();
+        }
+        return null;
+    }
+
+    /** Bir eşyanın görünür tür adını döndürür (uymayan eşya "Diğer"). */
+    public String resolveTypeName(org.bukkit.inventory.ItemStack item) {
+        ItemType t = getTypeById(resolveTypeId(item));
+        return t != null ? t.name() : "Diğer";
+    }
+
+    /**
+     * Eşya türü tanımı — ikon materyali, görünür ad ve materyal listesi.
      * Tam özelleştirme destekler: {@code texture} (Player Head base64),
      * {@code glow} (Enchantment.UNBREAKING ile parlasın), {@code hideFlags}
      * (tüm ItemFlag'leri gizle).
      */
-    public record Category(String id, String name, Material icon, String texture,
+    public record ItemType(String id, String name, Material icon, String texture,
                            List<Material> materials, int sortPriority,
                            boolean glow, boolean hideFlags) {
-        /** Geriye dönük uyumluluk. */
-        public Category(String id, String name, Material icon, List<Material> materials, int sortPriority) {
-            this(id, name, icon, "", materials, sortPriority, false, false);
-        }
     }
 
     // ----------------------------------------------------------------

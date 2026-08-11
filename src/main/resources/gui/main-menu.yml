@@ -192,7 +192,8 @@ sort:
   texture: "eyJ0ZXh0dXJlcyI6eyJTS0lOIjp7InVybCI6Imh0dHA6Ly90ZXh0dXJlcy5taW5lY3JhZnQubmV0L3RleHR1cmUvOGViODFlZjg5MDIzNzk2NTBiYTc5ZjQ1NzIzZDZiOWM4ODgzODhhMDBmYzRlMTkyZjM0NTRmZTE5Mzg4MmVlMSJ9fX0="
   name: "&2&l🗂 SIRALA"           # NOT: Ad kodda dinamik üretilir → geçerli mod adı + " ( Tıkla )"
   lore:
-    - "&#8c8c8c•  &#55FF55Sol / Sağ Tık &#8c8c8c— sıralamayı değiştir"
+    - "&#8c8c8c•  &#55FF55Sol Tık &#8c8c8c— sıralamayı değiştir"
+    - "&#8c8c8c•  &#2CCED2Sağ Tık &#8c8c8c— tür filtresi (type.yml)"
   options:
     # NOT: Bu liste yalnızca görsel/bilgi amaçlıdır; sort butonunun
     # döngüsü ve gösterimi config.yml → sorting.options listesinden gelir.
@@ -226,13 +227,14 @@ content-slots: "10,11,12,13,14,15,16,19,20,21,22,23,24,25,28,29,30,31,32,33,34,3
 
 # ============================================================
 # LORE-FORMAT — listedeki her eşya için uygulanan lore şablonu
-# Desteklenen değişkenler: %seller%, %price%, %time_left%, %amount%
+# Desteklenen değişkenler: %seller%, %price%, %time_left%, %amount%, %type%
 # ============================================================
 lore-format:
   - "&#8c8c8c•  &#FFD54Fꜱᴀᴛɪᴄɪ &#8c8c8c— &#F5F5F5%seller%"
   - "&#8c8c8c•  &#FFD54Fꜰɪʏᴀᴛ  &#8c8c8c— &#FFAA00%price%"
   - "&#8c8c8c•  &#FFD54Fᴋᴀʟᴀɴ  &#8c8c8c— &#F5F5F5%time_left%"
   - "&#8c8c8c•  &#FFD54Fᴀᴅᴇᴛ   &#8c8c8c— &#F5F5F5%amount%"
+  - "&#8c8c8c•  &#FFD54Fᴛüʀ    &#8c8c8c— &#F5F5F5%type%"
   - ""
   - "&#8c8c8c•  &#55FF55Sol Tık  &#8c8c8c— satın al"
   - "&#8c8c8c•  &#2CCED2Sağ Tık  &#8c8c8c— detayları gör"

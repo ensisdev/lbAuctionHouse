@@ -32,7 +32,6 @@ import java.util.logging.Logger;
  *   favorites              → /ihale favorilerim, FavoritesGUI, ♥ toggle, PAPI
  *   search                 → /ihale arama, search GUI button & filter
  *   sort                   → /ihale siralama, sort GUI buttons & filter
- *   categories             → kategori menüsü (categories.yml)
  *   bids                   → teklif (bid) modu ve CmdBid
  *   negotiation            → pazarlık (offer) modu ve CmdNegotiate
  *   history                → /ihale gecmis ve HistoryGUI
@@ -62,7 +61,6 @@ public final class FeatureRegistry {
         public static final String FAVORITES        = "favorites";
         public static final String SEARCH           = "search";
         public static final String SORT             = "sort";
-        public static final String CATEGORIES       = "categories";
         public static final String BIDS             = "bids";
         public static final String NEGOTIATION      = "negotiation";
         public static final String HISTORY          = "history";
